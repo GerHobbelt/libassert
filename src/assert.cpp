@@ -1,5 +1,7 @@
 #define LIBASSERT_IS_CPP
+#ifndef _CRT_SECURE_NO_WARNINGS 
 #define _CRT_SECURE_NO_WARNINGS // done only for strerror
+#endif
 #include "assert.hpp"
 
 // Copyright (c) 2021-2022 Jeremy Rifkin under the MIT license
