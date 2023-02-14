@@ -7,6 +7,13 @@ constexpr int bar(int x) {
     return x / 2;
 }
 
+
+#if defined(BUILD_MONOLITHIC)
+#define main    assert_constexpr_contexts_main
+#endif
+
 int main() {
     foo<bar(2)>();
+
+	return 0;
 }

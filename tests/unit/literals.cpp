@@ -53,6 +53,11 @@ template<typename... T> std::string stringf(T... args) {
 
 #define let auto
 
+
+#if defined(BUILD_MONOLITHIC)
+#define main    assert_literals_main
+#endif
+
 int main() {
     std::string match_raw = R"QQ(
         0b0

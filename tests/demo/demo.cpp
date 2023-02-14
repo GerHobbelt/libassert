@@ -1,5 +1,9 @@
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS // for fopen
+#endif
 
+#define ASSERT_FAIL          custom_fail
+#define ASSERT_LOWERCASE
 #include "assert.hpp"
 
 #include <array>
@@ -112,28 +116,28 @@ int garple() {
     return 2;
 }
 
-void rec(int n) {
+static void rec(int n) {
     if(n == 0) assert(false);
     else rec(n - 1); // NOLINT(readability-braces-around-statements)
 }
 
-void recursive_a(int), recursive_b(int);
+static void recursive_a(int), recursive_b(int);
 
-void recursive_a(int n) {
+static void recursive_a(int n) {
     if(n == 0) assert(false);
     else recursive_b(n - 1); // NOLINT(readability-braces-around-statements)
 }
 
-void recursive_b(int n) {
+static void recursive_b(int n) {
     if(n == 0) assert(false);
     else recursive_a(n - 1); // NOLINT(readability-braces-around-statements)
 }
 
-auto min_items() {
+static auto min_items() {
     return 10;
 }
 
-void zoog(std::map<std::string, int> map) {
+static void zoog(std::map<std::string, int> map) {
     #if __cplusplus >= 202002L
      assert(map.contains("foo"), "expected key not found", map);
     #else
@@ -143,15 +147,15 @@ void zoog(std::map<std::string, int> map) {
 }
 
 #define O_RDONLY 0
-int open(const char*, int) {
+static int open(const char*, int) {
     return -1;
 }
 
-std::optional<float> get_param() {
+static std::optional<float> get_param() {
     return {};
 }
 
-int get_mask() {
+static int get_mask() {
     return 0b00101101;
 }
 
@@ -389,8 +393,15 @@ namespace libassert::detail {
     void enable_virtual_terminal_processing_if_needed();
 }
 
+
+#if defined(BUILD_MONOLITHIC)
+#define main    assert_demo_main
+#endif
+
 int main() {
     libassert::detail::enable_virtual_terminal_processing_if_needed();
     foo f;
     f.bar<int>({});
+
+	return 0;
 }

@@ -18,6 +18,11 @@ namespace libassert::detail {
     [[nodiscard]] std::string highlight(const std::string& expression);
 }
 
+
+#if defined(BUILD_MONOLITHIC)
+#define main    assert_disambiguation_main
+#endif
+
 int main() {
     std::tuple<std::string, std::string_view, bool> tests[] = {
         {"a < 1 == 2 > ( 1 + 3 )", "==", true},

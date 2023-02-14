@@ -1,3 +1,4 @@
+#define ASSERT_FAIL          custom_fail
 #undef ASSERT_LOWERCASE
 #include <cassert>
 #include "assert.hpp"
@@ -48,6 +49,11 @@ struct only_move_constructable {
         return x == y;
     }
 };
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main    assert_type_handling_main
+#endif
 
 int main() {
     // test rvalue

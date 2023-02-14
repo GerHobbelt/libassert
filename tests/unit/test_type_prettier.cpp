@@ -2,6 +2,11 @@
 
 #include <iostream>
 
+
+#if defined(BUILD_MONOLITHIC)
+#define main    assert_test_type_prettier_main
+#endif
+
 int main() {
     bool success = true;
     auto test = [&success](const std::string& type, const std::string& expected) {

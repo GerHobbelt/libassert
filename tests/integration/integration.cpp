@@ -1,3 +1,5 @@
+#define ASSERT_FAIL          custom_fail
+#define ASSERT_LOWERCASE
 #include "assert.hpp"
 
 #include <algorithm>
@@ -57,11 +59,11 @@ struct debug_print_customization {
     return "(debug_print_customization = " + std::to_string(p.x) + ")";
 }
 
-int foo() {
+static int foo() {
     std::cout<<"foo() called"<<std::endl;
     return 2;
 }
-int bar() {
+static int bar() {
     std::cout<<"bar() called"<<std::endl;
     return -2;
 }
@@ -117,19 +119,19 @@ namespace complex_typing {
 }
 
 #line 500
-void rec(int n) {
+static void rec(int n) {
     if(n == 0) assert(false);
     else rec(n - 1); // NOLINT(readability-braces-around-statements)
 }
 
-void recursive_a(int), recursive_b(int);
+static void recursive_a(int), recursive_b(int);
 
-void recursive_a(int n) {
+static void recursive_a(int n) {
     if(n == 0) assert(false);
     else recursive_b(n - 1); // NOLINT(readability-braces-around-statements)
 }
 
-void recursive_b(int n) {
+static void recursive_b(int n) {
     if(n == 0) assert(false);
     else recursive_a(n - 1); // NOLINT(readability-braces-around-statements)
 }
@@ -449,8 +451,15 @@ public:
 
 struct N { };
 
-#line 400
+
+#if defined(BUILD_MONOLITHIC)
+#define main    assert_integration_main
+#endif
+
+#line 458
 int main() {
     test_class<int> t;
     t.something(std::pair {N(), 1});
+
+	return 0;
 }
