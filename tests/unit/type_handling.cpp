@@ -9,6 +9,8 @@
 
 using namespace libassert::detail;
 
+namespace {
+
 void custom_fail(libassert::assert_type, libassert::ASSERTION, const libassert::assertion_printer& printer) {
     std::cerr<<printer(libassert::utility::terminal_width(2))<<std::endl<<std::endl;
     abort();
@@ -49,6 +51,8 @@ struct only_move_constructable {
         return x == y;
     }
 };
+
+} // anonymous namespace
 
 
 #if defined(BUILD_MONOLITHIC)

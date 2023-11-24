@@ -33,6 +33,8 @@
 void qux();
 void wubble();
 
+namespace {
+
 void custom_fail(libassert::assert_type, libassert::ASSERTION, const libassert::assertion_printer& printer) {
     std::cerr<<printer(libassert::utility::terminal_width(STDERR_FILENO))<<std::endl<<std::endl;
 }
@@ -388,6 +390,8 @@ public:
         assert(true); // this should lead to another assert(false) because we're in demo mode*/
     }
 };
+
+} // anonymous namespace
 
 namespace libassert::detail {
     void enable_virtual_terminal_processing_if_needed();

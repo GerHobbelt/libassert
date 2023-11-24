@@ -17,6 +17,8 @@ using namespace std::literals;
 
 void test_path_differentiation();
 
+namespace {
+
 void custom_fail(libassert::assert_type, libassert::ASSERTION, const libassert::assertion_printer& printer) {
     std::cout<<libassert::utility::strip_colors(printer(0))<<std::endl<<std::endl;
 }
@@ -450,6 +452,8 @@ public:
 };
 
 struct N { };
+
+} // anonymous namespace
 
 
 #if defined(BUILD_MONOLITHIC)
