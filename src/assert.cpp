@@ -38,7 +38,9 @@
 #include <utility>
 #include <vector>
 
+#ifdef HAVE_CPPTRACE_HPP
 #include <cpptrace/cpptrace.hpp>
+#endif
 
 #define IS_WINDOWS 0
 
@@ -412,13 +414,17 @@ namespace libassert::detail {
 
     LIBASSERT_ATTR_COLD
     opaque_trace::~opaque_trace() {
-        delete static_cast<cpptrace::raw_trace*>(trace);
-    }
+#ifdef HAVE_CPPTRACE_HPP
+		delete static_cast<cpptrace::raw_trace*>(trace);
+#endif
+	}
 
-    LIBASSERT_ATTR_COLD
+#ifdef HAVE_CPPTRACE_HPP
+	LIBASSERT_ATTR_COLD
     opaque_trace get_stacktrace_opaque() {
-        return {new cpptrace::raw_trace(cpptrace::generate_raw_trace())};
-    }
+		return {new cpptrace::raw_trace(cpptrace::generate_raw_trace())};
+	}
+#endif
 
     /*
      * C++ syntax analysis logic
@@ -1570,7 +1576,8 @@ namespace libassert::detail {
         return output;
     }
 
-    LIBASSERT_ATTR_COLD
+#ifdef HAVE_CPPTRACE_HPP
+	LIBASSERT_ATTR_COLD
     auto get_trace_window(const cpptrace::stacktrace& trace) {
         // Two boundaries: assert_detail and main
         // Both are found here, nothing is filtered currently at stack trace generation
@@ -1714,6 +1721,7 @@ namespace libassert::detail {
         }
         return stacktrace;
     }
+#endif
 
     LIBASSERT_ATTR_COLD binary_diagnostics_descriptor::binary_diagnostics_descriptor() = default;
     LIBASSERT_ATTR_COLD binary_diagnostics_descriptor::binary_diagnostics_descriptor(
@@ -1958,9 +1966,11 @@ namespace libassert {
         sizeof_args(_sizeof_args) {}
 
     LIBASSERT_ATTR_COLD assertion_printer::~assertion_printer() {
-        auto* trace = static_cast<cpptrace::raw_trace*>(raw_trace);
+#ifdef HAVE_CPPTRACE_HPP
+		auto* trace = static_cast<cpptrace::raw_trace*>(raw_trace);
         delete trace;
-    }
+#endif
+	}
 
     LIBASSERT_ATTR_COLD std::string assertion_printer::operator()(int width) const {
         const auto& [ name, type, expr_str, location, args_strings ] = *params;
@@ -1986,10 +1996,12 @@ namespace libassert {
         if(!extra_diagnostics.empty()) {
             output += print_extra_diagnostics(width, extra_diagnostics);
         }
-        // generate stack trace
+#ifdef HAVE_CPPTRACE_HPP
+		// generate stack trace
         output += "\nStack trace:\n";
-        output += print_stacktrace(static_cast<cpptrace::raw_trace*>(raw_trace), width);
-        return output;
+		output += print_stacktrace(static_cast<cpptrace::raw_trace*>(raw_trace), width);
+#endif
+		return output;
     }
 
     LIBASSERT_ATTR_COLD
@@ -2001,10 +2013,12 @@ namespace libassert {
 }
 
 namespace libassert::utility {
-    LIBASSERT_ATTR_COLD [[nodiscard]] std::string stacktrace(int width) {
+#ifdef HAVE_CPPTRACE_HPP
+	LIBASSERT_ATTR_COLD [[nodiscard]] std::string stacktrace(int width) {
         auto trace = cpptrace::generate_raw_trace();
         return print_stacktrace(&trace, width);
     }
+#endif
 }
 
 // Default handler
