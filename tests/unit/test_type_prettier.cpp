@@ -1,6 +1,6 @@
-#include "assert.hpp"
-
 #include <iostream>
+
+#include "assert.hpp"
 
 
 #if defined(BUILD_MONOLITHIC)

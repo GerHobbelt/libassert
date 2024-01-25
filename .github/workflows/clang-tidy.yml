@@ -1,4 +1,4 @@
-name: clang-tidy
+name: lint
 
 on:
   push:
@@ -10,6 +10,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: dependencies
-      run: sudo apt install clang-tidy
+      run: |
+           sudo apt install clang-tidy
+           mkdir build
+           cd build
+           cmake .. -DCMAKE_BUILD_TYPE=Debug
     - name: clang-tidy
-      run: chmod +x lint.sh && ./lint.sh
+      run: |
+           chmod +x lint.sh
+           ./lint.sh
