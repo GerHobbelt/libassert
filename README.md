@@ -4,7 +4,7 @@
 [![tests](https://github.com/jeremy-rifkin/libassert/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/jeremy-rifkin/libassert/actions/workflows/tests.yml)
 [![clang-tidy](https://github.com/jeremy-rifkin/libassert/actions/workflows/clang-tidy.yml/badge.svg?branch=master)](https://github.com/jeremy-rifkin/libassert/actions/workflows/clang-tidy.yml)
 <br/>
-[![Community Discord Link](https://img.shields.io/badge/Chat%20on%20(the%20very%20small)-Community%20Discord-blue?labelColor=2C3239&color=7289DA&style=flat&logo=discord&logoColor=959DA5)](https://discord.gg/P8kvSU6xJJ)
+[![Community Discord Link](https://img.shields.io/badge/Chat%20on%20the%20(very%20small)-Community%20Discord-blue?labelColor=2C3239&color=7289DA&style=flat&logo=discord&logoColor=959DA5)](https://discord.gg/frjaAZvqUZ)
 
 <p align="center">The most over-engineered C++ assertion library</p>
 
@@ -194,9 +194,9 @@ Note: Extra diagnostics are only evaluated in the failure path of an assertion.
 #### Stack Traces <!-- omit in toc -->
 
 A lot of work has been put into generating pretty stack traces and formatting them as nicely as
-possible. [Cpptrace](https://github.com/jeremy-rifkin/cpptrace) is used to provide portable and
-zero-configuration-required stack traces. Optional configurations can be found on the library's
-page.
+possible. [Cpptrace](https://github.com/jeremy-rifkin/cpptrace) is used as a portable and
+self-contained solution for stacktraces pre-C++23. Optional configurations can be found on the
+library's page.
 
 One feature worth noting is that instead of always printing full paths, only the minimum number of
 directories needed to differentiate paths are printed.
@@ -354,7 +354,9 @@ The following configurations can be applied on a per-TU basis:
 - `-DASSERT_LOWERCASE` Enables `assert` alias for `ASSERT`
 - `-DNO_ASSERT_RELEASE_EVAL` Makes `ASSERT` behave as `DEBUG_ASSERT` and traditional &lt;cassert&gt;
 - `-DASSERT_FAIL=fn` Allows a custom failure handler to be provided
-- `-DASSERT_USE_MAGIC_ENUM` use the MagicEnum library to print better diagnostics for enum classes
+- `-DASSERT_USE_MAGIC_ENUM` Use the MagicEnum library to print better diagnostics for enum classes
+- `-DASSERT_STATIC` Can be used to build and link libassert statically
+- `-DASSERT_USE_EXTERNAL_CPPTRACE` Can be used to use an external cpptrace installation rather than through FetchContent
 
 Custom failure actions: These are called when an assertion fails after diagnostic messages are
 printed. Set these macros to the name of the failure action function, signature is expected to be
@@ -517,6 +519,22 @@ FetchContent_MakeAvailable(assert)
 
 add_executable(my_executable main.cpp)
 target_link_libraries(my_executable PRIVATE assert)
+
+# On windows if dynamic linking the .dll will need to be copied to your binary's output folder
+if(WIN32)
+  add_custom_command(
+    TARGET my_executable POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    $<TARGET_FILE:assert>
+    $<TARGET_FILE_DIR:my_executable>
+  )
+  add_custom_command(
+    TARGET my_executable POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    $<TARGET_FILE:cpptrace>
+    $<TARGET_FILE_DIR:my_executable>
+  )
+endif()
 ```
 
 You should then be able to use the library in your code like this:

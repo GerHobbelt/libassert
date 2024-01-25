@@ -40,18 +40,6 @@
 
 #include <cpptrace/cpptrace.hpp>
 
-bool operator==(const cpptrace::stacktrace_frame& a, const cpptrace::stacktrace_frame& b) {
-    return a.address == b.address
-        && a.line == b.line
-        && a.col == b.col
-        && a.filename == b.filename
-        && a.symbol == b.symbol;
-}
-
-bool operator!=(const cpptrace::stacktrace_frame& a, const cpptrace::stacktrace_frame& b) {
-    return !(a == b);
-}
-
 #define IS_WINDOWS 0
 
 #if defined(_WIN32)
@@ -416,34 +404,15 @@ namespace libassert::detail {
         #endif
     }
 
-    LIBASSERT_ATTR_COLD std::string get_executable_path() {
-        #if IS_WINDOWS
-         char buffer[MAX_PATH + 1];
-         int s = GetModuleFileNameA(NULL, buffer, sizeof(buffer));
-         LIBASSERT_PRIMITIVE_ASSERT(s != 0);
-         return buffer;
-        #else
-         // NOLINTNEXTLINE(misc-include-cleaner)
-         char buffer[PATH_MAX + 1];
-         // NOLINTNEXTLINE(misc-include-cleaner)
-         const ssize_t s = readlink("/proc/self/exe", buffer, PATH_MAX);
-         LIBASSERT_PRIMITIVE_ASSERT(s != -1);
-         buffer[s] = 0;
-         return buffer;
-        #endif
-    }
-
     // NOTE: Not thread-safe. Must be called in a thread-safe manner.
     LIBASSERT_ATTR_COLD std::string strerror_wrapper(int e) {
         // NOLINTNEXTLINE(concurrency-mt-unsafe)
         return strerror(e);
     }
 
-    using trace_t = std::vector<cpptrace::stacktrace_frame>;
-
     LIBASSERT_ATTR_COLD
     void* get_stacktrace_opaque() {
-        return new trace_t(cpptrace::generate_trace());
+        return new cpptrace::raw_trace(cpptrace::generate_raw_trace());
     }
 
     /*
@@ -773,7 +742,7 @@ namespace libassert::detail {
                     }
                 }
                 if(!at_least_one_matched) {
-                    throw "error: invalid token";
+                    throw std::logic_error("error: invalid token");
                 }
             }
             return tokens;
@@ -1614,17 +1583,17 @@ namespace libassert::detail {
     }
 
     LIBASSERT_ATTR_COLD
-    auto get_trace_window(const trace_t& trace) {
+    auto get_trace_window(const cpptrace::stacktrace& trace) {
         // Two boundaries: assert_detail and main
         // Both are found here, nothing is filtered currently at stack trace generation
         // (inlining and platform idiosyncrasies interfere)
         size_t start = 0;
-        size_t end = trace.size() - 1;
-        for(size_t i = 0; i < trace.size(); i++) {
-            if(trace[i].symbol.find("libassert::detail::") != std::string::npos) {
+        size_t end = trace.frames.size() - 1;
+        for(size_t i = 0; i < trace.frames.size(); i++) {
+            if(trace.frames[i].symbol.find("libassert::detail::") != std::string::npos) {
                 start = i + 1;
             }
-            if(trace[i].symbol == "main" || trace[i].symbol.find("main(") == 0) {
+            if(trace.frames[i].symbol == "main" || trace.frames[i].symbol.find("main(") == 0) {
                 end = i;
             }
         }
@@ -1637,13 +1606,13 @@ namespace libassert::detail {
     }
 
     LIBASSERT_ATTR_COLD
-    auto process_paths(const trace_t& trace, size_t start, size_t end) {
+    auto process_paths(const cpptrace::stacktrace& trace, size_t start, size_t end) {
         // raw full path -> components
         std::unordered_map<std::string, path_components> parsed_paths;
         // base file name -> path trie
         std::unordered_map<std::string, path_trie> tries;
         for(size_t i = start; i <= end; i++) {
-            const auto& source_path = trace[i].filename;
+            const auto& source_path = trace.frames[i].filename;
             if(!parsed_paths.count(source_path)) {
                 auto parsed_path = parse_path(source_path);
                 auto& file_name = parsed_path.back();
@@ -1670,10 +1639,10 @@ namespace libassert::detail {
     LIBASSERT_ATTR_COLD [[nodiscard]]
     // TODO
     // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-    std::string print_stacktrace(trace_t* raw_trace, int term_width) {
+    std::string print_stacktrace(cpptrace::raw_trace* raw_trace, int term_width) {
         std::string stacktrace;
-        if(raw_trace) {
-            auto& trace = *raw_trace;
+        if(raw_trace && !raw_trace->empty()) {
+            auto trace = raw_trace->resolve();
             // [start, end] is an inclusive range
             auto [start, end] = get_trace_window(trace);
             // prettify signatures
@@ -1698,14 +1667,14 @@ namespace libassert::detail {
             const size_t max_frame_width = n_digits(end - start);
             // do the actual trace
             for(size_t i = start; i <= end; i++) {
-                const auto& [address, line, col, source_path, signature] = trace[i];
+                const auto& [address, line, col, source_path, signature] = trace.frames[i];
                 const std::string line_number = line == 0 ? "?" : std::to_string(line);
                 // look for repeats, i.e. recursion we can fold
                 size_t recursion_folded = 0;
                 if(end - i >= 4) {
                     size_t j = 1;
                     for( ; i + j <= end; j++) {
-                        if(trace[i + j] != trace[i] || trace[i + j].symbol == "??") {
+                        if(trace.frames[i + j] != trace.frames[i] || trace.frames[i + j].symbol == "??") {
                             break;
                         }
                     }
@@ -1827,7 +1796,7 @@ namespace libassert::detail {
     LIBASSERT_ATTR_COLD [[nodiscard]]
     std::string print_binary_diagnostics(size_t term_width, binary_diagnostics_descriptor& diagnostics) {
         auto& [ lstrings, rstrings, a_sstr, b_sstr, multiple_formats, _ ] = diagnostics;
-        const char* a_str = a_sstr.c_str(), *b_str = b_sstr.c_str();
+        const std::string& a_str = a_sstr, &b_str = b_sstr;
         LIBASSERT_PRIMITIVE_ASSERT(!lstrings.empty());
         LIBASSERT_PRIMITIVE_ASSERT(!rstrings.empty());
         // pad all columns where there is overlap
@@ -1849,15 +1818,18 @@ namespace libassert::detail {
         std::string where;
         if(has_useful_where_clause.left || has_useful_where_clause.right) {
             size_t lw = std::max(
-                has_useful_where_clause.left  ? strlen(a_str) : 0,
-                has_useful_where_clause.right ? strlen(b_str) : 0
+                has_useful_where_clause.left  ? a_str.size() : 0,
+                has_useful_where_clause.right ? b_str.size() : 0
             );
             // Limit lw to about half the screen. TODO: Re-evaluate what we want to do here.
             if(term_width > 0) {
                 lw = std::min(lw, term_width / 2 - where_indent - arrow_width);
             }
             where += "    Where:\n";
-            auto print_clause = [term_width, lw, &where](const char* expr_str, std::vector<std::string>& expr_strs) {
+            auto print_clause = [term_width, lw, &where](
+                const std::string& expr_str,
+                std::vector<std::string>& expr_strs
+            ) {
                 if(term_width >= min_term_width) {
                     where += wrapped_print({
                         { where_indent - 1, {{"", ""}} }, // 8 space indent, wrapper will add a space
@@ -1866,8 +1838,12 @@ namespace libassert::detail {
                         { term_width - lw - 8 /* indent */ - 4 /* arrow */, get_values(expr_strs) }
                     });
                 } else {
-                    where += stringf("        %s%*s => ",
-                                     highlight(expr_str).c_str(), int(lw - strlen(expr_str)), "");
+                    where += stringf(
+                        "        %s%*s => ",
+                        highlight(expr_str).c_str(),
+                        int(lw - expr_str.size()),
+                        ""
+                    );
                     where += print_values(expr_strs, lw);
                 }
             };
@@ -1987,7 +1963,7 @@ namespace libassert {
                                 sizeof_args(_sizeof_args) {}
 
     LIBASSERT_ATTR_COLD assertion_printer::~assertion_printer() {
-        auto* trace = static_cast<trace_t*>(raw_trace);
+        auto* trace = static_cast<cpptrace::raw_trace*>(raw_trace);
         delete trace;
     }
 
@@ -2017,7 +1993,7 @@ namespace libassert {
         }
         // generate stack trace
         output += "\nStack trace:\n";
-        output += print_stacktrace(static_cast<trace_t*>(raw_trace), width);
+        output += print_stacktrace(static_cast<cpptrace::raw_trace*>(raw_trace), width);
         return output;
     }
 
@@ -2031,7 +2007,7 @@ namespace libassert {
 
 namespace libassert::utility {
     LIBASSERT_ATTR_COLD [[nodiscard]] std::string stacktrace(int width) {
-        auto trace = cpptrace::generate_trace();
+        auto trace = cpptrace::generate_raw_trace();
         return print_stacktrace(&trace, width);
     }
 }
