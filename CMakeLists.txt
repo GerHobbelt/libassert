@@ -36,6 +36,7 @@ if(ASSERT_STATIC)
   add_library(assert STATIC src/assert.cpp include/assert.hpp)
 else()
   add_library(assert SHARED src/assert.cpp include/assert.hpp)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 
 target_include_directories(
@@ -71,16 +72,17 @@ target_compile_options(
 
 if(ASSERT_USE_EXTERNAL_CPPTRACE)
   find_package(cpptrace REQUIRED)
-  target_link_libraries(assert PRIVATE cpptrace::cpptrace)
+  set(ASSERT_CPPTRACE_TARGET_NAME cpptrace::cpptrace)
 else()
   FetchContent_Declare(
     cpptrace
     GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
-    GIT_TAG        v0.2.1
+    GIT_TAG        4ec11d00de87fa8354170c8956e69b6650774146
   )
   FetchContent_MakeAvailable(cpptrace)
-  target_link_libraries(assert PRIVATE cpptrace)
+  set(ASSERT_CPPTRACE_TARGET_NAME cpptrace::cpptrace)
 endif()
+target_link_libraries(assert PRIVATE ${ASSERT_CPPTRACE_TARGET_NAME})
 
 if(ASSERT_DECOMPOSE_BINARY_LOGICAL)
   target_compile_definitions(assert PUBLIC ASSERT_DECOMPOSE_BINARY_LOGICAL)
@@ -165,7 +167,7 @@ if(PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     add_custom_command(
       TARGET assert POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      $<TARGET_FILE:cpptrace>
+      $<TARGET_FILE:${ASSERT_CPPTRACE_TARGET_NAME}>
       $<TARGET_FILE_DIR:assert>
     )
   endif()
