@@ -24,16 +24,15 @@ jobs:
            cd build
            cmake .. \
             -DCMAKE_BUILD_TYPE=${{matrix.target}} \
-            -DCMAKE_CXX_COMPILER=${{matrix.compiler}} \
-            -DCPPTRACE_BACKTRACE_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/include/backtrace.h \
-            -DASSERT_BUILD_BASIC_TEST=On
+            -DCMAKE_CXX_COMPILER=${{matrix.compiler}}
            make -j
   build-macos:
-    runs-on: macos-13
+    runs-on: macos-14
     strategy:
       fail-fast: false
       matrix:
-        compiler: [g++-13, clang++]
+        compiler: [g++-12, clang++]
+        c_compiler: [g++-12, clang++]
         target: [Debug, Release]
     steps:
     - uses: actions/checkout@v2
@@ -43,11 +42,10 @@ jobs:
            cd build
            cmake .. \
             -DCMAKE_BUILD_TYPE=${{matrix.target}} \
-            -DCMAKE_CXX_COMPILER=${{matrix.compiler}} \
-            -DASSERT_BUILD_BASIC_TEST=On
+            -DCMAKE_CXX_COMPILER=${{matrix.compiler}}
            make -j
   build-windows:
-    runs-on: windows-2019
+    runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
@@ -64,10 +62,9 @@ jobs:
            cmake .. `
             -DCMAKE_BUILD_TYPE=${{matrix.target}} `
             -DCMAKE_CXX_COMPILER=${{matrix.compiler}} `
-            -DASSERT_BUILD_BASIC_TEST=On
            msbuild .\libassert.sln
   build-mingw:
-    runs-on: windows-2019
+    runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
@@ -84,6 +81,5 @@ jobs:
            cmake .. `
             -DCMAKE_BUILD_TYPE=${{matrix.target}} `
             -DCMAKE_CXX_COMPILER=${{matrix.compiler}} `
-            -DASSERT_BUILD_BASIC_TEST=On `
             "-GUnix Makefiles"
            make -j

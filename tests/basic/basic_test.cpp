@@ -4,7 +4,7 @@
 #include <optional>
 #include <type_traits>
 
-#include "assert.hpp"
+#include <libassert/assert.hpp>
 
 std::optional<float> foo() {
     return 2.5f;
@@ -16,7 +16,7 @@ std::optional<float> foo() {
 #endif
 
 int main() {
-    auto f = *ASSERT(foo());
+    auto f = *DEBUG_ASSERT_VAL(foo());
     static_assert(std::is_same<decltype(f), float>::value);
     assert(f == 2.5f);
 

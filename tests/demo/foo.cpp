@@ -1,6 +1,6 @@
-#define ASSERT_LOWERCASE
-#include "assert.hpp"
+#define LIBASSERT_LOWERCASE
+#include <libassert/assert.hpp>
 
 void qux() {
-    assert(false);
+    debug_assert(false);
 }

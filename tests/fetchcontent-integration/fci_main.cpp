@@ -1,4 +1,4 @@
-#include <assert.hpp>
+#include <libassert/assert.hpp>
 
 #include <iostream>
 
@@ -8,9 +8,9 @@
 #endif
 
 int main() {
-    VERIFY(true);
-    ASSUME(true);
     ASSERT(true);
+    ASSUME(true);
+    DEBUG_ASSERT(true);
     std::cout<<"Good to go"<<std::endl;
 	return 0;
 }

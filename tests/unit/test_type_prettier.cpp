@@ -1,6 +1,7 @@
 #include <iostream>
+#include <string>
 
-#include "assert.hpp"
+#include <libassert/assert.hpp>
 
 
 #if defined(BUILD_MONOLITHIC)

@@ -1,4 +1,4 @@
-#include <assert.hpp>
+#include <libassert/assert.hpp>
 
 
 #if defined(BUILD_MONOLITHIC)
@@ -6,8 +6,11 @@
 #endif
 
 int main() {
+#if defined(VERIFY)
     VERIFY(true);
+#endif
     ASSUME(true);
     ASSERT(true);
-	return 0;
+		DEBUG_ASSERT(true);
+		return 0;
 }

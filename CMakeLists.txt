@@ -1,231 +1,209 @@
-cmake_minimum_required(VERSION 3.8...3.23)
+cmake_minimum_required(VERSION 3.14)
 
-if(${CMAKE_VERSION} VERSION_LESS 3.12)
-    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
-endif()
+include(cmake/PreventInSourceBuilds.cmake)
 
+
+# ---- Initialize Project ----
+
+# used to support find_package
+set(package_name "libassert")
+
+# create base project
 project(
   libassert
-  VERSION 1.2.2
+  VERSION 2.0.0
+  DESCRIPTION "The most over-engineered C++ assertion library"
+  HOMEPAGE_URL "https://github.com/jeremy-rifkin/libassert"
   LANGUAGES CXX
 )
 
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+# don't change include order, OptionVariables checks if project is top level
+include(cmake/ProjectIsTopLevel.cmake)
+include(cmake/OptionVariables.cmake)
 
-### libassert uses relocs, -fpic has to be used to allow shared libs to link libassert as a static library.
-##set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-include(GNUInstallDirs)
-include(FetchContent)
-
-option(ASSERT_DECOMPOSE_BINARY_LOGICAL "Enables expression decomposition of && and || (this prevents short circuiting)" OFF)
-option(ASSERT_LOWERCASE "Enables assert alias for ASSERT" OFF)
-option(ASSERT_USE_MAGIC_ENUM "Use the MagicEnum library to print better diagnostics for enum classes" ON)
-option(ASSERT_USE_EXTERNAL_CPPTRACE "Controls whether cpptrace is gathered with FetchContent or fina_package" OFF)
-option(ASSERT_STATIC "Specifies libassert as a static library" OFF)
-set(ASSERT_FAIL "" CACHE STRING "ASSERT_FAIL")
-
-option(ASSERT_BUILD_TESTS "Build tests" OFF)
-option(ASSERT_BUILD_BASIC_TEST "Build basic tests" OFF)
-mark_as_advanced(
-  ASSERT_BUILD_TESTS
-  ASSERT_BUILD_BASIC_TEST
-)
-
-if(ASSERT_STATIC)
-  add_library(assert STATIC src/assert.cpp include/assert.hpp)
-else()
-  add_library(assert SHARED src/assert.cpp include/assert.hpp)
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+if(PROJECT_IS_TOP_LEVEL)
+  if(CMAKE_GENERATOR STREQUAL "Ninja")
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
+    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics")
+    endif()
+    if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+      SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdiagnostics-color=always")
+    elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+      SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcolor-diagnostics")
+    endif()
+  endif()
 endif()
 
-target_include_directories(
-  assert
-  PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/assert/assert>
+
+# ---- Project Dependencies ----
+
+set(LIBASSERT_MAGIC_ENUM_REPO "https://github.com/Neargye/magic_enum.git")
+set(LIBASSERT_MAGIC_ENUM_TAG "e55b9b54d5cf61f8e117cafb17846d7d742dd3b4") # v0.9.5
+
+set(LIBASSERT_CPPTRACE_REPO "https://github.com/jeremy-rifkin/cpptrace.git")
+set(LIBASSERT_CPPTRACE_TAG "7fda402638875e6a265ba5e6ed376dcee4bd29fa") # v0.4.0
+
+# obtain cpptrace
+if(LIBASSERT_USE_EXTERNAL_CPPTRACE)
+  find_package(cpptrace REQUIRED)
+else()
+  include(FetchContent)
+  FetchContent_Declare(
+    cpptrace
+    GIT_REPOSITORY "${LIBASSERT_CPPTRACE_REPO}"
+    GIT_TAG        "${LIBASSERT_CPPTRACE_TAG}"
+  )
+  FetchContent_MakeAvailable(cpptrace)
+endif()
+
+# cpptrace potentially does not have an alias target
+if(NOT TARGET cpptrace::cpptrace)
+  add_library(cpptrace::cpptrace ALIAS cpptrace)
+endif()
+
+
+# ---- Declare Library ----
+
+# target that we can modify (can't modify ALIAS targets)
+# target name should not be the same as ${PROJECT_NAME}, causes add_subdirectory issues
+set(target_name "libassert-lib")
+add_library(${target_name} ${build_type})
+
+# alias to cause error at configuration time instead of link time if target is missing
+add_library(libassert::assert ALIAS ${target_name})
+
+# add /include files to target
+# this is solely for IDE benefit, doesn't affect building, so unconditionally list magic_enum
+target_sources(
+  ${target_name} PRIVATE
+  # include
+  include/libassert/assert.hpp
 )
 
-#set(CMAKE_CXX_FLAGS_REL_WITH_ASSERTS "-O3")
-
-# TODO
-target_compile_features(
-  assert
-  PUBLIC
-  cxx_std_17
+# add /src files to target
+target_sources(
+  ${target_name} PRIVATE
+  # src
+  src/assert.cpp
+  src/analysis.cpp
+  src/utils.cpp
+  src/formatting_and_type_tools.cpp
+  src/stringification.cpp
+  src/platform.cpp
+  src/printing.cpp
+  src/paths.cpp
 )
 
-set_target_properties(
-  assert
-  PROPERTIES
-  CXX_STANDARD_REQUIRED TRUE
-  CXX_EXTENSIONS OFF
+# link dependencies
+target_link_libraries(
+  ${target_name} PUBLIC
+  cpptrace::cpptrace
 )
 
 target_compile_options(
-  assert
+  ${target_name}
   PRIVATE
   $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Werror=return-type -Wshadow -Wundef>
   $<$<CXX_COMPILER_ID:GNU>:-Wuseless-cast -Wnonnull-compare>
   $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX /permissive->
 )
 
-if(ASSERT_USE_EXTERNAL_CPPTRACE)
-  find_package(cpptrace REQUIRED)
-  set(ASSERT_CPPTRACE_TARGET_NAME cpptrace::cpptrace)
-else()
-  FetchContent_Declare(
-    cpptrace
-    GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
-    GIT_TAG        e1f91f18774d04d05bfbd1b37306b87573b4a99c # v0.3.1
+# ---- Generate Build Info Headers ----
+
+# used in export header generated below
+if(build_type STREQUAL "STATIC")
+  target_compile_definitions(${target_name} PUBLIC LIBASSERT_STATIC_DEFINE)
+  set(LIBASSERT_STATIC_DEFINE TRUE)
+endif()
+
+# ---- Library Properties ----
+
+# hide all symbols by default
+# use SameMajorVersion versioning for shared library runtime linker lookup
+set_target_properties(
+  ${target_name} PROPERTIES
+  CXX_VISIBILITY_PRESET hidden
+  VISIBILITY_INLINES_HIDDEN YES
+  VERSION "${PROJECT_VERSION}"
+  SOVERSION "${PROJECT_VERSION_MAJOR}"
+  EXPORT_NAME "assert"
+  OUTPUT_NAME "assert"
+)
+
+# header files generated by CMake
+target_include_directories(
+  ${target_name} SYSTEM PUBLIC
+  "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>"
+)
+
+# header files from /include
+target_include_directories(
+  ${target_name} ${warning_guard} PUBLIC
+  "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+)
+
+# require C++17 support
+target_compile_features(
+  ${target_name}
+  PUBLIC cxx_std_17
+)
+
+if(LIBSANITIZER_BUILD)
+  add_compile_options(-fsanitize=address)
+  add_link_options(-fsanitize=address)
+endif()
+
+if(LIBASSERT_BUILD_TESTING) # TODO: Maybe remove
+  set(LIBASSERT_USE_MAGIC_ENUM ON)
+endif()
+
+# add pre-processor definitions corresponding to CMake options
+# fixme: supposedly generator expressions should work for this
+if(LIBASSERT_USE_MAGIC_ENUM)
+  set(MAGIC_ENUM_OPT_INSTALL ON)
+  if(LIBASSERT_USE_EXTERNAL_MAGIC_ENUM)
+    find_package(magic_enum REQUIRED)
+  else()
+    include(FetchContent)
+    FetchContent_Declare(magic_enum
+      GIT_REPOSITORY "${LIBASSERT_MAGIC_ENUM_REPO}"
+      GIT_TAG        "${LIBASSERT_MAGIC_ENUM_TAG}")
+    FetchContent_MakeAvailable(magic_enum)
+  endif()
+  target_link_libraries(${target_name} PUBLIC magic_enum::magic_enum)
+  target_compile_definitions(
+    ${target_name} PUBLIC
+    # $<$<BOOL:"${ASSERT_USE_MAGIC_ENUM}">:ASSERT_USE_MAGIC_ENUM>
+    LIBASSERT_USE_MAGIC_ENUM
   )
-  FetchContent_MakeAvailable(cpptrace)
-  set(ASSERT_CPPTRACE_TARGET_NAME cpptrace::cpptrace)
-endif()
-target_link_libraries(assert PRIVATE ${ASSERT_CPPTRACE_TARGET_NAME})
-
-if(ASSERT_DECOMPOSE_BINARY_LOGICAL)
-  target_compile_definitions(assert PUBLIC ASSERT_DECOMPOSE_BINARY_LOGICAL)
 endif()
 
-if(ASSERT_LOWERCASE)
-  target_compile_definitions(assert PUBLIC ASSERT_LOWERCASE)
-endif()
 
-if(ASSERT_USE_MAGIC_ENUM)
-  target_compile_definitions(assert PUBLIC ASSERT_USE_MAGIC_ENUM)
-endif()
-
-if(NOT "${ASSERT_FAIL}" STREQUAL "")
-  target_compile_definitions(assert PUBLIC ASSERT_FAIL=${ASSERT_FAIL})
-endif()
-
-if(CMAKE_BUILD_TYPE STREQUAL "")
-  message(FATAL_ERROR "Setting CMAKE_BUILD_TYPE is required")
-endif()
+# ---- Install Rules ----
 
 if(NOT CMAKE_SKIP_INSTALL_RULES)
-  include(CMakePackageConfigHelpers)
-
-  install(
-    TARGETS assert
-    EXPORT assert_targets
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  )
-
-  install(
-    FILES
-    include/assert.hpp
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/assert/assert
-  )
-
-  install(
-    FILES
-    third_party/magic_enum.hpp
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/assert/third_party
-  )
-
-  export(
-    EXPORT assert_targets
-    FILE ${CMAKE_CURRENT_BINARY_DIR}/assert/assert_targets.cmake
-    NAMESPACE assert::
-  )
-
-  configure_package_config_file(
-    cmake/assert-config.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/assert/assert-config.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/assert
-  )
-
-  write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/assert/assert-config-version.cmake
-    VERSION ${PACKAGE_VERSION}
-    COMPATIBILITY SameMajorVersion
-  )
-
-  install(
-    EXPORT assert_targets
-    FILE assert_targets.cmake
-    NAMESPACE assert::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/assert
-  )
-
-  install(
-    FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/assert/assert-config.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/assert/assert-config-version.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/assert
-  )
+  include(cmake/InstallRules.cmake)
 endif()
 
-# Don't run tests when library is used with add_subdirectory
-if(PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  if(WIN32)
-    add_custom_command(
-      TARGET assert POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      $<TARGET_FILE:${ASSERT_CPPTRACE_TARGET_NAME}>
-      $<TARGET_FILE_DIR:assert>
-    )
-  endif()
-  if(ASSERT_BUILD_TESTS)
-    include(CTest)
 
-    set(
-      demo_sources
-      tests/demo/bar.cpp
-      tests/demo/baz/demo.cpp
-      tests/demo/demo.cpp
-      tests/demo/foo.cpp
-    )
-    add_executable(demo ${demo_sources})
-    target_link_libraries(demo PRIVATE assert)
-    target_compile_options(
-      demo
-      PRIVATE
-      "-DASSERT_USE_MAGIC_ENUM"
-      "-DASSERT_FAIL=custom_fail"
-      "-DASSERT_LOWERCASE"
-    )
+# ---- Setup Tests ----
 
-    add_executable(integration tests/integration/integration.cpp tests/integration/a.cpp tests/integration/x/a.cpp)
-    target_link_libraries(integration PRIVATE assert)
-    target_compile_options(
-      integration
-      PRIVATE
-      "-DASSERT_USE_MAGIC_ENUM"
-      "-DASSERT_FAIL=custom_fail"
-      "-DASSERT_LOWERCASE"
-    )
-    add_test(
-      NAME integration
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests
-      COMMAND
-      python3 run-tests.py $<TARGET_FILE:integration> ${CMAKE_BUILD_TYPE} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_STANDARD}
-    )
+if(LIBASSERT_BUILD_TESTING)
 
-    set(
-      unit_test_sources
-      tests/unit/constexpr_contexts.cpp
-      tests/unit/disambiguation.cpp
-      tests/unit/literals.cpp
-      tests/unit/test_public_utilities.cpp
-      tests/unit/test_type_prettier.cpp
-      tests/unit/tokens_and_highlighting.cpp
-      tests/unit/type_handling.cpp
-    )
-    foreach(test_file ${unit_test_sources})
-      get_filename_component(test_name ${test_file} NAME_WE)
-      add_executable(${test_name} ${test_file})
-      target_link_libraries(${test_name} assert)
-      add_test(NAME ${test_name} COMMAND ${test_name})
-    endforeach(test_file ${unit_test_sources})
+  # need to enable testing in case BUILD_TESTING is disabled
+  # ctest expects that the top level project enables testing
+  if(PROJECT_IS_TOP_LEVEL)
+      enable_testing()
   endif()
-  if(ASSERT_BUILD_BASIC_TEST)
-    add_executable(basic tests/basic/basic_test.cpp)
-    target_link_libraries(basic PRIVATE assert)
-  endif()
+
+  # tell unit tests where our files are
+  set(LIBASSERT_BINARY_DIR "${PROJECT_BINARY_DIR}")
+  set(LIBASSERT_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
+
+  # include test project
+  # add_subdirectory(tests)
+  include(tests/CMakeLists.txt)
+
 endif()

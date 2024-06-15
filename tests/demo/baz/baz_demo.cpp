@@ -1,7 +1,7 @@
-#define ASSERT_LOWERCASE
-#include "assert.hpp"
+#define LIBASSERT_LOWERCASE
+#include <libassert/assert.hpp>
 // This file is used for testing path disambiguation
 
 void wubble() {
-	assert(false);
+    debug_assert(false);
 }

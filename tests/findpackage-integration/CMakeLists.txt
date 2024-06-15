@@ -4,5 +4,5 @@ project(demo_project VERSION 0.0.1 LANGUAGES CXX)
 
 add_executable(main main.cpp)
 
-find_package(assert REQUIRED)
-target_link_libraries(main assert::assert)
+find_package(libassert REQUIRED)
+target_link_libraries(main libassert::assert)
