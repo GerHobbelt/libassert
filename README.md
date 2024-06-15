@@ -18,9 +18,11 @@
 - [30-Second Overview](#30-second-overview)
   - [CMake FetchContent Usage](#cmake-fetchcontent-usage)
 - [Philosophy](#philosophy)
+- [Features](#features)
+  - [Custom Failure Handlers](#custom-failure-handlers)
+  - [Smart literal formatting](#smart-literal-formatting)
 - [Methodology](#methodology)
 - [Considerations](#considerations)
-- [Features](#features)
 - [In-Depth Library Documentation](#in-depth-library-documentation)
   - [Assertion Macros](#assertion-macros)
     - [Parameters](#parameters)
@@ -28,7 +30,8 @@
   - [Utilities](#utilities)
   - [Configuration](#configuration)
   - [Assertion information](#assertion-information)
-  - [Custom Failure Handlers](#custom-failure-handlers)
+  - [Stringification](#stringification)
+  - [Custom Failure Handlers](#custom-failure-handlers-1)
   - [Other configurations](#other-configurations)
 - [Usage](#usage)
   - [CMake FetchContent](#cmake-fetchcontent)
@@ -41,6 +44,7 @@
 - [Platform Logistics](#platform-logistics)
 - [Replacing \<cassert\>](#replacing-cassert)
 - [FAQ](#faq)
+- [Cool projects using libassert](#cool-projects-using-libassert)
 - [Comparison With Other Languages](#comparison-with-other-languages)
 
 # 30-Second Overview
@@ -101,7 +105,7 @@ include(FetchContent)
 FetchContent_Declare(
   libassert
   GIT_REPOSITORY https://github.com/jeremy-rifkin/libassert.git
-  GIT_TAG        v0.2.0-alpha # <HASH or TAG>
+  GIT_TAG        v2.0.0-alpha # <HASH or TAG>
 )
 FetchContent_MakeAvailable(libassert)
 target_link_libraries(your_target libassert::assert)
@@ -133,8 +137,8 @@ allow for speedy triage. Unfortunately, existing language and library tooling pr
 
 For example with stdlib assertions an assertion such as `assert(n <= 12);` provides no information upon failure about
 why it failed or what lead to its failure. Providing a stack trace and the value of `n` greatley improves triage and
-debugging. Ideally an assertion failure should provide enough diagnostic information that the programmmer does's have to
-rerun in a debugger to pinpoint the problem.
+debugging. Ideally an assertion failure should provide enough diagnostic information that the programmmer doesn't have
+to rerun in a debugger to pinpoint the problem.
 
 Version 1 of this library was an exploration looking at how much helpful information and functionality could be packed
 into assertions while also providing a quick and easy interface for the developer.
@@ -202,7 +206,7 @@ screenshots above. This is to help enhance readability.
 Libassert supports custom assertion failure handlers:
 
 ```cpp
-void handler(assert_type type, const assertion_info& info) {
+void handler(assert_type type, const assertion_info& assertion) {
     throw std::runtime_error("Assertion failed:\n" + assertion.to_string());
 }
 
@@ -725,19 +729,21 @@ To use the library without cmake first follow the installation instructions at
 [System-Wide Installation](#system-wide-installation), [Local User Installation](#local-user-installation),
 or [Package Managers](#package-managers).
 
-You'll need to tell the compiler where to look for include headers and library files. For more information on linking
-with cpptrace refer to the [cpptrace documentation](https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake).
+Use the following arguments to compile with libassert:
 
-| Compiler                | Platform         | Dependencies                                         |
-| ----------------------- | ---------------- | ---------------------------------------------------- |
-| gcc, clang, intel, etc. | Linux/macos/unix | `-libassert -lcpptrace -ldwarf -lz -lzstd -ldl`      |
-| gcc                     | Windows          | `-libassert -lcpptrace -ldbghelp -ldwarf -lz -lzstd` |
-| msvc                    | Windows          | `assert.lib cpptrace.lib dbghelp.lib`             |
-| clang                   | Windows          | `-libassert -lcpptrace -ldbghelp`                    |
+| Compiler                | Platform         | Dependencies                                              |
+| ----------------------- | ---------------- | --------------------------------------------------------- |
+| gcc, clang, intel, etc. | Linux/macos/unix | `-libassert -I[path] [cpptrace args]` |
+| mingw                   | Windows          | `-libassert -I[path] [cpptrace args]` |
+| msvc                    | Windows          | `assert.lib /I[path] [cpptrace args]` |
+| clang                   | Windows          | `-libassert -I[path] [cpptrace args]` |
 
-Note: Newer libdwarf requires `-lzstd`, older libdwarf does not.
+For the `[path]` placeholder in `-I[path]` and `/I[path]`, specify the path to the include folder containing
+`libassert/assert.hpp`.
 
-Dependencies may differ if different back-ends are manually selected.
+If you are linking statically, you will additionally need to specify `-DLIBASSERT_STATIC_DEFINE`.
+
+For the `[cpptrace args]` placeholder refer to the [cpptrace documentation](https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake).
 
 ## Package Managers
 

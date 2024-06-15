@@ -24,9 +24,9 @@ void test_path_differentiation();
 
 namespace {
 
-void custom_fail(libassert::assert_type type, const libassert::assertion_info& assertion) {
+void custom_fail(const libassert::assertion_info& assertion) {
     std::cout<<assertion.to_string(0, libassert::color_scheme::blank)<<std::endl<<std::endl;
-    if(type == libassert::assert_type::panic) {
+    if(assertion.type() == libassert::assert_type::panic) {
         throw std::runtime_error("foobar");
     }
 }
@@ -445,7 +445,7 @@ struct N { };
 #line 458
 int main() {
     libassert::set_failure_handler(custom_fail);
-    libassert::set_color_output(false);
+    libassert::set_color_scheme(libassert::color_scheme::blank);
     test_class<int> t;
 #line 402
     t.something(std::pair {N(), 1});

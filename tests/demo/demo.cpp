@@ -42,7 +42,7 @@ void wubble();
 
 namespace {
 
-void custom_fail(libassert::assert_type, const libassert::assertion_info& assertion) {
+void custom_fail(const libassert::assertion_info& assertion) {
     std::cerr<<assertion.to_string(libassert::terminal_width(STDERR_FILENO), libassert::color_scheme::ansi_rgb)<<std::endl<<std::endl;
 }
 
@@ -398,17 +398,13 @@ public:
 
 } // anonymous namespace
 
-namespace libassert::detail {
-    LIBASSERT_EXPORT void enable_virtual_terminal_processing_if_needed();
-}
-
 
 #if defined(BUILD_MONOLITHIC)
 #define main    assert_demo_main
 #endif
 
 int main() {
-    libassert::detail::enable_virtual_terminal_processing_if_needed();
+    libassert::enable_virtual_terminal_processing_if_needed();
     libassert::set_failure_handler(custom_fail);
     foo f;
     f.bar<int>({});
