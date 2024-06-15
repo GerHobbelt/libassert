@@ -81,7 +81,7 @@ if(PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
       Catch2
       GIT_SHALLOW    TRUE
       GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-      GIT_TAG        8ac8190e494a381072c89f5e161b92a08d98b37b # v3.5.3
+      GIT_TAG        4e8d92bf02f7d1c8006a0e7a5ecabd8e62d98502 # v3.6.0
     )
     FetchContent_MakeAvailable(Catch2)
 
@@ -110,6 +110,7 @@ if(PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
       tests/unit/type_handling.cpp
       tests/unit/stringify.cpp
       tests/unit/fmt-test.cpp
+      tests/unit/assertion_tests.cpp
     )
     foreach(test_file ${unit_test_sources})
       get_filename_component(test_name ${test_file} NAME_WE)
@@ -117,12 +118,22 @@ if(PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
       add_executable(${test_name} ${test_file})
       target_link_libraries(${test_name} PRIVATE libassert-lib)
       target_include_directories(${test_name} PRIVATE src)
-      add_test(NAME ${test_name} COMMAND ${test_name})
+      target_compile_features(${test_name} PUBLIC cxx_std_17)
+      if(LIBASSERT_USE_CI_WRAPPER)
+        add_test(
+          NAME ${test_name}
+          COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tests/ci-wrapper.py $<TARGET_FILE:${test_name}>
+        )
+      else()
+        add_test(NAME ${test_name} COMMAND ${test_name})
+      endif()
       list(APPEND dsym_targets ${test_name})
     endforeach()
 
     target_link_libraries(lexer PRIVATE GTest::gtest_main)
     target_link_libraries(fmt-test PRIVATE GTest::gtest_main fmt::fmt)
+    target_link_libraries(assertion_tests PRIVATE GTest::gtest_main)
+    target_compile_options(assertion_tests PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/permissive- /Zc:preprocessor>)
     target_compile_definitions(fmt-test PRIVATE LIBASSERT_USE_FMT)
     target_compile_options(lexer PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>)
     target_compile_options(fmt-test PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>)

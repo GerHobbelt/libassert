@@ -8,6 +8,7 @@ include(cmake/PreventInSourceBuilds.cmake)
 # used to support find_package
 set(package_name "libassert")
 
+
 # create base project
 project(
   libassert
@@ -50,7 +51,7 @@ set(LIBASSERT_MAGIC_ENUM_REPO "https://github.com/Neargye/magic_enum.git")
 set(LIBASSERT_MAGIC_ENUM_TAG "e55b9b54d5cf61f8e117cafb17846d7d742dd3b4") # v0.9.5
 
 set(LIBASSERT_CPPTRACE_REPO "https://github.com/jeremy-rifkin/cpptrace.git")
-set(LIBASSERT_CPPTRACE_TAG "14d25fd89ad18b1cadf7584fe5e3db287a848ecd") # v0.5.3
+set(LIBASSERT_CPPTRACE_TAG "ee572226f773eb0916d0f112f8edfb72b08927f7") # v0.5.4
 
 # obtain cpptrace
 if(LIBASSERT_USE_EXTERNAL_CPPTRACE)
@@ -87,6 +88,7 @@ target_sources(
   ${target_name} PRIVATE
   # include
   include/libassert/assert.hpp
+  include/libassert/platform.hpp
 )
 
 # add /src files to target
@@ -96,7 +98,6 @@ target_sources(
   src/assert.cpp
   src/analysis.cpp
   src/utils.cpp
-  src/formatting_and_type_tools.cpp
   src/stringification.cpp
   src/platform.cpp
   src/printing.cpp
@@ -152,10 +153,9 @@ target_include_directories(
   "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
 )
 
-# require C++17 support
 target_compile_features(
   ${target_name}
-  PUBLIC cxx_std_17
+  PUBLIC ${LIBASSERT_DESIRED_CXX_STANDARD}
 )
 
 if(LIBASSERT_SANITIZER_BUILD)
@@ -206,11 +206,6 @@ if(LIBASSERT_BUILD_TESTING)
       enable_testing()
   endif()
 
-  target_compile_definitions(
-    ${target_name} PUBLIC
-    LIBASSERT_BUILD_TESTING
-  )
-
   # tell unit tests where our files are
   set(LIBASSERT_BINARY_DIR "${PROJECT_BINARY_DIR}")
   set(LIBASSERT_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
@@ -218,5 +213,4 @@ if(LIBASSERT_BUILD_TESTING)
   # include test project
   # add_subdirectory(tests)
   include(tests/CMakeLists.txt)
-
 endif()
