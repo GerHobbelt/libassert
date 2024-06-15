@@ -11,6 +11,7 @@
 <p align="center">The most over-engineered C++ assertion library</p>
 
 ### Table of Contents: <!-- omit in toc -->
+
 - [30-Second Overview](#30-second-overview)
 - [In-Depth Library Documentation](#in-depth-library-documentation)
   - [Philosophy](#philosophy)
@@ -161,11 +162,13 @@ it's not noticeably slow.
 Here are some of the most notable features I'd like to highlight:
 
 #### Automatic Expression Decomposition <!-- omit in toc -->
+
 The most important feature this library supports is automatic expression decomposition. No need for
 `ASSERT_LT` or other such hassle, `assert(vec.size() > 10);` is automatically understood, as
 showcased above.
 
 #### Expression Diagnostics <!-- omit in toc -->
+
 Values involved in assert expressions are displayed. Redundant diagnostics like `7 => 7` are
 avoided.
 
@@ -180,6 +183,7 @@ the expression correspond to what values requires some basic expression parsing.
 ambiguous but most expressions can be disambiguated.
 
 #### Extra Diagnostics <!-- omit in toc -->
+
 All assertions in this library support optional diagnostic messages as well as arbitrary other
 diagnostic messages.
 
@@ -610,8 +614,8 @@ Functionality other languages / their standard libraries provide:
 
 |                                    | C/C++ | Rust |  C#  | Java | Python | JavaScript | This Library |
 | :--------------------------------- | :---: | :--: | :--: | :--: | :----: | :--------: | :----------: |
-| Expression string                  | ✔️  |  ❌  |  ❌  |  ❌  |   ❌   |     ❌     |     ✔️     |
-| Location                           | ✔️  | ✔️ | ✔️ | ✔️ |  ✔️  |    ✔️    |     ✔️     |
+| Expression string                  |  ✔️  |  ❌  |  ❌  |  ❌  |   ❌   |     ❌     |     ✔️     |
+| Location                           |  ✔️  | ✔️ | ✔️ | ✔️ |  ✔️  |    ✔️    |     ✔️     |
 | Backtrace                          |  ❌   | ✔️ | ✔️ | ✔️ |  ✔️  |    ✔️    |     ✔️     |
 | Assertion message                  |  ❌   | ✔️ | ✔️ | ✔️ |  ✔️  |    ✔️    |     ✔️     |
 | Extra diagnostics                  |  ❌   | ❌*  | ❌*  |  ❌  |  ❌*   |    ❌*     |     ✔️     |
