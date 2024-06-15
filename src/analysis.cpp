@@ -51,6 +51,10 @@ namespace libassert::detail {
         // class C -> C for msvc
         static const std::regex class_re(R"(\b(class|struct)\s+)");
         replace_all(type, class_re, "");
+        // `anonymous namespace' -> (anonymous namespace) for msvc
+        // this brings it in-line with other compilers and prevents any tokenization/highlighting issues
+        static const std::regex msvc_anonymous_namespace("`anonymous namespace'");
+        replace_all(type, msvc_anonymous_namespace, "(anonymous namespace)");
         // rules to replace std::basic_string -> std::string and std::basic_string_view -> std::string_view
         // rule to replace ", std::allocator<whatever>"
         static const std::pair<std::regex, std::string_view> basic_string = {
@@ -201,6 +205,7 @@ namespace libassert::detail {
                 suffix.c_str()
             );
             // char and string literals
+            // TODO: This needs to be updated
             const std::string escapes = R"(\\[0-7]{1,3}|\\x[\da-fA-F]+|\\.)";
             const std::string char_literal = R"((?:u8|[UuL])?'(?:)" + escapes + R"(|[^\n'])*')";
             escapes_re = std::regex(escapes);
@@ -551,8 +556,8 @@ namespace libassert::detail {
 
         LIBASSERT_ATTR_COLD
         std::pair<std::string, std::string> decompose_expression(
-            const std::string& expression,
-            const std::string_view target_op
+            std::string_view expression,
+            std::string_view target_op
         ) {
             // While automatic decomposition allows something like `assert(foo(n) == bar<n> + n);`
             // treated as `assert_eq(foo(n), bar<n> + n);` we only get the full expression's string
@@ -639,29 +644,26 @@ namespace libassert::detail {
 
     LIBASSERT_ATTR_COLD
     std::string highlight(std::string_view expression, const color_scheme& scheme) {
-        #ifdef NCOLOR
-        return expression;
-        #else
-        auto blocks = analysis::get().highlight(expression, scheme);
-        std::string str;
-        for(auto& block : blocks) {
-            str += block.color;
-            str += block.content;
-            if(!block.color.empty()) {
-                str += scheme.reset;
+        if(scheme == libassert::color_scheme::blank) {
+            return std::string(expression);
+        } else {
+            auto blocks = analysis::get().highlight(expression, scheme);
+            std::string str;
+            for(auto& block : blocks) {
+                str += block.color;
+                str += block.content;
+                if(!block.color.empty()) {
+                    str += scheme.reset;
+                }
             }
+            return str;
         }
-        return str;
-        #endif
     }
 
     LIBASSERT_ATTR_COLD
     std::vector<highlight_block> highlight_blocks(std::string_view expression, const color_scheme& scheme) {
-        #ifdef NCOLOR
-        return expression;
-        #else
+        // TODO: Maybe check scheme == libassert::color_scheme::blank here? Have to consult ramifications.
         return analysis::get().highlight(expression, scheme);
-        #endif
     }
 
     LIBASSERT_ATTR_COLD literal_format get_literal_format(std::string_view expression) {
@@ -678,8 +680,8 @@ namespace libassert::detail {
 
     LIBASSERT_ATTR_COLD
     std::pair<std::string, std::string> decompose_expression(
-        const std::string& expression,
-        const std::string_view target_op
+        std::string_view expression,
+        std::string_view target_op
     ) {
         return analysis::get().decompose_expression(expression, target_op);
     }

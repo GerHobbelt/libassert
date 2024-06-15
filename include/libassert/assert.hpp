@@ -16,6 +16,7 @@
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include <variant>
 #include <vector>
 #ifdef __cpp_lib_expected
  #include <expected>
@@ -94,7 +95,7 @@
  #define LIBASSERT_IS_MSVC 1
  #include <iso646.h> // alternative operator tokens are standard but msvc requires the include or /permissive- or /Za
 #else
- #error "Unsupported compiler"
+ #error "Libassert: Unsupported compiler"
 #endif
 
 #if LIBASSERT_IS_CLANG || LIBASSERT_IS_GCC
@@ -981,6 +982,10 @@ namespace libassert {
     LIBASSERT_EXPORT void set_color_scheme(const color_scheme&);
     LIBASSERT_EXPORT color_scheme get_color_scheme();
 
+    // set separator used for diagnostics, by default it is "=>"
+    // note: not thread-safe
+    LIBASSERT_EXPORT void set_separator(std::string_view separator);
+
     // generates a stack trace, formats to the given width
     [[nodiscard]] LIBASSERT_EXPORT LIBASSERT_ATTR_NOINLINE
     std::string stacktrace(int width = 0, const color_scheme& scheme = get_color_scheme(), std::size_t skip = 0);
@@ -1061,13 +1066,18 @@ namespace libassert {
         operator=(binary_diagnostics_descriptor&&) noexcept(LIBASSERT_GCC_ISNT_STUPID); // = default; in the .cpp
     };
 
+    struct sv_span {
+        const std::string_view* data;
+        std::size_t size;
+    };
+
     // collection of assertion data that can be put in static storage and all passed by a single pointer
     struct LIBASSERT_EXPORT assert_static_parameters {
-        const char* name;
+        std::string_view macro_name;
         assert_type type;
-        const char* expr_str;
+        std::string_view expr_str;
         source_location location;
-        const char* const* args_strings;
+        sv_span args_strings;
     };
 
     struct extra_diagnostic {
@@ -1075,16 +1085,32 @@ namespace libassert {
         std::string stringification;
     };
 
+    namespace detail {
+        class path_handler {
+        public:
+            virtual ~path_handler() = default;
+            virtual std::string_view resolve_path(std::string_view) = 0;
+            virtual bool has_add_path() const;
+            virtual void add_path(std::string_view);
+            virtual void finalize();
+        };
+    }
+
     struct LIBASSERT_EXPORT assertion_info {
-        const assert_static_parameters* static_params; // TODO: Expand...?
-        std::string message;
+        std::string_view macro_name;
+        assert_type type;
+        std::string_view expression_string;
+        std::string_view file_name;
+        std::uint32_t line;
+        std::string_view function;
+        std::optional<std::string> message;
         std::optional<binary_diagnostics_descriptor> binary_diagnostics;
         std::vector<extra_diagnostic> extra_diagnostics;
-        std::string_view pretty_function;
-#ifdef HAVE_CPPTRACE_HPP
-				cpptrace::raw_trace raw_trace;
-#endif
-        size_t sizeof_args;
+        size_t n_args;
+    private:
+        mutable std::variant<cpptrace::raw_trace, cpptrace::stacktrace> trace; // lazy, resolved when needed
+        mutable std::unique_ptr<detail::path_handler> path_handler;
+        detail::path_handler* get_path_handler() const; // will get and setup the path handler
     public:
         assertion_info() = delete;
         assertion_info(
@@ -1092,20 +1118,25 @@ namespace libassert {
 #ifdef HAVE_CPPTRACE_HPP
 						cpptrace::raw_trace&& raw_trace,
 #endif
-					size_t sizeof_args
+            size_t n_args
         );
         ~assertion_info();
         assertion_info(const assertion_info&) = delete;
-        assertion_info(assertion_info&&) = delete;
+        assertion_info(assertion_info&&);
         assertion_info& operator=(const assertion_info&) = delete;
-        assertion_info& operator=(assertion_info&&) = delete;
+        assertion_info& operator=(assertion_info&&);
 
-        // accessors for static_params
-        const char* assertion_name() const;
-        assert_type type() const;
-        const char* expr_str() const;
-        source_location location() const;
-        const char* const* args_strings() const;
+        std::string_view action() const;
+
+        const cpptrace::raw_trace& get_raw_trace() const;
+        const cpptrace::stacktrace& get_stacktrace() const;
+
+        std::string header(int width = 0, const color_scheme& scheme = get_color_scheme()) const;
+        std::string tagline(const color_scheme& scheme = get_color_scheme()) const;
+        std::string statement(const color_scheme& scheme = get_color_scheme()) const;
+        std::string print_binary_diagnostics(int width = 0, const color_scheme& scheme = get_color_scheme()) const;
+        std::string print_extra_diagnostics(int width = 0, const color_scheme& scheme = get_color_scheme()) const;
+        std::string print_stacktrace(int width = 0, const color_scheme& scheme = get_color_scheme()) const;
 
         [[nodiscard]] std::string to_string(int width = 0, const color_scheme& scheme = get_color_scheme()) const;
     };
@@ -1137,7 +1168,7 @@ namespace libassert::detail {
     LIBASSERT_EXPORT bool has_multiple_formats();
 
     [[nodiscard]] LIBASSERT_EXPORT std::pair<std::string, std::string> decompose_expression(
-        const std::string& expression,
+        std::string_view expression,
         std::string_view target_op
     );
 
@@ -1189,22 +1220,22 @@ namespace libassert::detail {
         const char* pretty_function;
     };
 
-    inline void process_arg(
+    inline void process_arg( // TODO: Don't inline
         assertion_info& info,
         size_t,
-        const char* const* const,
+        sv_span,
         const pretty_function_name_wrapper& t
     ) {
-        info.pretty_function = t.pretty_function;
+        info.function = t.pretty_function;
     }
 
     template<typename T>
     LIBASSERT_ATTR_COLD
     // TODO
     // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-    void process_arg(assertion_info& info, size_t i, const char* const* const args_strings, const T& t) {
+    void process_arg(assertion_info& info, size_t i, sv_span args_strings, const T& t) {
         if constexpr(isa<T, strip<decltype(errno)>>) {
-            if(args_strings[i] == errno_expansion) {
+            if(args_strings.data[i] == errno_expansion) {
                 info.extra_diagnostics.push_back({ "errno", bstringf("%2d \"%s\"", t, strerror_wrapper(t).c_str()) });
                 return;
             }
@@ -1220,12 +1251,12 @@ namespace libassert::detail {
                 return;
             }
         }
-        info.extra_diagnostics.push_back({ args_strings[i], generate_stringification(t) });
+        info.extra_diagnostics.push_back({ args_strings.data[i], generate_stringification(t) });
     }
 
     template<typename... Args>
     LIBASSERT_ATTR_COLD
-    void process_args(assertion_info& info, const char* const* const args_strings, Args&... args) {
+    void process_args(assertion_info& info, sv_span args_strings, Args&... args) {
         size_t i = 0;
         (process_arg(info, i++, args_strings, args), ...);
         (void)args_strings;
@@ -1237,8 +1268,6 @@ namespace libassert::detail {
  */
 
 namespace libassert::detail {
-    LIBASSERT_EXPORT size_t count_args_strings(const char* const*);
-
     LIBASSERT_EXPORT void fail(const assertion_info& info);
 
     template<typename A, typename B, typename C, typename... Args>
@@ -1250,11 +1279,11 @@ namespace libassert::detail {
         // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
         Args&&... args
     ) {
-        const auto* args_strings = params->args_strings;
-        const size_t args_strings_count = count_args_strings(args_strings);
+        // const size_t args_strings_count = params->args_strings.size;
         const size_t sizeof_extra_diagnostics = sizeof...(args) - 1; // - 1 for pretty function signature
         LIBASSERT_PRIMITIVE_ASSERT(
-            (sizeof...(args) == 1 && args_strings_count == 2) || args_strings_count == sizeof_extra_diagnostics + 1
+            sizeof...(args) <= params->args_strings.size
+            //(sizeof...(args) == 1 && args_strings_count == 2) || args_strings_count == sizeof_extra_diagnostics + 1
         );
         assertion_info info(
             params,
@@ -1264,7 +1293,7 @@ namespace libassert::detail {
 					sizeof_extra_diagnostics
         );
         // process_args fills in the message, extra_diagnostics, and pretty_function
-        process_args(info, args_strings, args...);
+        process_args(info, params->args_strings, args...);
         // generate binary diagnostics
         if constexpr(is_nothing<C>) {
             static_assert(is_nothing<B> && !is_nothing<A>);
@@ -1301,11 +1330,11 @@ namespace libassert::detail {
         // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
         Args&&... args
     ) {
-        const auto* args_strings = params->args_strings;
-        const size_t args_strings_count = count_args_strings(args_strings);
+        // const size_t args_strings_count = params->args_strings.size;
         const size_t sizeof_extra_diagnostics = sizeof...(args) - 1; // - 1 for pretty function signature
         LIBASSERT_PRIMITIVE_ASSERT(
-            (sizeof...(args) == 1 && args_strings_count == 2) || args_strings_count == sizeof_extra_diagnostics + 1
+            sizeof...(args) <= params->args_strings.size
+            //(sizeof...(args) == 1 && args_strings_count == 2) || args_strings_count == sizeof_extra_diagnostics + 1
         );
         assertion_info info(
             params,
@@ -1315,7 +1344,7 @@ namespace libassert::detail {
 					  sizeof_extra_diagnostics
         );
         // process_args fills in the message, extra_diagnostics, and pretty_function
-        process_args(info, args_strings, args...);
+        process_args(info, params->args_strings, args...);
         // send off
         fail(info);
         LIBASSERT_PRIMITIVE_PANIC("PANIC/UNREACHABLE failure handler returned");
@@ -1497,7 +1526,7 @@ namespace libassert {
     using libassert_params_t = libassert::assert_static_parameters; \
     /* NOLINTNEXTLINE(*-avoid-c-arrays) */ \
     const libassert_params_t* libassert_params = []() -> const libassert_params_t* { \
-        static constexpr const char* const libassert_arg_strings[] = { \
+        static constexpr std::string_view libassert_arg_strings[] = { \
             LIBASSERT_MAP(LIBASSERT_STRINGIFY LIBASSERT_VA_ARGS(__VA_ARGS__)) "" \
         }; \
         static constexpr libassert_params_t _libassert_params = { \
@@ -1505,7 +1534,7 @@ namespace libassert {
             type LIBASSERT_COMMA \
             expr_str LIBASSERT_COMMA \
             {} LIBASSERT_COMMA \
-            libassert_arg_strings LIBASSERT_COMMA \
+            {libassert_arg_strings, sizeof(libassert_arg_strings) / sizeof(std::string_view)} LIBASSERT_COMMA \
         }; \
         return &_libassert_params; \
     }();

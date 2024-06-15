@@ -5,7 +5,7 @@
 
 #include <libassert/assert.hpp>
 
-#include "../../src/analysis.hpp"
+#include "analysis.hpp"
 
 
 #if defined(BUILD_MONOLITHIC)
