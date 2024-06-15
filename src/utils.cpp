@@ -12,6 +12,7 @@
 #endif
 
 #include "utils.hpp"
+#include "microfmt.hpp"
 
 namespace libassert::detail {
     LIBASSERT_ATTR_COLD
@@ -28,16 +29,16 @@ namespace libassert::detail {
             const char* name   = verify ? "verify"       : "assert";
             std::string out_message;
             if(message == nullptr) {
-                out_message += stringf(
-                    "%s failed at %s:%d: %s\n",
+                out_message += microfmt::format(
+                    "{} failed at {}:{}: {}\n",
                     action,
                     location.file,
                     location.line,
                     signature
                 );
             } else {
-                out_message += stringf(
-                    "%s failed at %s:%d: %s: %s\n",
+                out_message += microfmt::format(
+                    "{} failed at {}:{}: {}: {}\n",
                     action,
                     location.file,
                     location.line,
@@ -45,7 +46,7 @@ namespace libassert::detail {
                     message
                 );
             }
-            out_message += stringf("    primitive_%s(%s);\n", name, expression);
+            out_message += microfmt::format("    primitive_{}({});\n", name, expression);
 #ifdef HAVE_CPPTRACE_HPP
 						throw cpptrace::runtime_error(std::move(out_message));
 #else
@@ -59,8 +60,8 @@ namespace libassert::detail {
         source_location location,
         const char* message
     ) {
-        std::string out_message = stringf(
-            "PANIC failed at %s:%d: %s: %s\n",
+        std::string out_message = microfmt::format(
+            "PANIC failed at {}:{}: {}: {}\n",
             location.file,
             location.line,
             signature,

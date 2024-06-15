@@ -1,3 +1,4 @@
+- [libassert 2.0.1](#libassert-201)
 - [libassert 2.0.0](#libassert-200)
 - [libassert 2.0.0-beta](#libassert-200-beta)
 - [libassert 2.0.0-alpha](#libassert-200-alpha)
@@ -7,6 +8,18 @@
 - [libassert 1.1](#libassert-11)
 - [libassert 1.0 🎉](#libassert-10-)
 
+## libassert 2.0.1
+
+Fixed:
+- Fixed issue with determining stringifiability when `T::value_type` is a class named `value_type` with a constructor
+  https://github.com/jeremy-rifkin/libassert/issues/90
+- Fixed issue with an incorrect header being imported in `assert-gtest.hpp`
+  https://github.com/jeremy-rifkin/libassert/issues/87
+
+Other:
+- Improved internal string formatting
+- Improved Catch2 support
+
 ## libassert 2.0.0
 
 Changes since v1:
@@ -14,7 +27,6 @@ Changes since v1:
 **Assertion macros:**
 - Replaced the previous `ASSERT`/`VERIFY` nomenclature with `DEBUG_ASSERT` and `ASSERT`
 - Updated assertion macros to no longer return a value by default
-  - Debug-only assertions no longer have to evaluate the assertion expression, and removed `NO_ASSERT_RELEASE_EVAL`
 - Added `DEBUG_ASSERT_VAL`, `ASSERT_VAL`, and `ASSUME_VAL` variants that return values
 - Added `PANIC` and `UNREACHABLE`
 - Added `LIBASSERT_PREFIX_ASSERTIONS` option to only add assertion macros with a `LIBASSERT_` prefix
