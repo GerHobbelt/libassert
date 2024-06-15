@@ -11,17 +11,29 @@
 #if defined(_MSVC_TRADITIONAL) && _MSVC_TRADITIONAL != 0
  #error "Libassert integration does not work with MSVC's non-conformant preprocessor. /Zc:preprocessor must be used."
 #endif
-#define ASSERT(...) do { try { LIBASSERT_ASSERT(__VA_ARGS__); ASSERT_TRUE(true); } catch(std::exception& e) { ASSERT_TRUE(false) << e.what(); } } while(false)
-#define EXPECT(...) do { try { LIBASSERT_ASSERT(__VA_ARGS__); ASSERT_TRUE(true); } catch(std::exception& e) { EXPECT_TRUE(false) << e.what(); } } while(false)
+#define ASSERT(...) do { try { LIBASSERT_ASSERT(__VA_ARGS__); SUCCEED(); } catch(std::exception& e) { FAIL() << e.what(); } } while(false)
+#define EXPECT(...) do { try { LIBASSERT_ASSERT(__VA_ARGS__); SUCCEED(); } catch(std::exception& e) { ADD_FAILURE() << e.what(); } } while(false)
 
-inline void libassert_failure_handler(const libassert::assertion_info& info) {
-    std::string message = "";
-    throw std::runtime_error(info.header());
+namespace libassert::detail {
+    inline void gtest_failure_handler(const assertion_info& info) {
+        enable_virtual_terminal_processing_if_needed(); // for terminal colors on windows
+        auto width = terminal_width(stderr_fileno);
+        const auto& scheme = isatty(stderr_fileno) ? get_color_scheme() : color_scheme::blank;
+        std::string message = std::string(info.action()) + " at " + info.location() + ":";
+        if(info.message) {
+            message += " " + *info.message;
+        }
+        message += "\n";
+        message += info.statement()
+                + info.print_binary_diagnostics(width, scheme)
+                + info.print_extra_diagnostics(width, scheme);
+        throw std::runtime_error(std::move(message));
+    }
+
+    inline auto pre_main = [] () {
+        set_failure_handler(gtest_failure_handler);
+        return 1;
+    } ();
 }
-
-inline auto libassert_pre_main = [] () {
-    libassert::set_failure_handler(libassert_failure_handler);
-    return 1;
-} ();
 
 #endif

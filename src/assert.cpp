@@ -232,10 +232,10 @@ namespace libassert::detail {
         const color_scheme& scheme
     ) {
         auto& [
-            left_stringification,
-            right_stringification,
             left_expression,
             right_expression,
+            left_stringification,
+            right_stringification,
             multiple_formats
         ] = diagnostics;
         // TODO: Temporary hack while reworking
@@ -352,13 +352,14 @@ namespace libassert::detail {
 }
 
 namespace libassert {
-    LIBASSERT_EXPORT color_scheme color_scheme::ansi_basic {
+    LIBASSERT_EXPORT const color_scheme color_scheme::ansi_basic {
         BASIC_GREEN, /* string */
         BASIC_BLUE, /* escape */
         BASIC_PURPL, /* keyword */
         BASIC_ORANGE, /* named_literal */
         BASIC_CYAN, /* number */
-        BASIC_PURPL, /* operator_token */
+        "",
+        BASIC_PURPL, /* operator */
         BASIC_BLUE, /* call_identifier */
         BASIC_YELLOW, /* scope_resolution_identifier */
         BASIC_BLUE, /* identifier */
@@ -367,13 +368,14 @@ namespace libassert {
         RESET
     };
 
-    LIBASSERT_EXPORT color_scheme color_scheme::ansi_rgb {
+    LIBASSERT_EXPORT const color_scheme color_scheme::ansi_rgb {
         RGB_GREEN, /* string */
         RGB_BLUE, /* escape */
         RGB_PURPL, /* keyword */
         RGB_ORANGE, /* named_literal */
         RGB_CYAN, /* number */
-        RGB_PURPL, /* operator_token */
+        "",
+        RGB_PURPL, /* operator */
         RGB_BLUE, /* call_identifier */
         RGB_YELLOW, /* scope_resolution_identifier */
         RGB_BLUE, /* identifier */
@@ -382,7 +384,7 @@ namespace libassert {
         RESET
     };
 
-    LIBASSERT_EXPORT color_scheme color_scheme::blank;
+    LIBASSERT_EXPORT const color_scheme color_scheme::blank;
 
     std::mutex color_scheme_mutex;
     color_scheme current_color_scheme = color_scheme::ansi_rgb;
@@ -392,7 +394,7 @@ namespace libassert {
         current_color_scheme = scheme;
     }
 
-    LIBASSERT_EXPORT color_scheme get_color_scheme() {
+    LIBASSERT_EXPORT const color_scheme& get_color_scheme() {
         std::unique_lock lock(color_scheme_mutex);
         return current_color_scheme;
     }
@@ -424,7 +426,6 @@ namespace libassert {
 
         LIBASSERT_ATTR_COLD
         void libassert_default_failure_handler(const assertion_info& info) {
-            // TODO: Just throw instead of all of this?
             enable_virtual_terminal_processing_if_needed(); // for terminal colors on windows
             std::string message = info.to_string(
                 terminal_width(STDERR_FILENO),
@@ -463,16 +464,16 @@ namespace libassert {
 
     LIBASSERT_ATTR_COLD binary_diagnostics_descriptor::binary_diagnostics_descriptor() = default;
     LIBASSERT_ATTR_COLD binary_diagnostics_descriptor::binary_diagnostics_descriptor(
-        std::string&& _left_stringification,
-        std::string&& _right_stringification,
         std::string_view _left_expression,
         std::string_view _right_expression,
+        std::string&& _left_stringification,
+        std::string&& _right_stringification,
         bool _multiple_formats
     ):
-        left_stringification(std::move(_left_stringification)),
-        right_stringification(std::move(_right_stringification)),
         left_expression(_left_expression),
         right_expression(_right_expression),
+        left_stringification(std::move(_left_stringification)),
+        right_stringification(std::move(_right_stringification)),
         multiple_formats(_multiple_formats) {}
     LIBASSERT_ATTR_COLD binary_diagnostics_descriptor::~binary_diagnostics_descriptor() = default;
     LIBASSERT_ATTR_COLD
@@ -485,23 +486,11 @@ namespace libassert {
     using namespace detail;
 
     LIBASSERT_ATTR_COLD assertion_info::assertion_info(
-<<<<<<< HEAD
-        const assert_static_parameters* _static_params,
+        const assert_static_parameters* static_params,
 #ifdef HAVE_CPPTRACE_HPP
 				cpptrace::raw_trace&& _raw_trace,
 #endif
-        size_t _sizeof_args
-    ) :
-        static_params(_static_params),
-        pretty_function("<error>"),
-#ifdef HAVE_CPPTRACE_HPP
-			  raw_trace(std::move(_raw_trace)),
-#endif
-        sizeof_args(_sizeof_args) {}
-=======
-        const assert_static_parameters* static_params,
-        cpptrace::raw_trace&& _raw_trace,
-        size_t _n_args
+			  size_t _n_args
     ) :
         macro_name(static_params->macro_name),
         type(static_params->type),
@@ -509,9 +498,11 @@ namespace libassert {
         file_name(static_params->location.file),
         line(static_params->location.line),
         function("<error>"),
-        n_args(_n_args),
-        trace(std::move(_raw_trace)) {}
->>>>>>> 44a2a2d4aecc432577d11bc4473665eb8b2b210d
+#ifdef HAVE_CPPTRACE_HPP
+			  trace(std::move(_raw_trace)),
+#endif
+        n_args(_n_args)
+        {}
 
     LIBASSERT_ATTR_COLD assertion_info::~assertion_info() = default;
 
@@ -524,12 +515,14 @@ namespace libassert {
             // if this is a disambiguating handler or similar it needs to be fed all paths
             if(path_handler->has_add_path()) {
                 path_handler->add_path(file_name);
-                const auto& stacktrace = get_stacktrace();
+#ifdef HAVE_CPPTRACE_HPP
+								const auto& stacktrace = get_stacktrace();
                 for(const auto& frame : stacktrace.frames) {
                     path_handler->add_path(frame.filename);
                 }
+#endif
+								path_handler->finalize();
             }
-            path_handler->finalize();
         }
         return path_handler.get();
     }
@@ -546,7 +539,8 @@ namespace libassert {
         }
     }
 
-    LIBASSERT_ATTR_COLD const cpptrace::raw_trace& assertion_info::get_raw_trace() const {
+#ifdef HAVE_CPPTRACE_HPP
+		LIBASSERT_ATTR_COLD const cpptrace::raw_trace& assertion_info::get_raw_trace() const {
         try {
             return std::get<cpptrace::raw_trace>(trace);
         } catch(std::bad_variant_access&) {
@@ -562,6 +556,7 @@ namespace libassert {
         }
         return std::get<cpptrace::stacktrace>(trace);
     }
+#endif
 
     std::string assertion_info::header(int width, const color_scheme& scheme) const {
         return tagline(scheme)
@@ -590,6 +585,10 @@ namespace libassert {
                 highlight(prettified_function, scheme).c_str()
             );
         }
+    }
+
+    std::string assertion_info::location() const {
+        return stringf("%s:%d", get_path_handler()->resolve_path(file_name).data(), line);
     }
 
     std::string assertion_info::statement(const color_scheme& scheme) const {
@@ -621,20 +620,14 @@ namespace libassert {
         } else {
             return "";
         }
-<<<<<<< HEAD
-#ifdef HAVE_CPPTRACE_HPP
-		// generate stack trace
-        output += "\nStack trace:\n";
-        output += print_stacktrace(raw_trace, width, scheme);
-#endif
-		return output;
-=======
     }
 
-    std::string assertion_info::print_stacktrace(int width, const color_scheme& scheme) const {
+#ifdef HAVE_CPPTRACE_HPP
+		std::string assertion_info::print_stacktrace(int width, const color_scheme& scheme) const {
         std::string output = "Stack trace:\n";
         return libassert::detail::print_stacktrace(get_stacktrace(), width, scheme, get_path_handler());
     }
+#endif
 
     LIBASSERT_ATTR_COLD std::string assertion_info::to_string(int width, const color_scheme& scheme) const {
         // auto& stacktrace = get_stacktrace(); // TODO
@@ -645,11 +638,12 @@ namespace libassert {
         output += statement(scheme);
         output += print_binary_diagnostics(width, scheme);
         output += print_extra_diagnostics(width, scheme);
-        // generate stack trace
+#ifdef HAVE_CPPTRACE_HPP
+				// generate stack trace
         output += "\nStack trace:\n";
         output += print_stacktrace(width, scheme);
-        return output;
->>>>>>> 44a2a2d4aecc432577d11bc4473665eb8b2b210d
+#endif
+				return output;
     }
 }
 
