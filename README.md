@@ -34,6 +34,7 @@
     - [Anatomy of Assertion Information](#anatomy-of-assertion-information)
   - [Stringification of Custom Objects](#stringification-of-custom-objects)
   - [Custom Failure Handlers](#custom-failure-handlers-1)
+  - [Breakpoints](#breakpoints)
   - [Other Donfigurations](#other-donfigurations)
 - [Integration with Test Libraries](#integration-with-test-libraries)
   - [Catch2](#catch2)
@@ -100,12 +101,13 @@ You can enable the lowercase `debug_assert` and `assert` aliases with `-DLIBASSE
 - Syntax highlighting
 - Stack traces
 - `DEBUG_ASSERT_VAL` and `ASSERT_VAL` variants that return a value so they can be integrated seamlessly into code, e.g.
-  `FILE* f = ASSERT_VAL(fopen(path, "r") != nullptr)`.
+  `FILE* f = ASSERT_VAL(fopen(path, "r") != nullptr)`
 - Smart literal formatting
 - Stringification of user-defined types
 - Custom failure handlers
 - Catch2/Gtest integrations
 - {fmt} support
+- Programatic breakpoints on assertion failures for more debugger-friendly assertions, more info [below](#breakpoints)
 
 ## CMake FetchContent Usage
 
@@ -114,7 +116,7 @@ include(FetchContent)
 FetchContent_Declare(
   libassert
   GIT_REPOSITORY https://github.com/jeremy-rifkin/libassert.git
-  GIT_TAG        v2.0.2 # <HASH or TAG>
+  GIT_TAG        v2.1.0 # <HASH or TAG>
 )
 FetchContent_MakeAvailable(libassert)
 target_link_libraries(your_target libassert::assert)
@@ -730,6 +732,50 @@ all assertion types instead of aborting.
 > [!IMPORTANT]
 > Failure handlers must not return for `assert_type::panic` and `assert_type::unreachable`.
 
+## Breakpoints
+
+Libassert supports programatic breakpoints on assertion failure to make assertions more debugger-friendly by breaking on
+the assertion line as opposed to several layers deep in a callstack:
+
+![breakpoints](./screenshots/breakpoint.png)
+
+This functionality is currently opt-in and it can be enabled by defining `LIBASSERT_BREAK_ON_FAIL`. This is best done as
+a compiler flag: `-DLIBASSERT_BREAK_ON_FAIL` or `/DLIBASSERT_BREAK_ON_FAIL`.
+
+Internally the library checks for the presense of a debugger before executing an instruction to breakpoint the debugger.
+By default the check is only performed once on the first assertion failure. In some scenarios it may be desirable to
+configure this check to always be performed, e.g. if you're using a custom assertion handler that throws an exception
+instead of aborting and you may be able to recover from an assertion failure allowing additional failures later and you
+only attach a debugger part-way through the run of your program. You can use `libassert::set_debugger_check_mode` to
+control how this check is performed:
+
+```cpp
+namespace libassert {
+    enum class debugger_check_mode {
+        check_once,
+        check_every_time,
+    };
+    void set_debugger_check_mode(debugger_check_mode mode) noexcept;
+}
+```
+
+The library also exposes its internal utilities for setting breakpoints and checking if the program is being debugged:
+
+```cpp
+namespace libassert {
+    bool is_debugger_present() noexcept;
+}
+#define LIBASSERT_BREAKPOINT() <...internals...>
+#define LIBASSERT_BREAKPOINT_IF_DEBUGGING() <...internals...>
+```
+
+This API mimics the API of [P2514](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2546r3.html), which has
+been accepted to C++26.
+
+A note about `constexpr`: For clang and msvc libassert can use compiler intrinsics, however, for gcc inline assembly is
+required. Inline assembly isn't allowed in constexpr functions pre-C++20, however, gcc supports it with a warning after
+gcc 10 and the library can surpress that warning for gcc 12. <!-- https://godbolt.org/z/ETjePhT3v -->
+
 ## Other Donfigurations
 
 **Defines:**
@@ -804,7 +850,7 @@ include(FetchContent)
 FetchContent_Declare(
   libassert
   GIT_REPOSITORY https://github.com/jeremy-rifkin/libassert.git
-  GIT_TAG        v2.0.2 # <HASH or TAG>
+  GIT_TAG        v2.1.0 # <HASH or TAG>
 )
 FetchContent_MakeAvailable(libassert)
 target_link_libraries(your_target libassert::assert)
@@ -819,7 +865,7 @@ information.
 
 ```sh
 git clone https://github.com/jeremy-rifkin/libassert.git
-git checkout v2.0.2
+git checkout v2.1.0
 mkdir libassert/build
 cd libassert/build
 cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -855,7 +901,7 @@ you when installing new libraries.
 
 ```ps1
 git clone https://github.com/jeremy-rifkin/libassert.git
-git checkout v2.0.2
+git checkout v2.1.0
 mkdir libassert/build
 cd libassert/build
 cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -873,7 +919,7 @@ To install just for the local user (or any custom prefix):
 
 ```sh
 git clone https://github.com/jeremy-rifkin/libassert.git
-git checkout v2.0.2
+git checkout v2.1.0
 mkdir libassert/build
 cd libassert/build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/wherever
@@ -922,7 +968,7 @@ Libassert is available through conan at https://conan.io/center/recipes/libasser
 
 ```
 [requires]
-libassert/2.0.2
+libassert/2.1.0
 [generators]
 CMakeDeps
 CMakeToolchain

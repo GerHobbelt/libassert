@@ -23,11 +23,35 @@
 #define BASIC_CYAN   ESC "36m"
 #define BASIC_PURPL  ESC "35m"
 
+#if !defined(LIBASSERT_BUILD_TESTING) || defined(LIBASSERT_STATIC_DEFINE)
+ #define LIBASSERT_EXPORT_TESTING
+#else
+ #ifndef LIBASSERT_EXPORT_TESTING
+  #ifdef libassert_lib_EXPORTS
+   /* We are building this library */
+   #define LIBASSERT_EXPORT_TESTING LIBASSERT_EXPORT_ATTR
+  #else
+   /* We are using this library */
+   #define LIBASSERT_EXPORT_TESTING LIBASSERT_IMPORT_ATTR
+  #endif
+ #endif
+#endif
+
 #define IS_WINDOWS 0
+#define IS_LINUX 0
+#define IS_APPLE 0
 
 #if defined(_WIN32)
  #undef IS_WINDOWS
  #define IS_WINDOWS 1
+#elif defined(__linux)
+ #undef IS_LINUX
+ #define IS_LINUX 1
+#elif defined(__APPLE__)
+ #undef IS_APPLE
+ #define IS_APPLE 1
+#else
+ #error "Libassert doesn't recognize this system, please open an issue at https://github.com/jeremy-rifkin/libassert"
 #endif
 
 #endif

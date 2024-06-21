@@ -15,19 +15,7 @@
 
 #include <libassert/assert.hpp>
 
-#if !defined(LIBASSERT_BUILD_TESTING) || defined(LIBASSERT_STATIC_DEFINE)
- #define LIBASSERT_EXPORT_TESTING
-#else
- #ifndef LIBASSERT_EXPORT_TESTING
-  #ifdef libassert_lib_EXPORTS
-   /* We are building this library */
-   #define LIBASSERT_EXPORT_TESTING LIBASSERT_EXPORT_ATTR
-  #else
-   /* We are using this library */
-   #define LIBASSERT_EXPORT_TESTING LIBASSERT_IMPORT_ATTR
-  #endif
- #endif
-#endif
+#include "common.hpp"
 
 namespace libassert::detail {
     // Still present in release mode, nonfatal
@@ -37,7 +25,7 @@ namespace libassert::detail {
      * string utilities
      */
 
-    LIBASSERT_ATTR_COLD
+    LIBASSERT_ATTR_COLD LIBASSERT_EXPORT_TESTING
     std::vector<std::string_view> split(std::string_view s, std::string_view delims);
 
     template<typename C>
@@ -67,16 +55,18 @@ namespace libassert::detail {
         return a;
     }
 
+    constexpr const char* const whitespace_chars = " \t\n\r\f\v";
+
     LIBASSERT_ATTR_COLD
     std::string_view trim(std::string_view s);
 
     LIBASSERT_ATTR_COLD
     void replace_all_dynamic(std::string& str, std::string_view text, std::string_view replacement);
 
-    LIBASSERT_ATTR_COLD
+    LIBASSERT_ATTR_COLD LIBASSERT_EXPORT_TESTING
     void replace_all(std::string& str, const std::regex& re, std::string_view replacement);
 
-    LIBASSERT_ATTR_COLD
+    LIBASSERT_ATTR_COLD LIBASSERT_EXPORT_TESTING
     void replace_all(std::string& str, std::string_view substr, std::string_view replacement);
 
     LIBASSERT_ATTR_COLD
@@ -107,15 +97,14 @@ namespace libassert::detail {
         }
     };
 
-    // copied from cppref
-    template<typename T, std::size_t N, std::size_t... I>
-    constexpr std::array<std::remove_cv_t<T>, N> to_array_impl(T(&&a)[N], std::index_sequence<I...>) {
+    // note: the use of U here is mainly to workaround a gcc 8 issue https://godbolt.org/z/bdsWhdGj3
+    template<typename T, typename U, std::size_t N, std::size_t... I>
+    constexpr std::array<std::remove_cv_t<T>, N> to_array_impl(U(&&a)[N], std::index_sequence<I...>) {
         return {{std::move(a[I])...}};
     }
-
-    template<typename T, std::size_t N>
-    constexpr std::array<std::remove_cv_t<T>, N> to_array(T(&&a)[N]) {
-        return to_array_impl(std::move(a), std::make_index_sequence<N>{});
+    template<typename T, typename U, std::size_t N>
+    constexpr std::array<std::remove_cv_t<T>, N> to_array(U(&&a)[N]) {
+        return to_array_impl<T>(std::move(a), std::make_index_sequence<N>{});
     }
 
     template<typename A, typename B>

@@ -12,7 +12,7 @@ set(package_name "libassert")
 # create base project
 project(
   libassert
-  VERSION 2.0.2
+  VERSION 2.1.0
   DESCRIPTION "The most over-engineered C++ assertion library"
   HOMEPAGE_URL "https://github.com/jeremy-rifkin/libassert"
   LANGUAGES CXX
@@ -51,7 +51,7 @@ set(LIBASSERT_MAGIC_ENUM_REPO "https://github.com/Neargye/magic_enum.git")
 set(LIBASSERT_MAGIC_ENUM_TAG "e55b9b54d5cf61f8e117cafb17846d7d742dd3b4") # v0.9.5
 
 set(LIBASSERT_CPPTRACE_REPO "https://github.com/jeremy-rifkin/cpptrace.git")
-set(LIBASSERT_CPPTRACE_TAG "ee572226f773eb0916d0f112f8edfb72b08927f7") # v0.5.4
+set(LIBASSERT_CPPTRACE_TAG "06226ee2aa6a615a63af9d73d69e522c10093dd2") # v0.6.0
 
 # obtain cpptrace
 if(LIBASSERT_USE_EXTERNAL_CPPTRACE)
@@ -163,12 +163,14 @@ if(LIBASSERT_SANITIZER_BUILD)
   add_link_options(-fsanitize=address)
 endif()
 
-if(LIBASSERT_BUILD_TESTING) # TODO: Maybe remove
+if(
+  LIBASSERT_BUILD_TESTING AND NOT (
+    "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND "${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS 9.0
+  )
+)
   set(LIBASSERT_USE_MAGIC_ENUM ON)
 endif()
 
-# add pre-processor definitions corresponding to CMake options
-# fixme: supposedly generator expressions should work for this
 if(LIBASSERT_USE_MAGIC_ENUM)
   set(MAGIC_ENUM_OPT_INSTALL ON)
   if(LIBASSERT_USE_EXTERNAL_MAGIC_ENUM)
@@ -199,6 +201,7 @@ endif()
 # ---- Setup Tests ----
 
 if(LIBASSERT_BUILD_TESTING)
+  target_compile_definitions(${target_name} PRIVATE LIBASSERT_BUILD_TESTING)
 
   # need to enable testing in case BUILD_TESTING is disabled
   # ctest expects that the top level project enables testing

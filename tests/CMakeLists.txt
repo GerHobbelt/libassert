@@ -10,21 +10,18 @@ if(PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     endif()
     include(CTest)
 
-    set(
-      demo_sources
+    add_executable(
+      demo
       tests/demo/bar.cpp
       tests/demo/baz/demo.cpp
       tests/demo/demo.cpp
       tests/demo/foo.cpp
     )
-    add_executable(demo ${demo_sources})
     target_link_libraries(demo PRIVATE libassert-lib)
-    target_compile_options(
-      demo
-      PRIVATE
-      "-DLIBASSERT_USE_MAGIC_ENUM"
-      "-DLIBASSERT_LOWERCASE"
-    )
+    target_compile_definitions(demo PRIVATE LIBASSERT_LOWERCASE)
+    if(LIBASSERT_USE_MAGIC_ENUM)
+     target_compile_definitions(demo PRIVATE LIBASSERT_USE_MAGIC_ENUM)
+    endif()
     target_compile_features(
       demo
       PUBLIC cxx_std_20
@@ -34,36 +31,41 @@ if(PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
       PUBLIC LIBASSERT_SAFE_COMPARISONS
     )
 
-    add_executable(integration tests/integration/integration.cpp tests/integration/a.cpp tests/integration/x/a.cpp)
-    # Temporary workaround for Visual Studio 2022 bug with __builtin_LINE() and __builtin_FILE()
-    # https://developercommunity.visualstudio.com/t/__builtin_LINE-function-is-reporting-w/10439054?space=62&q=__builtin_function
-    # TODO: Workaround in the header for end users?
-    target_compile_features(integration PUBLIC cxx_std_20)
-    target_link_libraries(integration PRIVATE libassert-lib)
-    target_compile_options(
-      integration
-      PRIVATE
-      "-DLIBASSERT_USE_MAGIC_ENUM"
-      "-DLIBASSERT_LOWERCASE"
-      "-DLIBASSERT_SAFE_COMPARISONS"
-    )
-    add_test(
-      NAME integration
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests
-      COMMAND
-      python3 run-tests.py $<TARGET_FILE:integration> ${CMAKE_BUILD_TYPE} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_STANDARD}
-    )
+    if(LIBASSERT_USE_MAGIC_ENUM)
+     add_executable(integration tests/integration/integration.cpp tests/integration/a.cpp tests/integration/x/a.cpp)
+     # Temporary workaround for Visual Studio 2022 bug with __builtin_LINE() and __builtin_FILE()
+     # https://developercommunity.visualstudio.com/t/__builtin_LINE-function-is-reporting-w/10439054?space=62&q=__builtin_function
+     # TODO: Workaround in the header for end users?
+     target_compile_features(integration PUBLIC cxx_std_20)
+     target_link_libraries(integration PRIVATE libassert-lib)
+     target_compile_definitions(
+       integration
+       PRIVATE
+       LIBASSERT_USE_MAGIC_ENUM
+       LIBASSERT_LOWERCASE
+       LIBASSERT_SAFE_COMPARISONS
+     )
+     add_test(
+       NAME integration
+       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests
+       COMMAND
+       python3 run-tests.py $<TARGET_FILE:integration> ${CMAKE_BUILD_TYPE} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_STANDARD}
+     )
+     set(integration_target integration)
+    else()
+     set(integration_target)
+    endif()
 
     set(
       dsym_targets
       demo
-      integration
+      ${integration_target}
     )
 
     set(
       all_targets
       demo
-      integration
+      ${integration_target}
     )
 
     include(FetchContent)
@@ -118,6 +120,7 @@ if(PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
       add_executable(${test_name} ${test_file})
       target_link_libraries(${test_name} PRIVATE libassert-lib)
       target_include_directories(${test_name} PRIVATE src)
+      target_compile_definitions(${test_name} PRIVATE LIBASSERT_BUILD_TESTING)
       target_compile_features(${test_name} PUBLIC cxx_std_17)
       if(LIBASSERT_USE_CI_WRAPPER)
         add_test(
@@ -142,6 +145,7 @@ if(PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     set(
       binary_sources
       tests/binaries/basic_test.cpp
+      tests/binaries/basic_demo.cpp
       tests/binaries/gtest-demo.cpp
       tests/binaries/catch2-demo.cpp
       tests/binaries/tokens_and_highlighting.cpp
@@ -152,6 +156,7 @@ if(PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
       add_executable(${test_name} ${test_file})
       target_link_libraries(${test_name} PRIVATE libassert-lib)
       target_include_directories(${test_name} PRIVATE src)
+      target_compile_definitions(${test_name} PRIVATE LIBASSERT_BUILD_TESTING)
       list(APPEND dsym_targets ${test_name})
     endforeach()
 
@@ -159,6 +164,7 @@ if(PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     target_compile_options(gtest-demo PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>)
     target_link_libraries(catch2-demo PRIVATE Catch2::Catch2WithMain)
     target_compile_options(catch2-demo PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>)
+    target_compile_definitions(basic_demo PRIVATE LIBASSERT_BREAK_ON_FAIL)
 
     if(APPLE)
       foreach(target ${dsym_targets})
