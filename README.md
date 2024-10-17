@@ -221,7 +221,7 @@ void handler(assert_type type, const assertion_info& assertion) {
     throw std::runtime_error("Assertion failed:\n" + assertion.to_string());
 }
 
-int main() {
+int main(void) {
     libassert::set_failure_handler(handler);
 }
 ```

@@ -51,7 +51,7 @@ inline std::string& trim(std::string& s, const char* t = ws) {
 #define main    assert_literals_main
 #endif
 
-int main() {
+int main(void) {
     std::string match_raw = R"QQ(
         0b0
         0B0

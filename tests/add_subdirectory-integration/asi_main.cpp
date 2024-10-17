@@ -5,7 +5,7 @@
 #define main    assert_add_subdirectory_integration_test_main
 #endif
 
-int main() {
+int main(void) {
 #if defined(VERIFY)
     VERIFY(true);
 #endif

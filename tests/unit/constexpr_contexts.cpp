@@ -12,7 +12,7 @@ constexpr int bar(int x) {
 #define main    assert_constexpr_contexts_main
 #endif
 
-int main() {
+int main(void) {
     foo<bar(2)>();
 
 	return 0;

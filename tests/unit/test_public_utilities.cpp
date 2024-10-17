@@ -21,7 +21,7 @@ std::string replace(std::string str, std::string_view substr, std::string_view r
 #define main    assert_test_public_utilities_main
 #endif
 
-int main() {
+int main(void) {
     // pretty_type_name tests
     auto pretty_name = pretty_type_name<std::map<std::string, int>>();
     DEBUG_ASSERT(pretty_name.find("basic_string") == std::string::npos);

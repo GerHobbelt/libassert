@@ -161,7 +161,7 @@ struct N { };
 #endif
 
 #line 458
-int main() {
+int main(void) {
     libassert::set_failure_handler(custom_fail);
     libassert::set_color_scheme(libassert::color_scheme::blank);
     test_class<int> t;

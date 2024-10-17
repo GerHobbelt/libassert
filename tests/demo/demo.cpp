@@ -403,7 +403,7 @@ public:
 #define main    assert_demo_main
 #endif
 
-int main() {
+int main(void) {
     libassert::enable_virtual_terminal_processing_if_needed();
     libassert::set_failure_handler(custom_fail);
     foo f;

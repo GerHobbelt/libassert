@@ -21,7 +21,7 @@
 #define main    assert_disambiguation_main
 #endif
 
-int main() {
+int main(void) {
     std::tuple<std::string, std::string_view, bool> tests[] = {
         {"a < 1 == 2 > ( 1 + 3 )", "==", true},
         {"a < 1 == 2 > - 3 == ( 1 + 3 )", "==", true}, // <- disambiguated despite ambiguity

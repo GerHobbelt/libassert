@@ -7,7 +7,7 @@
 #define main    assert_fetchcontent_integration_test_main
 #endif
 
-int main() {
+int main(void) {
     ASSERT(true);
     ASSUME(true);
     DEBUG_ASSERT(true);

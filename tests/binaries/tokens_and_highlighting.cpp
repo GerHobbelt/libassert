@@ -12,7 +12,7 @@
 #define main    assert_tokens_and_highlighting_main
 #endif
 
-int main() {
+int main(void) {
     std::ifstream file("tests/test_program.cpp"); // just a test program that doesn't have preprocessor directives, which we don't tokenize
     std::ostringstream buf;
     buf<<file.rdbuf();

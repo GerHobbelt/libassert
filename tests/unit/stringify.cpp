@@ -54,7 +54,7 @@ struct A {};
 struct B {};
 struct C {};
 
-int main() {
+int main(void) {
     // primitive types
     ASSERT(generate_stringification(false) == R"(false)");
     ASSERT(generate_stringification(42) == R"(42)");

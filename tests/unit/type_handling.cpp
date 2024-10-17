@@ -63,7 +63,7 @@ struct only_move_constructable {
 #define main    assert_type_handling_main
 #endif
 
-int main() {
+int main(void) {
     // test rvalue
     {
         decltype(auto) a = DEBUG_ASSERT_VAL(only_move_constructable(2) == 2);
