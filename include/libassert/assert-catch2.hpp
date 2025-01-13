@@ -4,6 +4,7 @@
 #define LIBASSERT_PREFIX_ASSERTIONS
 #include <libassert/assert.hpp>
 
+#include <catch2/catch_user_config.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_version_macros.hpp>
 
