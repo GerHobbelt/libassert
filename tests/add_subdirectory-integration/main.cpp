@@ -1,7 +1,16 @@
 #include <libassert/assert.hpp>
 
+
+#if defined(BUILD_MONOLITHIC)
+#define main    assert_add_subdirectory_integration_test_main
+#endif
+
 int main(void) {
-    ASSERT(true);
-    ASSUME(true);
-    DEBUG_ASSERT(true);
+#if defined(VERIFY)
+	VERIFY(true);
+#endif
+	ASSERT(true);
+	ASSUME(true);
+	DEBUG_ASSERT(true);
+	return 0;
 }
