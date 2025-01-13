@@ -6,7 +6,7 @@
 
 #include <libassert/assert.hpp>
 
-std::optional<float> foo() {
+static std::optional<float> foo() {
     return 2.5f;
 }
 
