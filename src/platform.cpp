@@ -183,9 +183,9 @@ namespace libassert {
 
     LIBASSERT_ATTR_COLD bool isatty(int fd) {
         #if IS_WINDOWS
-         return _isatty(fd);
+         return !!_isatty(fd);
         #else
-         return ::isatty(fd);
+         return !!::isatty(fd);
         #endif
     }
 }

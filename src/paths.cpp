@@ -67,7 +67,7 @@ namespace libassert::detail {
                 break;
             }
             const std::string& component = path[i];
-            LIBASSERT_PRIMITIVE_DEBUG_ASSERT(current->edges.count(component));
+            LIBASSERT_PRIMITIVE_DEBUG_ASSERT(!!current->edges.count(component));
             current = current->edges.at(component).get();
             result.push_back(current->root);
         }
