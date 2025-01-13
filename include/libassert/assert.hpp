@@ -25,8 +25,10 @@
 #include <libassert/stringification.hpp>
 #include <libassert/expression-decomposition.hpp>
 
-#ifdef HAVE_CPPTRACE_HPP
-#include <cpptrace/basic.hpp>
+#if defined(__has_include) && __has_include(<cpptrace/basic.hpp>)
+ #include <cpptrace/basic.hpp>
+#else
+ #include <cpptrace/cpptrace.hpp>
 #endif
 
 #ifdef __cpp_lib_expected
@@ -168,6 +170,8 @@ namespace libassert {
     };
 
     struct assertion_info;
+
+    LIBASSERT_EXPORT [[noreturn]] void default_failure_handler(const assertion_info& info);
 
     LIBASSERT_EXPORT void set_failure_handler(void (*handler)(const assertion_info&));
 
@@ -416,7 +420,7 @@ namespace libassert::detail {
         Args&&... args
     ) {
         const size_t sizeof_extra_diagnostics = sizeof...(args) - 1; // - 1 for pretty function signature
-        LIBASSERT_PRIMITIVE_ASSERT(sizeof...(args) <= params->args_strings.size);
+        LIBASSERT_PRIMITIVE_DEBUG_ASSERT(sizeof...(args) <= params->args_strings.size);
         assertion_info info(
             params,
 #ifdef HAVE_CPPTRACE_HPP
@@ -463,7 +467,7 @@ namespace libassert::detail {
         Args&&... args
     ) {
         const size_t sizeof_extra_diagnostics = sizeof...(args) - 1; // - 1 for pretty function signature
-        LIBASSERT_PRIMITIVE_ASSERT(sizeof...(args) <= params->args_strings.size);
+        LIBASSERT_PRIMITIVE_DEBUG_ASSERT(sizeof...(args) <= params->args_strings.size);
         assertion_info info(
             params,
 #ifdef HAVE_CPPTRACE_HPP

@@ -1,7 +1,7 @@
 # libassert <!-- omit in toc -->
 
-[![build](https://github.com/jeremy-rifkin/libassert/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/jeremy-rifkin/libassert/actions/workflows/build.yml)
-[![tests](https://github.com/jeremy-rifkin/libassert/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/jeremy-rifkin/libassert/actions/workflows/tests.yml)
+[![build](https://github.com/jeremy-rifkin/libassert/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/jeremy-rifkin/libassert/actions/workflows/build.yml)
+[![tests](https://github.com/jeremy-rifkin/libassert/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/jeremy-rifkin/libassert/actions/workflows/tests.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jeremy-rifkin_libassert&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jeremy-rifkin_libassert)
 <br/>
 [![Community Discord Link](https://img.shields.io/badge/Chat%20on%20the%20(very%20small)-Community%20Discord-blue?labelColor=2C3239&color=7289DA&style=flat&logo=discord&logoColor=959DA5)](https://discord.gg/frjaAZvqUZ)
@@ -35,7 +35,8 @@
   - [Stringification of Custom Objects](#stringification-of-custom-objects)
   - [Custom Failure Handlers](#custom-failure-handlers-1)
   - [Breakpoints](#breakpoints)
-  - [Other Donfigurations](#other-donfigurations)
+  - [Other Configurations](#other-configurations)
+  - [Library Version](#library-version)
 - [Integration with Test Libraries](#integration-with-test-libraries)
   - [Catch2](#catch2)
   - [GoogleTest](#googletest)
@@ -116,7 +117,7 @@ include(FetchContent)
 FetchContent_Declare(
   libassert
   GIT_REPOSITORY https://github.com/jeremy-rifkin/libassert.git
-  GIT_TAG        v2.1.2 # <HASH or TAG>
+  GIT_TAG        v2.1.3 # <HASH or TAG>
 )
 FetchContent_MakeAvailable(libassert)
 target_link_libraries(your_target libassert::assert)
@@ -217,7 +218,7 @@ screenshots above. This is to help enhance readability.
 Libassert supports custom assertion failure handlers:
 
 ```cpp
-void handler(assert_type type, const assertion_info& assertion) {
+void handler(const assertion_info& info) {
     throw std::runtime_error("Assertion failed:\n" + assertion.to_string());
 }
 
@@ -225,6 +226,8 @@ int main(void) {
     libassert::set_failure_handler(handler);
 }
 ```
+
+More details [below](#custom-failure-handlers-1).
 
 ## Debug Stringification <!-- omit in toc -->
 
@@ -691,15 +694,26 @@ Lastly, any types with an ostream `operator<<` overload can be stringified.
 ```cpp
 namespace libassert {
     void set_failure_handler(void (*handler)(const assertion_info&));
+    [[noreturn]] void default_failure_handler(const assertion_info& info);
 }
 ```
 
 - `set_failure_handler`: Sets the assertion handler for the program.
+- `default_failure_handler`: The default failure handler, provided for convenience.
 
-An example assertion handler similar to the default handler:
+Example: If you wanted to log to a file in addition to the default behavior you could do something along the lines of:
 
 ```cpp
-void libassert_default_failure_handler(const assertion_info& info) {
+void handler(const assertion_info& info) {
+    logger::error(info.to_string());
+    libassert::default_failure_handler(info);
+}
+```
+
+For more complex custom handling you can modify the default handler's logic:
+
+```cpp
+void default_failure_handler(const assertion_info& info) {
     libassert::enable_virtual_terminal_processing_if_needed(); // for terminal colors on windows
     std::string message = info.to_string(
         libassert::terminal_width(libassert::stderr_fileno),
@@ -776,7 +790,7 @@ A note about `constexpr`: For clang and msvc libassert can use compiler intrinsi
 required. Inline assembly isn't allowed in constexpr functions pre-C++20, however, gcc supports it with a warning after
 gcc 10 and the library can surpress that warning for gcc 12. <!-- https://godbolt.org/z/ETjePhT3v -->
 
-## Other Donfigurations
+## Other Configurations
 
 **Defines:**
 
@@ -790,6 +804,10 @@ gcc 10 and the library can surpress that warning for gcc 12. <!-- https://godbol
 **CMake:**
 - `LIBASSERT_USE_EXTERNAL_CPPTRACE`: Use an externam cpptrace instead of aquiring the library with FetchContent
 - `LIBASSERT_USE_EXTERNAL_MAGIC_ENUM`: Use an externam magic enum instead of aquiring the library with FetchContent
+
+## Library Version
+
+`<libassert/version.hpp>` provides version macros for the library.
 
 # Integration with Test Libraries
 
@@ -850,7 +868,7 @@ include(FetchContent)
 FetchContent_Declare(
   libassert
   GIT_REPOSITORY https://github.com/jeremy-rifkin/libassert.git
-  GIT_TAG        v2.1.2 # <HASH or TAG>
+  GIT_TAG        v2.1.3 # <HASH or TAG>
 )
 FetchContent_MakeAvailable(libassert)
 target_link_libraries(your_target libassert::assert)
@@ -865,7 +883,7 @@ information.
 
 ```sh
 git clone https://github.com/jeremy-rifkin/libassert.git
-git checkout v2.1.2
+git checkout v2.1.3
 mkdir libassert/build
 cd libassert/build
 cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -901,7 +919,7 @@ you when installing new libraries.
 
 ```ps1
 git clone https://github.com/jeremy-rifkin/libassert.git
-git checkout v2.1.2
+git checkout v2.1.3
 mkdir libassert/build
 cd libassert/build
 cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -919,7 +937,7 @@ To install just for the local user (or any custom prefix):
 
 ```sh
 git clone https://github.com/jeremy-rifkin/libassert.git
-git checkout v2.1.2
+git checkout v2.1.3
 mkdir libassert/build
 cd libassert/build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/wherever
@@ -968,7 +986,7 @@ Libassert is available through conan at https://conan.io/center/recipes/libasser
 
 ```
 [requires]
-libassert/2.1.2
+libassert/2.1.3
 [generators]
 CMakeDeps
 CMakeToolchain

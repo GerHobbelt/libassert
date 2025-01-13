@@ -23,9 +23,11 @@
 #include <utility>
 #include <vector>
 
-#ifdef HAVE_CPPTRACE_HPP
-#include <cpptrace/basic.hpp>
-#include <cpptrace/exceptions.hpp>
+#if defined(__has_include) && __has_include(<cpptrace/basic.hpp>)
+ #include <cpptrace/basic.hpp>
+ #include <cpptrace/exceptions.hpp>
+#else
+ #include <cpptrace/cpptrace.hpp>
 #endif
 
 #include "common.hpp"
@@ -137,7 +139,7 @@ namespace libassert::detail {
                     const size_t line_number_width = std::max(line_number.size(), max_line_number_width);
                     const size_t remaining_width = term_width - (left + line_number_width + 2 /* spaces */ + 1 /* : */);
                     const size_t file_width = std::min({max_file_length, remaining_width / 2, max_file_length});
-                    LIBASSERT_PRIMITIVE_ASSERT(remaining_width >= 2);
+                    LIBASSERT_PRIMITIVE_DEBUG_ASSERT(remaining_width >= 2);
                     const size_t sig_width = remaining_width - file_width;
                     std::vector<highlight_block> location_blocks = concat(
                         {{"", std::string(path_handler->resolve_path(source_path)) + ":"}},
@@ -183,7 +185,7 @@ namespace libassert::detail {
 
     LIBASSERT_ATTR_COLD
     static std::string print_values(const std::vector<std::string>& vec, size_t lw, const color_scheme& scheme) {
-        LIBASSERT_PRIMITIVE_ASSERT(!vec.empty());
+        LIBASSERT_PRIMITIVE_DEBUG_ASSERT(!vec.empty());
         std::string values;
         if(vec.size() == 1) {
             values += microfmt::format("{}\n", indent(highlight(vec[0], scheme), 8 + lw + 4, ' ', true));
@@ -204,7 +206,7 @@ namespace libassert::detail {
 
     LIBASSERT_ATTR_COLD
     static std::vector<highlight_block> get_values(const std::vector<std::string>& vec, const color_scheme& scheme) {
-        LIBASSERT_PRIMITIVE_ASSERT(!vec.empty());
+        LIBASSERT_PRIMITIVE_DEBUG_ASSERT(!vec.empty());
         if(vec.size() == 1) {
             return highlight_blocks(vec[0], scheme);
         } else {
@@ -243,8 +245,8 @@ namespace libassert::detail {
         // TODO: Temporary hack while reworking
         std::vector<std::string> lstrings = { left_stringification };
         std::vector<std::string> rstrings = { right_stringification };
-        LIBASSERT_PRIMITIVE_ASSERT(!lstrings.empty());
-        LIBASSERT_PRIMITIVE_ASSERT(!rstrings.empty());
+        LIBASSERT_PRIMITIVE_DEBUG_ASSERT(!lstrings.empty());
+        LIBASSERT_PRIMITIVE_DEBUG_ASSERT(!rstrings.empty());
         // pad all columns where there is overlap
         // TODO: Use column printer instead of manual padding.
         for(size_t i = 0; i < std::min(lstrings.size(), rstrings.size()); i++) {
@@ -426,41 +428,47 @@ namespace libassert {
             }
         }
 
-        LIBASSERT_ATTR_COLD
-        void libassert_default_failure_handler(const assertion_info& info) {
-            enable_virtual_terminal_processing_if_needed(); // for terminal colors on windows
-            std::string message = info.to_string(
-                terminal_width(STDERR_FILENO),
-                isatty(STDERR_FILENO) ? get_color_scheme() : color_scheme::blank
-            );
-            std::cerr << message << std::endl;
-            switch(info.type) {
-                case assert_type::assertion:
-                case assert_type::debug_assertion:
-                case assert_type::assumption:
-                case assert_type::panic:
-                case assert_type::unreachable:
-                    (void)fflush(stderr);
-                    std::abort();
-                    // Breaking here as debug CRT allows aborts to be ignored, if someone wants to make a debug build of
-                    // this library
-                    break;
-                default:
-                    LIBASSERT_PRIMITIVE_ASSERT(false);
-            }
+    }
+
+    LIBASSERT_ATTR_COLD LIBASSERT_EXPORT [[noreturn]]
+    void default_failure_handler(const assertion_info& info) {
+        enable_virtual_terminal_processing_if_needed(); // for terminal colors on windows
+        std::string message = info.to_string(
+            terminal_width(STDERR_FILENO),
+            isatty(STDERR_FILENO) ? get_color_scheme() : color_scheme::blank
+        );
+        std::cerr << message << std::endl;
+        switch(info.type) {
+            case assert_type::assertion:
+            case assert_type::debug_assertion:
+            case assert_type::assumption:
+            case assert_type::panic:
+            case assert_type::unreachable:
+                (void)fflush(stderr);
+                std::abort();
+                // Breaking here as debug CRT allows aborts to be ignored, if someone wants to make a debug build of
+                // this library
+                break;
+            default:
+                LIBASSERT_PRIMITIVE_PANIC("Unknown assertion type in assertion failure handler");
         }
     }
 
-    static std::atomic failure_handler = detail::libassert_default_failure_handler;
+    namespace detail {
+        auto& get_failure_handler() {
+            static std::atomic handler = default_failure_handler;
+            return handler;
+        }
+    }
 
     LIBASSERT_ATTR_COLD LIBASSERT_EXPORT
     void set_failure_handler(void (*handler)(const assertion_info&)) {
-        failure_handler = handler;
+        detail::get_failure_handler() = handler;
     }
 
     namespace detail {
         LIBASSERT_ATTR_COLD LIBASSERT_EXPORT void fail(const assertion_info& info) {
-            failure_handler.load()(info);
+            detail::get_failure_handler().load()(info);
         }
     }
 

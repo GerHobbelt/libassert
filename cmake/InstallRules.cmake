@@ -5,6 +5,7 @@ include(CMakePackageConfigHelpers)
 install(
   DIRECTORY
   "${PROJECT_SOURCE_DIR}/include/"     # our header files
+  "${PROJECT_BINARY_DIR}/include/"     # generated header files
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
   COMPONENT ${package_name}-development
 )
@@ -59,6 +60,14 @@ install(
   DESTINATION "${LIBASSERT_INSTALL_CMAKEDIR}"
   COMPONENT ${package_name}-development
 )
+
+if(LIBASSERT_PROVIDE_EXPORT_SET)
+  export(
+    TARGETS ${target_name}
+    NAMESPACE libassert::
+    FILE "${PROJECT_BINARY_DIR}/${package_name}-targets.cmake"
+  )
+endif()
 
 # support packaging library
 if(PROJECT_IS_TOP_LEVEL)

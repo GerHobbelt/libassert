@@ -12,7 +12,7 @@ set(package_name "libassert")
 # create base project
 project(
   libassert
-  VERSION 2.1.2
+  VERSION 2.1.3
   DESCRIPTION "The most over-engineered C++ assertion library"
   HOMEPAGE_URL "https://github.com/jeremy-rifkin/libassert"
   LANGUAGES CXX
@@ -51,7 +51,7 @@ set(LIBASSERT_MAGIC_ENUM_REPO "https://github.com/Neargye/magic_enum.git")
 set(LIBASSERT_MAGIC_ENUM_TAG "e55b9b54d5cf61f8e117cafb17846d7d742dd3b4") # v0.9.5
 
 set(LIBASSERT_CPPTRACE_REPO "https://github.com/jeremy-rifkin/cpptrace.git")
-set(LIBASSERT_CPPTRACE_TAG "e89eb61a5fdc056439c12d47119f2aac84b4aa00") # v0.7.2
+set(LIBASSERT_CPPTRACE_TAG "5b3f2fb0b136af9885d1a2d997ed0a2364700fb6") # v0.7.4
 
 # obtain cpptrace
 if(LIBASSERT_USE_EXTERNAL_CPPTRACE)
@@ -111,13 +111,32 @@ target_link_libraries(
   cpptrace::cpptrace
 )
 
+set(
+  warning_options
+  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Werror=return-type -Wundef>
+  $<$<CXX_COMPILER_ID:GNU>:-Wuseless-cast -Wmaybe-uninitialized>
+  $<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive->
+)
+
+if(LIBASSERT_WERROR_BUILD)
+  set(
+    warning_options
+    ${warning_options}
+    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Werror>
+    $<$<CXX_COMPILER_ID:MSVC>:/WX>
+  )
+endif()
+
 target_compile_options(
   ${target_name}
   PRIVATE
-  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Werror=return-type -Wshadow -Wundef>
-  $<$<CXX_COMPILER_ID:GNU>:-Wuseless-cast -Wnonnull-compare>
-  $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX /permissive->
+  ${warning_options}
 )
+
+set(LIBASSERT_VERSION_MAJOR ${CMAKE_PROJECT_VERSION_MAJOR})
+set(LIBASSERT_VERSION_MINOR ${CMAKE_PROJECT_VERSION_MINOR})
+set(LIBASSERT_VERSION_PATCH ${CMAKE_PROJECT_VERSION_PATCH})
+configure_file("${PROJECT_SOURCE_DIR}/cmake/in/version-hpp.in" "${PROJECT_BINARY_DIR}/include/libassert/version.hpp")
 
 # ---- Generate Build Info Headers ----
 

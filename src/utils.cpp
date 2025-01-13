@@ -8,9 +8,12 @@
 #include <vector>
 
 #include <libassert/assert.hpp>
-#ifdef HAVE_CPPTRACE_HPP
-#include <cpptrace/basic.hpp>
-#include <cpptrace/exceptions.hpp>
+
+#if defined(__has_include) && __has_include(<cpptrace/basic.hpp>)
+ #include <cpptrace/basic.hpp>
+ #include <cpptrace/exceptions.hpp>
+#else
+ #include <cpptrace/cpptrace.hpp>
 #endif
 
 #include "utils.hpp"
@@ -27,7 +30,7 @@ namespace libassert::detail {
         va_start(args1, format);
         va_start(args2, format);
         const int length = vsnprintf(nullptr, 0, format, args1);
-        if(length < 0) { LIBASSERT_PRIMITIVE_ASSERT(false, "Invalid arguments to stringf"); }
+        if(length < 0) { LIBASSERT_PRIMITIVE_DEBUG_ASSERT(false, "Invalid arguments to stringf"); }
         std::string str(length, 0);
         (void)vsnprintf(str.data(), length + 1, format, args2);
         va_end(args1);
@@ -35,18 +38,18 @@ namespace libassert::detail {
         return str;
     }
 
-    LIBASSERT_ATTR_COLD
+    LIBASSERT_ATTR_COLD LIBASSERT_EXPORT
     void primitive_assert_impl(
         bool condition,
-        bool verify,
+        bool normal_assert,
         const char* expression,
         const char* signature,
         source_location location,
         const char* message
     ) {
         if(!condition) {
-            const char* action = verify ? "Verification" : "Assertion";
-            const char* name   = verify ? "verify"       : "assert";
+            const char* action = normal_assert ? "Assert"                     : "Debug assert";
+            const char* name   = normal_assert ? "LIBASSERT_PRIMITIVE_ASSERT" : "LIBASSERT_PRIMITIVE_DEBUG_ASSERT";
             std::string out_message;
             if(message == nullptr) {
                 out_message += microfmt::format(
@@ -66,16 +69,13 @@ namespace libassert::detail {
                     message
                 );
             }
-            out_message += microfmt::format("    primitive_{}({});\n", name, expression);
-#ifdef HAVE_CPPTRACE_HPP
-						throw cpptrace::runtime_error(std::move(out_message));
-#else
-						throw std::runtime_error(std::move(out_message));
-#endif
+            out_message += microfmt::format("    {}({});\n", name, expression);
+            throw cpptrace::runtime_error(std::move(out_message));
         }
     }
 
-    [[noreturn]] LIBASSERT_ATTR_COLD LIBASSERT_EXPORT void primitive_panic_impl(
+    [[noreturn]] LIBASSERT_ATTR_COLD LIBASSERT_EXPORT
+    void primitive_panic_impl(
         const char* signature,
         source_location location,
         const char* message
@@ -87,13 +87,9 @@ namespace libassert::detail {
             signature,
             message
         );
-        out_message += "    primitive_panic(...);\n";
-#ifdef HAVE_CPPTRACE_HPP
-				throw cpptrace::runtime_error(std::move(out_message));
-#else
-				throw std::runtime_error(std::move(out_message));
-#endif
-		}
+        out_message += "    LIBASSERT_PRIMITIVE_PANIC(...);\n";
+        throw cpptrace::runtime_error(std::move(out_message));
+    }
 
     /*
      * string utilities
@@ -175,7 +171,7 @@ namespace libassert::detail {
             str.replace(match_begin, end - match_begin, replacement);
             cursor = match_begin + replacement.length();
         }
-    };
+    }
 
     LIBASSERT_ATTR_COLD
     std::string indent(const std::string_view str, size_t depth, char c, bool ignore_first) {
