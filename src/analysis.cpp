@@ -684,7 +684,7 @@ namespace libassert::detail {
     }
 
     LIBASSERT_ATTR_COLD bool is_bitwise(std::string_view op) {
-        return analysis::get().bitwise_operators.count(op);
+        return !!analysis::get().bitwise_operators.count(op);
     }
 
     LIBASSERT_ATTR_COLD
