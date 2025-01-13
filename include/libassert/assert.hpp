@@ -26,7 +26,7 @@
 #include <libassert/expression-decomposition.hpp>
 
 #ifdef HAVE_CPPTRACE_HPP
-#include <cpptrace/cpptrace.hpp>
+#include <cpptrace/basic.hpp>
 #endif
 
 #ifdef __cpp_lib_expected

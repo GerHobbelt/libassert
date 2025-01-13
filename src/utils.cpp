@@ -9,7 +9,8 @@
 
 #include <libassert/assert.hpp>
 #ifdef HAVE_CPPTRACE_HPP
-#include <cpptrace/cpptrace.hpp>
+#include <cpptrace/basic.hpp>
+#include <cpptrace/exceptions.hpp>
 #endif
 
 #include "utils.hpp"
