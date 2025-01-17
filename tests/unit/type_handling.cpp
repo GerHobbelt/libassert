@@ -11,6 +11,8 @@
 #include <utility>
 #include <vector>
 
+#include "monolithic_examples.h"
+
 using namespace libassert::detail;
 
 namespace {
@@ -63,6 +65,7 @@ struct only_move_constructable {
 #define main    assert_type_handling_main
 #endif
 
+extern "C"
 int main(void) {
     // test rvalue
     {

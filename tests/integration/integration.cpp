@@ -18,6 +18,8 @@
 
 #include <libassert/assert.hpp>
 
+#include "monolithic_examples.h"
+
 using namespace std::literals;
 
 void test_path_differentiation();
@@ -160,6 +162,7 @@ struct N { };
 #define main    assert_integration_main
 #endif
 
+extern "C"
 #line 458
 int main(void) {
     libassert::set_failure_handler(custom_fail);

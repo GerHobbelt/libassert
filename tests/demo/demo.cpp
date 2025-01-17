@@ -25,6 +25,8 @@
 #include <libassert/assert.hpp>
 #include <libassert/version.hpp>
 
+#include "monolithic_examples.h"
+
 #define ESC "\033["
 #define RED ESC "1;31m"
 #define GREEN ESC "1;32m"
@@ -404,6 +406,7 @@ public:
 #define main    assert_demo_main
 #endif
 
+extern "C"
 int main(void) {
     libassert::enable_virtual_terminal_processing_if_needed();
     libassert::set_failure_handler(custom_fail);

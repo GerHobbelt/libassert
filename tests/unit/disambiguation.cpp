@@ -7,6 +7,8 @@
 
 #include "analysis.hpp"
 
+#include "monolithic_examples.h"
+
 #define ESC "\033["
 #define RED ESC "1;31m"
 #define GREEN ESC "1;32m"
@@ -21,6 +23,7 @@
 #define main    assert_disambiguation_main
 #endif
 
+extern "C"
 int main(void) {
     std::tuple<std::string, std::string_view, bool> tests[] = {
         {"a < 1 == 2 > ( 1 + 3 )", "==", true},

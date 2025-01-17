@@ -3,11 +3,14 @@
 
 #include <libassert/assert.hpp>
 
+#include "monolithic_examples.h"
+
 
 #if defined(BUILD_MONOLITHIC)
 #define main    assert_test_type_prettier_main
 #endif
 
+extern "C"
 int main(void) {
     bool success = true;
     auto test = [&success](const std::string& type, const std::string& expected) {

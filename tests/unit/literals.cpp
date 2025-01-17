@@ -9,6 +9,8 @@
 
 #include "microfmt.hpp"
 
+#include "monolithic_examples.h"
+
 inline std::vector<std::string> split(std::string_view s, std::string_view delim) {
     std::vector<std::string> vec;
     size_t old_pos = 0;
@@ -51,6 +53,7 @@ inline std::string& trim(std::string& s, const char* t = ws) {
 #define main    assert_literals_main
 #endif
 
+extern "C"
 int main(void) {
     std::string match_raw = R"QQ(
         0b0

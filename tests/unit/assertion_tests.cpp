@@ -15,7 +15,7 @@
 
 using namespace std::literals;
 
-inline void failure_handler(const libassert::assertion_info& info) {
+static inline void failure_handler(const libassert::assertion_info& info) {
     // everything from .to_string except the stacktrace
     std::string output;
     output += info.tagline(libassert::color_scheme::blank);
@@ -25,7 +25,7 @@ inline void failure_handler(const libassert::assertion_info& info) {
     throw std::runtime_error(output);
 }
 
-inline auto pre_main = [] () {
+static inline auto pre_main = [] () {
     libassert::set_failure_handler(failure_handler);
     return 1;
 } ();
@@ -36,14 +36,14 @@ struct location {
     std::string_view signature;
 };
 
-constexpr std::string_view file = [] () constexpr {
+static constexpr std::string_view file = [] () constexpr {
     constexpr std::string_view f = __FILE__;
     constexpr std::size_t pos = f.find_last_of("/\\");
     static_assert(pos != std::string_view::npos);
     return f.substr(pos + 1);
 } ();
 
-std::string_view mtrim(const std::string_view s) {
+static std::string_view mtrim(const std::string_view s) {
     const size_t l = s.find_first_not_of(" \n");
     if(l == std::string_view::npos) {
         return "";
@@ -53,7 +53,7 @@ std::string_view mtrim(const std::string_view s) {
     return s.substr(l, r - l);
 }
 
-std::string replace(std::string str, std::string_view needle, std::string_view replacement) {
+static std::string replace(std::string str, std::string_view needle, std::string_view replacement) {
     if(auto pos = str.find(needle); pos != std::string::npos) {
         return str.replace(pos, needle.size(), replacement);
     } else {
@@ -61,7 +61,7 @@ std::string replace(std::string str, std::string_view needle, std::string_view r
     }
 }
 
-std::string assertion_failure_message;
+static std::string assertion_failure_message;
 
 #define WRAP(...) do { \
         assertion_failure_message = ""; \
@@ -87,7 +87,7 @@ std::string prepare(std::string_view string, location loc) {
     return message;
 }
 
-std::string normalize(std::string message) {
+static std::string normalize(std::string message) {
     using namespace libassert::detail;
     // TODO: Find a better way to do this, or integrate into normal type normalization rules
     // msvc does T const
@@ -343,6 +343,8 @@ TEST(LibassertBasic, FloatingPoint) {
     PASS(DEBUG_ASSERT(0.1f + 0.2f == 0.3f));
 }
 
+namespace {
+
 template<typename T>
 struct printable {
     std::optional<T> f;
@@ -356,6 +358,8 @@ template<typename T>
 std::ostream& operator<<(std::ostream& stream, const printable<T>& p) {
     return stream<<"(printable = "<<*p.f<<")";
 }
+
+} // namespace
 
 TEST(LibassertBasic, OstreamOverloads) {
     printable p{1.42};
@@ -371,6 +375,8 @@ TEST(LibassertBasic, OstreamOverloads) {
     );
 }
 
+namespace {
+
 template<typename T>
 struct not_printable {
     std::optional<T> f;
@@ -379,6 +385,8 @@ struct not_printable {
         return f == other.f;
     }
 };
+
+} // namespace
 
 TEST(LibassertBasic, NotPrintable) {
     const not_printable p{1.42};
@@ -520,10 +528,10 @@ TEST(LibassertBasic, Errno) {
     );
 }
 
-int foo() {
+static int foo() {
     return 2;
 }
-int bar() {
+static int bar() {
     return -2;
 }
 

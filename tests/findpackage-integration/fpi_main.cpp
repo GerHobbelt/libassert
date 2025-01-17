@@ -2,11 +2,14 @@
 
 #include <iostream>
 
+#include "monolithic_examples.h"
+
 
 #if defined(BUILD_MONOLITHIC)
 #define main    assert_findpackage_integration_test_main
 #endif
 
+extern "C"
 int main(void) {
     ASSERT(true);
     ASSUME(true);

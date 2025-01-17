@@ -11,6 +11,8 @@
 
 #include <libassert/assert.hpp>
 
+#include "monolithic_examples.h"
+
 using namespace libassert::detail;
 using namespace std::literals;
 
@@ -31,7 +33,7 @@ struct basic_fields {
     }
 };
 
-void regression01() {
+void regression01(void) {
     // regression test for #90, just making sure this can compile
     constexpr bool b = stringifiable_container<basic_fields::value_type>();
     ASSERT(!b);
@@ -54,6 +56,11 @@ struct A {};
 struct B {};
 struct C {};
 
+#if defined(BUILD_MONOLITHIC)
+#define main    assert_stringify_test_main
+#endif
+
+extern "C"
 int main(void) {
     // primitive types
     ASSERT(generate_stringification(false) == R"(false)");
@@ -166,4 +173,5 @@ int main(void) {
     // stringification tests
 
     regression01();
+		return 0;
 }
