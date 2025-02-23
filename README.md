@@ -61,6 +61,7 @@
 **Some of the awesome things the library does:**
 
 ```cpp
+#include <libassert/assert.hpp>
 void zoog(const std::map<std::string, int>& map) {
     DEBUG_ASSERT(map.contains("foo"), "expected key not found", map);
 }
@@ -82,7 +83,7 @@ float f = *ASSERT_VAL(get_param());
 
 Conditional assertions:
 
-- `DEBUG_ASSERT`: Checked in debug but but does nothing in release (analogous to the standard library's `assert`)
+- `DEBUG_ASSERT`: Checked in debug but does nothing in release (analogous to the standard library's `assert`)
 - `ASSERT`: Checked in both debug and release
 - `ASSUME`: Checked in debug and serves as an optimization hint in release
 
@@ -148,7 +149,7 @@ sources. Assertion tooling should prioritize providing as much information and c
 allow for speedy triage. Unfortunately, existing language and library tooling provides very limited triage information.
 
 For example with stdlib assertions an assertion such as `assert(n <= 12);` provides no information upon failure about
-why it failed or what lead to its failure. Providing a stack trace and the value of `n` greatley improves triage and
+why it failed or what led to its failure. Providing a stack trace and the value of `n` greatly improves triage and
 debugging. Ideally an assertion failure should provide enough diagnostic information that the programmmer doesn't have
 to rerun in a debugger to pinpoint the problem.
 
@@ -333,6 +334,12 @@ magic.
 > Because of expression decomposition, `ASSERT(1 = 2);` compiles.
 
 # In-Depth Library Documentation
+
+## Library headers
+
+- `libassert/assert.hpp`: The main library header
+- `libassert/assert-gtest.hpp`: Libassert macros for gtest
+- `libassert/assert-catch2.hpp`: Libassert macros for catch2
 
 ## Assertion Macros
 
