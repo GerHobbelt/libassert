@@ -180,7 +180,9 @@ namespace libassert {
 
     [[noreturn]] LIBASSERT_EXPORT void default_failure_handler(const assertion_info& info);
 
-    LIBASSERT_EXPORT void set_failure_handler(void (*handler)(const assertion_info&));
+    using handler_ptr = void(*)(const assertion_info&);
+    LIBASSERT_EXPORT handler_ptr get_failure_handler();
+    LIBASSERT_EXPORT void set_failure_handler(handler_ptr handler);
 
     struct LIBASSERT_EXPORT binary_diagnostics_descriptor {
         std::string left_expression;
@@ -197,11 +199,10 @@ namespace libassert {
             bool multiple_formats
         );
         ~binary_diagnostics_descriptor(); // = default; in the .cpp
-        binary_diagnostics_descriptor(const binary_diagnostics_descriptor&) = delete;
-        binary_diagnostics_descriptor(binary_diagnostics_descriptor&&) noexcept; // = default; in the .cpp
-        binary_diagnostics_descriptor& operator=(const binary_diagnostics_descriptor&) = delete;
-        binary_diagnostics_descriptor&
-        operator=(binary_diagnostics_descriptor&&) noexcept(LIBASSERT_GCC_ISNT_STUPID); // = default; in the .cpp
+        binary_diagnostics_descriptor(const binary_diagnostics_descriptor&);
+        binary_diagnostics_descriptor(binary_diagnostics_descriptor&&) noexcept;
+        binary_diagnostics_descriptor& operator=(const binary_diagnostics_descriptor&);
+        binary_diagnostics_descriptor& operator=(binary_diagnostics_descriptor&&) noexcept(LIBASSERT_GCC_ISNT_STUPID);
     };
 
     namespace detail {
@@ -229,6 +230,7 @@ namespace libassert {
         class path_handler {
         public:
             virtual ~path_handler() = default;
+            virtual std::unique_ptr<detail::path_handler> clone() const = 0;
             virtual std::string_view resolve_path(std::string_view) = 0;
             virtual bool has_add_path() const;
             virtual void add_path(std::string_view);
@@ -263,9 +265,9 @@ namespace libassert {
             size_t n_args
         );
         ~assertion_info();
-        assertion_info(const assertion_info&) = delete;
+        assertion_info(const assertion_info&);
         assertion_info(assertion_info&&);
-        assertion_info& operator=(const assertion_info&) = delete;
+        assertion_info& operator=(const assertion_info&);
         assertion_info& operator=(assertion_info&&);
 
         std::string_view action() const;
