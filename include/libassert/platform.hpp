@@ -140,13 +140,20 @@
  #define LIBASSERT_PFUNC __extension__ __PRETTY_FUNCTION__
  #define LIBASSERT_ATTR_COLD     [[gnu::cold]]
  #define LIBASSERT_ATTR_NOINLINE [[gnu::noinline]]
- #define LIBASSERT_UNREACHABLE_CALL __builtin_unreachable()
 #else
  #define LIBASSERT_PFUNC __FUNCSIG__
  #define LIBASSERT_ATTR_COLD
  #define LIBASSERT_ATTR_NOINLINE __declspec(noinline)
- #define LIBASSERT_UNREACHABLE_CALL __assume(false)
 #endif
+
+#if __cplusplus >= 202302L
+ #define LIBASSERT_UNREACHABLE_CALL() ::std::unreachable()
+#elif LIBASSERT_IS_MSVC
+ #define LIBASSERT_UNREACHABLE_CALL() __assume(false)
+#else
+ #define LIBASSERT_UNREACHABLE_CALL() __builtin_unreachable()
+#endif
+
 
 #if LIBASSERT_IS_MSVC
  #define LIBASSERT_STRONG_EXPECT(expr, value) (expr)
