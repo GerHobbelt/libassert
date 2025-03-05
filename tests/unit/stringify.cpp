@@ -1,4 +1,8 @@
+#undef ASSERT_LOWERCASE
+#include <libassert/assert-gtest.hpp>
+
 #include <array>
+#include <filesystem>
 #include <map>
 #include <memory>
 #include <optional>
@@ -9,37 +13,8 @@
 #include <utility>
 #include <vector>
 
-#include <libassert/assert.hpp>
-
-#include "monolithic_examples.h"
-
 using namespace libassert::detail;
 using namespace std::literals;
-
-struct basic_fields {
-    struct value_type {
-        value_type() {}
-    };
-    struct const_iterator {
-        bool operator==(const const_iterator&) const {
-            return true;
-        }
-    };
-    const_iterator begin() {
-        return {};
-    }
-    const_iterator end() {
-        return {};
-    }
-};
-
-void regression01(void) {
-    // regression test for #90, just making sure this can compile
-    constexpr bool b = stringifiable_container<basic_fields::value_type>();
-    ASSERT(!b);
-    basic_fields fields;
-    ASSERT(fields.begin() == fields.end());
-}
 
 struct ostream_printable {
     int x;
@@ -56,34 +31,35 @@ struct A {};
 struct B {};
 struct C {};
 
-#if defined(BUILD_MONOLITHIC)
-#define main    assert_stringify_test_main
-#endif
-
-extern "C"
-int main(void) {
-    // primitive types
+TEST(Stringify, BasicTypes) {
     ASSERT(generate_stringification(false) == R"(false)");
     ASSERT(generate_stringification(42) == R"(42)");
     ASSERT(generate_stringification(2.25) == R"(2.25)");
-    // TODO: Other formats
-    // pointers
+}
+
+TEST(Stringify, Pointers) {
     ASSERT(generate_stringification(nullptr) == R"(nullptr)");
     int x;
     int* ptr = &x;
     auto s = generate_stringification(ptr);
     ASSERT(s.find("int*: 0x") == 0 || s.find("int *: 0x") == 0, "", s);
+}
+
+TEST(Stringify, SmartPointers) {
     auto uptr = std::make_unique<int>(62);
     ASSERT(generate_stringification(uptr) == R"(std::unique_ptr<int>: 62)");
     ASSERT(generate_stringification(std::unique_ptr<int>()) == R"(std::unique_ptr<int>: nullptr)");
     ASSERT(generate_stringification(std::make_unique<S>()).find(R"(std::unique_ptr<S>: 0x)") == 0, generate_stringification(std::make_unique<S>()));
+
     std::unique_ptr<std::vector<int>> uptr2(new std::vector<int>{1,2,3,4});
     ASSERT(generate_stringification(uptr2) == R"(std::unique_ptr<std::vector<int>>: [1, 2, 3, 4])");
     auto d = [](int*) {};
     std::unique_ptr<int, decltype(d)> uptr3(nullptr, d);
     ASSERT(generate_stringification(uptr3).find("std::unique_ptr<int,") == 0);
     ASSERT(generate_stringification(uptr3).find("nullptr") != std::string::npos);
-    // strings and chars
+}
+
+TEST(Stringify, Strings) {
     ASSERT(generate_stringification("foobar") == R"("foobar")");
     ASSERT(generate_stringification("foobar"sv) == R"("foobar")");
     ASSERT(generate_stringification("foobar"s) == R"("foobar")");
@@ -91,7 +67,42 @@ int main(void) {
     // Note: There's buggy behavior here with how MSVC stringizes the raw string literal when /Zc:preprocessor is not
     // used. https://godbolt.org/z/13acEWTGc
     ASSERT(generate_stringification(R"("foobar")") == R"xx("\"foobar\"")xx");
-    // containers
+}
+
+TEST(Stringify, Paths) {
+    ASSERT(generate_stringification(std::filesystem::path("/home/foo")) == R"("/home/foo")");
+}
+
+struct recursive_stringify {
+    using value_type = int;
+    struct const_iterator {
+        int i;
+        using value_type = recursive_stringify;
+        value_type operator*() const {
+            return recursive_stringify{};
+        }
+        const_iterator operator++(int) {
+            auto copy = *this;
+            i++;
+            return copy;
+        }
+        bool operator!=(const const_iterator& other) const {
+            return i != other.i;
+        }
+    };
+    const_iterator begin() const {
+        return {0};
+    }
+    const_iterator end() const {
+        return {5};
+    }
+};
+
+TEST(Stringify, RecursiveStringify) {
+    ASSERT(generate_stringification(recursive_stringify{}) == R"(recursive_stringify: [<instance of recursive_stringify>, <instance of recursive_stringify>, <instance of recursive_stringify>, <instance of recursive_stringify>, <instance of recursive_stringify>])");
+}
+
+TEST(Stringify, Containers) {
     std::array arr{1,2,3,4,5};
     static_assert(stringifiable<std::array<int, 5>>);
     ASSERT(generate_stringification(arr) == R"(std::array<int, 5>: [1, 2, 3, 4, 5])");
@@ -130,12 +141,8 @@ int main(void) {
     #else
     ASSERT(generate_stringification(carr) == R"(int [6]: [1, 1, 2, 3, 5, 8])");
     #endif
-    // enum E { EE, FF };
-    // ASSERT(generate_stringification(FF) == R"(int [6]: [1, 1, 2, 3, 5, 8])");
-
     // non-printable containers
     std::vector<S> svec(10);
-    // stringification::stringify(svec);
     static_assert(!stringifiable<std::vector<S>>);
     static_assert(!stringifiable_container<std::vector<S>>());
     static_assert(!stringifiable<S>);
@@ -147,8 +154,9 @@ int main(void) {
     std::vector<std::vector<int>> svec3(10, std::vector<int>(10));
     static_assert(stringifiable<std::vector<std::vector<int>>>);
     ASSERT(generate_stringification(svec3) == R"(std::vector<std::vector<int>>: [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])");
+}
 
-    // some literal format stuff
+TEST(Stringify, LiteralFormatting) {
     ASSERT(generate_stringification(100) == "100");
     libassert::set_fixed_literal_format(libassert::literal_format::integer_hex | libassert::literal_format::integer_octal);
     libassert::detail::set_literal_format("", "", "", false);
@@ -165,13 +173,39 @@ int main(void) {
 
     std::vector<ostream_printable> opvec{{{2}, {3}}};
     ASSERT(generate_stringification(opvec) == "std::vector<ostream_printable>: [{2}, {3}]");
-
-    // error codes
-    // customization point objects
-    // libfmt
-    // std::format
-    // stringification tests
-
-    regression01();
-		return 0;
 }
+
+struct basic_fields {
+    struct value_type {
+        value_type() {}
+    };
+    struct const_iterator {
+        bool operator==(const const_iterator&) const {
+            return true;
+        }
+    };
+    const_iterator begin() {
+        return {};
+    }
+    const_iterator end() {
+        return {};
+    }
+};
+
+TEST(Stringify, Regression01) {
+    // regression test for #90, just making sure this can compile
+    constexpr bool b = stringifiable_container<basic_fields::value_type>();
+    ASSERT(!b);
+    basic_fields fields;
+    ASSERT(fields.begin() == fields.end());
+}
+
+// TODO: Other formats
+// enum E { EE, FF };
+// ASSERT(generate_stringification(FF) == R"(int [6]: [1, 1, 2, 3, 5, 8])");
+
+// error codes
+// customization point objects
+// libfmt
+// std::format
+// stringification tests
