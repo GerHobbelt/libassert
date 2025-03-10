@@ -27,8 +27,12 @@
 
 #if defined(__has_include) && __has_include(<cpptrace/basic.hpp>)
  #include <cpptrace/basic.hpp>
-#else
+ #define HAVE_CPPTRACE_HPP  1
+#elif defined(__has_include) && __has_include(<cpptrace/cpptrace.hpp>)
  #include <cpptrace/cpptrace.hpp>
+ #define HAVE_CPPTRACE_HPP  1
+#else
+ #undef HAVE_CPPTRACE_HPP
 #endif
 
 #ifdef __cpp_lib_expected
