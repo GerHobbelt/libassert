@@ -536,8 +536,10 @@ namespace libassert {
         binary_diagnostics(other.binary_diagnostics),
         extra_diagnostics(other.extra_diagnostics),
         n_args(other.n_args),
-        trace(other.trace),
-        path_handler(other.path_handler ? other.path_handler->clone() : nullptr)
+#ifdef HAVE_CPPTRACE_HPP
+		trace(other.trace),
+#endif
+		path_handler(other.path_handler ? other.path_handler->clone() : nullptr)
         {}
     assertion_info::assertion_info(assertion_info&&) = default;
     assertion_info& assertion_info::operator=(const assertion_info& other) {
@@ -551,8 +553,10 @@ namespace libassert {
         binary_diagnostics = other.binary_diagnostics;
         extra_diagnostics = other.extra_diagnostics;
         n_args = other.n_args;
-        trace = other.trace;
-        path_handler = other.path_handler ? other.path_handler->clone() : nullptr;
+#ifdef HAVE_CPPTRACE_HPP
+		trace = other.trace;
+#endif
+		path_handler = other.path_handler ? other.path_handler->clone() : nullptr;
         return *this;
     }
     assertion_info& assertion_info::operator=(assertion_info&&) = default;
@@ -697,7 +701,7 @@ namespace libassert {
 
 namespace libassert {
 #ifdef HAVE_CPPTRACE_HPP
-    LIBASSERT_ATTR_COLD LIBASSERT_ATTR_NOINLINE [[nodiscard]]
+	[[nodiscard]] LIBASSERT_ATTR_COLD LIBASSERT_ATTR_NOINLINE
     std::string stacktrace(int width, const color_scheme& scheme, std::size_t skip) {
         auto trace = cpptrace::generate_trace(skip + 1);
         detail::identity_path_handler handler;
