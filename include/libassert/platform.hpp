@@ -136,6 +136,15 @@
  #endif
 #endif
 
+#if LIBASSERT_STD_VER >= 23
+ #include <utility>
+ #define LIBASSERT_UNREACHABLE_CALL() (::std::unreachable())
+#elif LIBASSERT_IS_CLANG || LIBASSERT_IS_GCC
+ #define LIBASSERT_UNREACHABLE_CALL() __builtin_unreachable()
+#else
+ #define LIBASSERT_UNREACHABLE_CALL() __assume(false)
+#endif
+
 #if LIBASSERT_IS_CLANG || LIBASSERT_IS_GCC
  #define LIBASSERT_PFUNC __extension__ __PRETTY_FUNCTION__
  #define LIBASSERT_ATTR_COLD     [[gnu::cold]]
