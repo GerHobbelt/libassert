@@ -53,10 +53,10 @@ namespace libassert::detail {
             (expr); \
         } catch(const ::libassert::assertion_info& info) { \
             did_assert = true; \
-            SUCCEED(); \
+            CATCH_SUCCEED(); \
         } \
         if(!did_assert) { \
-            FAIL("Expected assertion failure from " #expr " however none happened"); \
+            CATCH_FAIL("Expected assertion failure from " #expr " however none happened"); \
         } \
         ::libassert::set_failure_handler(handler); \
     } while(false)
