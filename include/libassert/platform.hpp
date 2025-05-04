@@ -155,15 +155,6 @@
  #define LIBASSERT_ATTR_NOINLINE __declspec(noinline)
 #endif
 
-#if __cplusplus >= 202302L
- #define LIBASSERT_UNREACHABLE_CALL() ::std::unreachable()
-#elif LIBASSERT_IS_MSVC
- #define LIBASSERT_UNREACHABLE_CALL() __assume(false)
-#else
- #define LIBASSERT_UNREACHABLE_CALL() __builtin_unreachable()
-#endif
-
-
 #if LIBASSERT_IS_MSVC
  #define LIBASSERT_STRONG_EXPECT(expr, value) (expr)
 #elif (defined(__clang__) && __clang_major__ >= 11) || __GNUC__ >= 9
