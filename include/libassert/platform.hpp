@@ -1,7 +1,7 @@
 #ifndef LIBASSERT_PLATFORM_HPP
 #define LIBASSERT_PLATFORM_HPP
 
-// Copyright (c) 2021-2024 Jeremy Rifkin under the MIT license
+// Copyright (c) 2021-2025 Jeremy Rifkin under the MIT license
 // https://github.com/jeremy-rifkin/libassert
 
 // =====================================================================================================================
@@ -63,50 +63,6 @@
  #define LIBASSERT_IS_ICX 1
 #else
  #define LIBASSERT_IS_ICX 0
-#endif
-
-///
-/// Detect standard library versions.
-///
-
-// libstdc++
-#ifdef _GLIBCXX_RELEASE
- #define LIBASSERT_GLIBCXX_RELEASE _GLIBCXX_RELEASE
-#else
- #define LIBASSERT_GLIBCXX_RELEASE 0
-#endif
-
-#ifdef _LIBCPP_VERSION
- #define LIBASSERT_LIBCPP_VERSION _LIBCPP_VERSION
-#else
- #define LIBASSERT_LIBCPP_VERSION 0
-#endif
-
-///
-/// Helper macros for compiler attributes.
-///
-
-#ifdef __has_cpp_attribute
- #define LIBASSERT_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
-#else
- #define LIBASSERT_HAS_CPP_ATTRIBUTE(x) 0
-#endif
-
-///
-/// Compiler attribute support.
-///
-
-#if LIBASSERT_HAS_CPP_ATTRIBUTE(nodiscard) && LIBASSERT_STD_VER >= 20
- #define LIBASSERT_ATTR_NODISCARD_MSG(msg) [[nodiscard(msg)]]
-#else // Assume we have normal C++17 nodiscard support.
- #define LIBASSERT_ATTR_NODISCARD_MSG(msg) [[nodiscard]]
-#endif
-
-
-#if LIBASSERT_HAS_CPP_ATTRIBUTE(no_unique_address)
- #define LIBASSERT_ATTR_NO_UNIQUE_ADDRESS [[no_unique_address]]
-#else
- #define LIBASSERT_ATTR_NO_UNIQUE_ADDRESS
 #endif
 
 ///
@@ -175,9 +131,9 @@
 #endif
 
 #if defined(_MSVC_TRADITIONAL) && _MSVC_TRADITIONAL
- #define LIBASSERT_NON_CONFORMANT_MSVC_PREPROCESSOR true
+ #define LIBASSERT_NON_CONFORMANT_MSVC_PREPROCESSOR 1
 #else
- #define LIBASSERT_NON_CONFORMANT_MSVC_PREPROCESSOR false
+ #define LIBASSERT_NON_CONFORMANT_MSVC_PREPROCESSOR 0
 #endif
 
 #if (LIBASSERT_IS_GCC || LIBASSERT_STD_VER >= 20) && !LIBASSERT_NON_CONFORMANT_MSVC_PREPROCESSOR
@@ -211,12 +167,12 @@
 #endif
 
 // GCC 9.1+ and later has __builtin_is_constant_evaluated
-#if defined(__GNUC__) && (__GNUC__ >= 9) && !defined(LIBASSERT_HAS_BUILTIN_IS_CONSTANT_EVALUATED)
+#if defined(__GNUC__) && __GNUC__ >= 9 && !defined(LIBASSERT_HAS_BUILTIN_IS_CONSTANT_EVALUATED)
  #define LIBASSERT_HAS_BUILTIN_IS_CONSTANT_EVALUATED
 #endif
 
 // Visual Studio 2019 (19.25) and later supports __builtin_is_constant_evaluated
-#if defined(_MSC_FULL_VER) && (_MSC_FULL_VER >= 192528326)
+#if defined(_MSC_FULL_VER) && _MSC_FULL_VER >= 192528326
  #define LIBASSERT_HAS_BUILTIN_IS_CONSTANT_EVALUATED
 #endif
 

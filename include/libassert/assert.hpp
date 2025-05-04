@@ -1,7 +1,7 @@
 #ifndef LIBASSERT_HPP
 #define LIBASSERT_HPP
 
-// Copyright (c) 2021-2024 Jeremy Rifkin under the MIT license
+// Copyright (c) 2021-2025 Jeremy Rifkin under the MIT license
 // https://github.com/jeremy-rifkin/libassert
 
 #include <cerrno>
@@ -326,12 +326,6 @@ namespace libassert::detail {
     );
 
     /*
-     * System wrappers
-     */
-
-    [[nodiscard]] LIBASSERT_EXPORT std::string strerror_wrapper(int err); // stupid C stuff, stupid microsoft stuff
-
-    /*
      * assert diagnostics generation
      */
 
@@ -382,6 +376,8 @@ namespace libassert::detail {
         info.function = t.pretty_function;
     }
 
+    [[nodiscard]] LIBASSERT_EXPORT extra_diagnostic create_errno_diagnostic(int value);
+
     template<typename T>
     LIBASSERT_ATTR_COLD
     // TODO
@@ -389,7 +385,7 @@ namespace libassert::detail {
     void process_arg(assertion_info& info, size_t i, sv_span args_strings, const T& t) {
         if constexpr(isa<T, strip<decltype(errno)>>) {
             if(args_strings.data[i] == errno_expansion) {
-                info.extra_diagnostics.push_back({ "errno", bstringf("%2d \"%s\"", t, strerror_wrapper(t).c_str()) });
+                info.extra_diagnostics.push_back(create_errno_diagnostic(t));
                 return;
             }
         } else if constexpr(is_string_type<T>) {
@@ -522,6 +518,11 @@ namespace libassert::detail {
         T value;
     };
 
+// warning C5263: calling 'std::move' on a temporary object prevents copy elision (compiling source file ../../thirdparty/owemdjee/libassert/tests/binaries/basic_test.cpp)
+#if LIBASSERT_IS_MSVC
+#pragma warning(disable: 5263)
+#endif
+
     template<
         bool R, bool ret_lhs, bool value_is_lval_ref,
         typename T, typename A, typename B, typename C
@@ -596,10 +597,10 @@ namespace libassert::detail {
  #define LIBASSERT_EVAL4(...) LIBASSERT_EVAL3(LIBASSERT_EVAL3(LIBASSERT_EVAL3(__VA_ARGS__)))
  #define LIBASSERT_EVAL(...) LIBASSERT_EVAL4(LIBASSERT_EVAL4(LIBASSERT_EVAL4(__VA_ARGS__)))
  #define LIBASSERT_EXPAND(x) x
- #define LIBASSERT_MAP_SWITCH(...)\
-     LIBASSERT_EXPAND(LIBASSERT_ARG_40(__VA_ARGS__, 2, 2, 2, 2, 2, 2, 2, 2, 2,\
-             2, 2, 2, 2, 2, 2, 2, 2, 2, 2,\
-             2, 2, 2, 2, 2, 2, 2, 2, 2,\
+ #define LIBASSERT_MAP_SWITCH(...) \
+     LIBASSERT_EXPAND(LIBASSERT_ARG_40(__VA_ARGS__, 2, 2, 2, 2, 2, 2, 2, 2, 2, \
+             2, 2, 2, 2, 2, 2, 2, 2, 2, 2, \
+             2, 2, 2, 2, 2, 2, 2, 2, 2, \
              2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0))
  #define LIBASSERT_MAP_A(...) LIBASSERT_PLUS_TEXT(LIBASSERT_MAP_NEXT_, \
                                             LIBASSERT_MAP_SWITCH(0, __VA_ARGS__)) (LIBASSERT_MAP_B, __VA_ARGS__)
@@ -607,7 +608,7 @@ namespace libassert::detail {
                                             LIBASSERT_MAP_SWITCH(0, __VA_ARGS__)) (LIBASSERT_MAP_A, __VA_ARGS__)
  #define LIBASSERT_MAP_CALL(fn, Value) LIBASSERT_EXPAND(fn(Value))
  #define LIBASSERT_MAP_OUT
- #define LIBASSERT_MAP_NEXT_2(...)\
+ #define LIBASSERT_MAP_NEXT_2(...) \
      LIBASSERT_MAP_CALL(LIBASSERT_EXPAND(LIBASSERT_ARG_2(__VA_ARGS__)), \
      LIBASSERT_EXPAND(LIBASSERT_ARG_3(__VA_ARGS__))) \
      LIBASSERT_EXPAND(LIBASSERT_ARG_1(__VA_ARGS__)) \
@@ -776,7 +777,7 @@ namespace libassert {
             } \
         } \
         LIBASSERT_WARNING_PRAGMA_POP_CLANG \
-    } while(false) \
+    } while(0) \
 
 #define LIBASSERT_INVOKE_PANIC(name, type, ...) \
     do { \
@@ -787,7 +788,7 @@ namespace libassert {
             libassert_params \
             LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_PRETTY_FUNCTION_ARG \
         ); \
-    } while(false) \
+    } while(0) \
 
 // Workaround for gcc bug 105734 / libassert bug #24
 #define LIBASSERT_DESTROY_DECOMPOSER libassert_decomposer.~expression_decomposer() /* NOLINT(bugprone-use-after-move,clang-analyzer-cplusplus.Move) */
@@ -998,7 +999,6 @@ namespace libassert {
   #define USER_STATIC_ASSERT_BACKUP_MSG(cond, msg, constant) static_assert(cond, msg)
  #endif
 #endif
-
 
 #endif // LIBASSERT_HPP
 

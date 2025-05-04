@@ -16,9 +16,9 @@
  // paths. this isn't an issue for #include <assert.hpp> but becomes an issue
  // for includes within the library (libA might include from libB)
  #if defined(__has_include) && __has_include(<magic_enum/magic_enum.hpp>)
-    #include <magic_enum/magic_enum.hpp>
+  #include <magic_enum/magic_enum.hpp>
  #else
-    #include <magic_enum.hpp>
+  #include <magic_enum.hpp>
  #endif
 #endif
 
@@ -147,9 +147,11 @@ namespace libassert::detail {
         // Catch all
         //
 
+        [[nodiscard]] LIBASSERT_EXPORT std::string stringify_unknown(std::string_view type_name);
+
         template<typename T>
         [[nodiscard]] std::string stringify_unknown() {
-            return bstringf("<instance of %s>", prettify_type(std::string(type_name<T>())).c_str());
+            return stringify_unknown(type_name<T>());
         }
 
         //
@@ -202,6 +204,9 @@ namespace libassert::detail {
             return std::move(oss).str();
         }
 
+        [[nodiscard]] LIBASSERT_EXPORT
+        std::string stringify_enum(std::string_view type_name, std::string_view underlying_value);
+
         #ifdef LIBASSERT_USE_MAGIC_ENUM
         template<typename T, typename std::enable_if_t<std::is_enum_v<strip<T>>, int> = 0>
         LIBASSERT_ATTR_COLD [[nodiscard]] std::string stringify_enum(const T& t) {
@@ -209,20 +214,18 @@ namespace libassert::detail {
             if(!name.empty()) {
                 return std::string(name);
             } else {
-                return bstringf(
-                    "enum %s: %s",
-                    prettify_type(std::string(type_name<T>())).c_str(),
-                    stringify(static_cast<typename std::underlying_type<T>::type>(t)).c_str()
+                return stringify_enum(
+                    type_name<T>(),
+                    stringify(static_cast<typename std::underlying_type_t<T>>(t))
                 );
             }
         }
         #else
         template<typename T, typename std::enable_if_t<std::is_enum_v<strip<T>>, int> = 0>
         LIBASSERT_ATTR_COLD [[nodiscard]] std::string stringify_enum(const T& t) {
-            return bstringf(
-                "enum %s: %s",
-                prettify_type(std::string(type_name<T>())).c_str(),
-                stringify(static_cast<typename std::underlying_type_t<T>>(t)).c_str()
+            return stringify_enum(
+                type_name<T>(),
+                stringify(static_cast<typename std::underlying_type_t<T>>(t))
             );
         }
         #endif
