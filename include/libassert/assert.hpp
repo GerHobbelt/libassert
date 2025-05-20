@@ -715,7 +715,7 @@ namespace libassert {
 // Of relevance to this: in foo(__extension__ ({ M{1} + M{1}; })); the lifetimes of the M{1} objects end during the
 // statement expression but the lifetime of the returned object is extend to the end of the full foo() expression.
 // A wrapper struct is used here to return an lvalue reference from a gcc statement expression.
-// Note: There is a current issue with tarnaries: auto x = assert(b ? y : y); must copy y. This can be fixed with
+// Note: There is a current issue with ternaries: auto x = assert(b ? y : y); must copy y. This can be fixed with
 // lambdas but that's potentially very expensive compile-time wise. Need to investigate further.
 // Note: libassert::detail::expression_decomposer(libassert::detail::expression_decomposer{} << expr) done for ternary
 #if LIBASSERT_IS_MSVC
