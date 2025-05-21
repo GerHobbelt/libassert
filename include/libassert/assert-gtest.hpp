@@ -1,6 +1,10 @@
 #ifndef LIBASSERT_GTEST_HPP
 #define LIBASSERT_GTEST_HPP
 
+#ifndef __cplusplus
+#error error 1003: Unexpected compiler, expected C++ compiler.
+#endif // !defined(__cplusplus)
+
 #include <gtest/gtest.h>
 
 #define LIBASSERT_PREFIX_ASSERTIONS
@@ -9,6 +13,10 @@
 #if defined(_MSVC_TRADITIONAL) && _MSVC_TRADITIONAL
  #error "Libassert integration does not work with MSVC's non-conformant preprocessor. /Zc:preprocessor must be used."
 #endif
+
+#undef ASSERT
+#undef EXPECT
+
 #define ASSERT(...) do { try { LIBASSERT_ASSERT(__VA_ARGS__); SUCCEED(); } catch(std::exception& e) { FAIL() << e.what(); } } while(0)
 #define EXPECT(...) do { try { LIBASSERT_ASSERT(__VA_ARGS__); SUCCEED(); } catch(std::exception& e) { ADD_FAILURE() << e.what(); } } while(0)
 

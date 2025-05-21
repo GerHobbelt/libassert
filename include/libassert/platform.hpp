@@ -4,11 +4,27 @@
 // Copyright (c) 2021-2025 Jeremy Rifkin under the MIT license
 // https://github.com/jeremy-rifkin/libassert
 
+#if defined __cplusplus
+
 #include <version>
+
+#define LIBASSERT_ABI_NAMESPACE_TAG v1
+
+#define LIBASSERT_BEGIN_NAMESPACE \
+    namespace libassert { \
+    inline namespace LIBASSERT_ABI_NAMESPACE_TAG {
+
+#define LIBASSERT_END_NAMESPACE \
+    } \
+    }
+
+#endif // __cplusplus
 
 // =====================================================================================================================
 // || Preprocessor stuff                                                                                              ||
 // =====================================================================================================================
+
+#if defined __cplusplus
 
 // Set the C++ version number based on if we are on a dumb compiler like MSVC or not.
 #ifdef _MSVC_LANG
@@ -26,6 +42,13 @@
 #else
  #error "libassert requires C++17 or newer"
 #endif
+
+#else // __cplusplus
+
+#define LIBASSERT_CPLUSPLUS 0
+#define LIBASSERT_STD_VER 0
+
+#endif // __cplusplus
 
 ///
 /// Detect compiler versions.
@@ -150,6 +173,8 @@
 /// C++20 functionality wrappers.
 ///
 
+#if defined __cplusplus
+
 // Check if we can use std::is_constant_evaluated.
 #ifdef __has_include
  #if __has_include(<version>)
@@ -178,7 +203,8 @@
  #define LIBASSERT_HAS_BUILTIN_IS_CONSTANT_EVALUATED
 #endif
 
-namespace libassert::detail {
+LIBASSERT_BEGIN_NAMESPACE
+namespace detail {
     // Note: Works with >=C++20 and with C++17 for GCC 9.1+, Clang 9+, and MSVC 19.25+.
     constexpr bool is_constant_evaluated() noexcept {
         #if defined(LIBASSERT_HAS_IS_CONSTANT_EVALUATED)
@@ -190,6 +216,9 @@ namespace libassert::detail {
         #endif
     }
 }
+LIBASSERT_END_NAMESPACE
+
+#endif // __cplusplus
 
 #if LIBASSERT_IS_CLANG || LIBASSERT_IS_GCC
  #if LIBASSERT_IS_GCC
@@ -264,8 +293,12 @@ namespace libassert::detail {
  #define LIBASSERT_BREAKPOINT()
 #endif
 
+#if defined __cplusplus
+
 #if defined(__has_include) && __has_include(<format>) && defined(__cpp_lib_format)
  #define LIBASSERT_USE_STD_FORMAT
 #endif
+
+#endif // __cplusplus
 
 #endif

@@ -1,6 +1,10 @@
 #ifndef LIBASSERT_CATCH2_HPP
 #define LIBASSERT_CATCH2_HPP
 
+#ifndef __cplusplus
+#error error 1003: Unexpected compiler, expected C++ compiler.
+#endif // !defined(__cplusplus)
+
 #define LIBASSERT_PREFIX_ASSERTIONS
 #include <libassert/assert.hpp>
 
@@ -11,7 +15,10 @@
 #if defined(_MSVC_TRADITIONAL) && _MSVC_TRADITIONAL
  #error "Libassert integration does not work with MSVC's non-conformant preprocessor. /Zc:preprocessor must be used."
 #endif
+
 // TODO: CHECK/REQUIRE?
+#undef ASSERT
+// Note: a very Catch2-specific ASSERT() macro is being defined here!
 #define ASSERT(...) do { try { LIBASSERT_ASSERT(__VA_ARGS__); CATCH_SUCCEED(); } catch(std::exception& e) { CATCH_FAIL(e.what()); } } while(0)
 
 namespace libassert::detail {

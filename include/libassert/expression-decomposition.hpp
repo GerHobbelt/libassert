@@ -1,18 +1,25 @@
 #ifndef LIBASSERT_EXPRESSION_DECOMPOSITION_HPP
 #define LIBASSERT_EXPRESSION_DECOMPOSITION_HPP
 
+#if defined __cplusplus
+
 #include <string_view>
 #include <type_traits>
 #include <utility>
 
+#endif // __cplusplus
+
 #include <libassert/platform.hpp>
 #include <libassert/utilities.hpp>
+
+#if defined __cplusplus
 
 // =====================================================================================================================
 // || Expression decomposition micro-library                                                                          ||
 // =====================================================================================================================
 
-namespace libassert::detail {
+LIBASSERT_BEGIN_NAMESPACE
+namespace detail {
     // Lots of boilerplate
     // std:: implementations don't allow two separate types for lhs/rhs
     // Note: is this macro potentially bad when it comes to debugging(?)
@@ -273,5 +280,8 @@ namespace libassert::detail {
         std::conditional_t<std::is_rvalue_reference_v<U>, std::remove_reference_t<U>, U>
     >;
 }
+LIBASSERT_END_NAMESPACE
+
+#endif // __cplusplus
 
 #endif

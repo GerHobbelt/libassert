@@ -1,13 +1,19 @@
 #ifndef LIBASSERT_STRINGIFICATION_HPP
 #define LIBASSERT_STRINGIFICATION_HPP
 
+#if defined __cplusplus
+
 #include <filesystem>
 #include <optional>
 #include <string>
 #include <system_error>
 
+#endif // __cplusplus
+
 #include <libassert/platform.hpp>
 #include <libassert/utilities.hpp>
+
+#if defined __cplusplus
 
 #ifdef LIBASSERT_USE_MAGIC_ENUM
  // relative include so that multiple library versions don't clash
@@ -39,14 +45,15 @@
 // || Note: There is some stateful stuff behind the scenes related to literal format configuration                    ||
 // =====================================================================================================================
 
-namespace libassert {
+LIBASSERT_BEGIN_NAMESPACE
     // customization point
     template<typename T> struct stringifier /*{
         std::convertible_to<std::string> stringify(const T&);
     }*/;
-}
+LIBASSERT_END_NAMESPACE
 
-namespace libassert::detail {
+LIBASSERT_BEGIN_NAMESPACE
+namespace detail {
     // What can be stringified
     // Base types:
     //  - anything string-like
@@ -532,5 +539,8 @@ namespace libassert::detail {
         }
     }
 }
+LIBASSERT_END_NAMESPACE
+
+#endif // __cplusplus
 
 #endif

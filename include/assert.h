@@ -130,6 +130,53 @@ void __cdecl fz_sysassert_and_continue(const char * _Message, const char * _File
 
 _CRT_END_C_HEADER
 
+#define LIBASSERT_USE_MAGIC_ENUM     1
+
+#define LIBASSERT_USE_FMT            1
+//#define LIBASSERT_USE_STD_FORMAT     1  // <-- is set up in libassert/platform.hpp
+
+#define LIBASSERT_LOWERCASE     1
+#define LIBASSERT_BREAK_ON_FAIL 1
+#undef  LIBASSERT_PREFIX_ASSERTIONS   // --> define ASSERT() et al
+
+// #define LIBASSERT_STATIC_DATA(name, type, expr_str, ...) 
+
+// #define LIBASSERT_BREAKPOINT_IF_DEBUGGING()                    ...
+// #define LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL()            ...
+
+// #define LIBASSERT_INVOKE(expr, name, type, failaction, ...)    ...
+// -->
+// libassert::detail::process_assert_fail(decomposer, params, ...)
+// libassert::detail::process_assert_fail_n(decomposer, params, ...)
+
+// #define LIBASSERT_INVOKE_PANIC(name, type, ...) 
+// -->
+// libassert::detail::process_panic(params, ...)
+
+// #define LIBASSERT_INVOKE_VAL(expr, doreturn, check_expression, name, type, failaction, ...)     ....
+// -->
+// libassert::detail::process_assert_fail(decomposer, params, ...)
+// libassert::detail::process_assert_fail_n(decomposer, params, ...)
+
+// #define LIBASSERT_DEBUG_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "DEBUG_ASSERT", debug_assertion, , __VA_ARGS__)
+
+// #define LIBASSERT_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "ASSERT", assertion, , __VA_ARGS__)
+
+// #define LIBASSERT_ASSUME(expr, ...) LIBASSERT_INVOKE(expr, "ASSUME", assumption, LIBASSERT_ASSUME_ACTION, __VA_ARGS__)
+
+// #define LIBASSERT_PANIC(...) LIBASSERT_INVOKE_PANIC("PANIC", panic, __VA_ARGS__)
+
+//  #define LIBASSERT_UNREACHABLE(...) LIBASSERT_INVOKE_PANIC("UNREACHABLE", unreachable, __VA_ARGS__)
+
+//  #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "DEBUG_ASSERT_VAL", debug_assertion, , __VA_ARGS__)
+
+// #define LIBASSERT_ASSUME_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSUME_VAL", assumption, LIBASSERT_ASSUME_ACTION, __VA_ARGS__)
+
+// #define LIBASSERT_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSERT_VAL", assertion, , __VA_ARGS__)
+
+
+#include <libassert/assert.hpp>
+
 
 #if defined __cplusplus && !defined __FZ_VALIDATE_BOOL_FOR_ASSERT_DEFINED__
 #define                             __FZ_VALIDATE_BOOL_FOR_ASSERT_DEFINED__    1
@@ -219,7 +266,4 @@ _CRT_END_C_HEADER
 _UCRT_RESTORE_CLANG_WARNINGS
 #pragma warning(pop) // _UCRT_DISABLED_WARNINGS
 
-
-
-#include <libassert/assert.hpp>
 
