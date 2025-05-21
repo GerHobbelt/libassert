@@ -136,6 +136,18 @@ _CRT_END_C_HEADER
 
 #if !defined FZ_DO_NOT_VALIDATE_BOOL_FOR_ASSERT
 
+// These polymorphic 'assert implementation' test functions intend to catch potential coding mistakes in your assertion
+// statements. This is done by making the compiler treat any non-boolean & non-plain-integer assertion expression
+// as an illegal expression -- after all, these assertion expression are supposed to be *boolean expressions*!
+//
+// The consequent error reports will show up similar to this example:
+//
+//     assert(object.size());
+//
+//  -->
+//
+//     error C2280: 'bool fz_assert_impl::validateBool4Assert(unsigned __int64)': attempting to reference a deleted function (compiling source file foobar.cpp)
+//
 namespace fz_assert_impl
 {
 	static constexpr inline /* explicit */ bool validateBool4Assert(bool b) { return b; }
