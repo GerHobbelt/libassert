@@ -9,5 +9,6 @@
 extern "C"
 int main(void) {
     ASSERT(1 + 1 == 3);
-		return 0;
+
+	return 0;
 }
