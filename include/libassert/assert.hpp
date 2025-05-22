@@ -29,17 +29,11 @@
 // When we include magic_enum, et al, we need an "early" version of the LIBASSERT_INVOKE macro for the preprocessor to expand
 // the assertion statements in those library header files while we load them from stringification.hpp.
 
-#if defined(LIBASSERT_PHASE_1_PRODUCE_MACROS_ONLY)
 
 #include <libassert/expression-typecheck.hpp>
-
-#else
-
-#include <libassert/assert-macros.hpp>
 
 #include <libassert/stringification.hpp>
 #include <libassert/expression-decomposition.hpp>
-#include <libassert/expression-typecheck.hpp>
 
 #if defined __cplusplus
 
@@ -59,8 +53,6 @@
 
 #endif // __cplusplus
 
-#endif // LIBASSERT_PHASE_1_PRODUCE_MACROS_ONLY
-
 #if LIBASSERT_IS_MSVC
  #pragma warning(push)
  // warning C4251: using non-dll-exported type in dll-exported type, firing on std::vector<frame_ptr> and others for
@@ -68,8 +60,6 @@
  // 4275 is the same thing but for base classes
  #pragma warning(disable: 4251; disable: 4275)
 #endif
-
-#if !defined(LIBASSERT_PHASE_1_PRODUCE_MACROS_ONLY) && defined(LIBASSERT_PHASE_2_DEFINE_CPP_TEMPLATES)
 
 // =====================================================================================================================
 // || Libassert public interface                                                                                      ||
@@ -582,13 +572,9 @@ LIBASSERT_END_NAMESPACE
 
 #endif // __cplusplus
 
-#endif // !LIBASSERT_PHASE_1_PRODUCE_MACROS_ONLY
-
 #if LIBASSERT_IS_MSVC
  #pragma warning(pop)
 #endif
-
-#if defined(LIBASSERT_PHASE_1_PRODUCE_MACROS_ONLY)
 
 #if LIBASSERT_IS_CLANG || LIBASSERT_IS_GCC || !LIBASSERT_NON_CONFORMANT_MSVC_PREPROCESSOR
  // Macro mapping utility by William Swanson https://github.com/swansontec/map-macro/blob/master/map.h
@@ -959,6 +945,7 @@ int libassert_is_debugger_present(void);
             libassert::detail::expression_decomposer{} << expr \
         ); \
         LIBASSERT_WARNING_PRAGMA_POP_GCC \
+        /* LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); */ \
         LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(check_expression); \
         decltype(auto) libassert_value = libassert_decomposer.get_value(); \
         constexpr bool libassert_ret_lhs = libassert_decomposer.ret_lhs(); \
@@ -1136,8 +1123,6 @@ int libassert_is_debugger_present(void);
  #endif
 #endif
 
-#endif // LIBASSERT_PHASE_1_PRODUCE_MACROS_ONLY
-
 #endif // LIBASSERT_HPP
 
 
@@ -1158,10 +1143,3 @@ int libassert_is_debugger_present(void);
   #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, , __VA_ARGS__)
  #endif
 #endif
-
-
-#ifdef LIBASSERT_PHASE_2_DEFINE_CPP_TEMPLATES
-
-#include <libassert/assert-macros.hpp>
-
-#endif // LIBASSERT_PHASE_2_DEFINE_CPP_TEMPLATES
