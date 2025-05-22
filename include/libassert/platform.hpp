@@ -18,6 +18,8 @@
     } \
     }
 
+#define LIBASSERT_NAMESPACE  ::libassert::LIBASSERT_ABI_NAMESPACE_TAG
+
 #endif // __cplusplus
 
 // =====================================================================================================================
