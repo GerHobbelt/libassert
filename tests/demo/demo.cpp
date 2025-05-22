@@ -226,8 +226,8 @@ public:
              float f = *assert_val(get_param());
              (void)f;
             #else
-             ASSERT(parameter);
-             debug_assert(get_param());
+             ASSERT(!!parameter);
+             debug_assert(!!get_param());
             #endif
             auto x = [&] () -> decltype(auto) { return ASSERT_VAL(parameter); };
             static_assert(std::is_same<decltype(x()), std::optional<float>&>::value);
@@ -274,7 +274,7 @@ public:
         }
 
         long long x = -9'223'372'036'854'775'807;
-        debug_assert(x & 0x4);
+        debug_assert(0 != (x & 0x4));
 
         debug_assert(!x and true == 2);
         debug_assert((puts("A"), false) && (puts("B"), false));
