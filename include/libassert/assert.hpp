@@ -25,8 +25,21 @@
 
 #include <libassert/platform.hpp>
 #include <libassert/utilities.hpp>
+
+// When we include magic_enum, et al, we need an "early" version of the LIBASSERT_INVOKE macro for the preprocessor to expand
+// the assertion statements in those library header files while we load them from stringification.hpp.
+
+#if defined(LIBASSERT_PHASE_1_PRODUCE_MACROS_ONLY)
+
+#include <libassert/expression-typecheck.hpp>
+
+#else
+
+#include <libassert/assert-macros.hpp>
+
 #include <libassert/stringification.hpp>
 #include <libassert/expression-decomposition.hpp>
+#include <libassert/expression-typecheck.hpp>
 
 #if defined __cplusplus
 
@@ -46,6 +59,8 @@
 
 #endif // __cplusplus
 
+#endif // LIBASSERT_PHASE_1_PRODUCE_MACROS_ONLY
+
 #if LIBASSERT_IS_MSVC
  #pragma warning(push)
  // warning C4251: using non-dll-exported type in dll-exported type, firing on std::vector<frame_ptr> and others for
@@ -53,6 +68,8 @@
  // 4275 is the same thing but for base classes
  #pragma warning(disable: 4251; disable: 4275)
 #endif
+
+#if !defined(LIBASSERT_PHASE_1_PRODUCE_MACROS_ONLY) && defined(LIBASSERT_PHASE_2_DEFINE_CPP_TEMPLATES)
 
 // =====================================================================================================================
 // || Libassert public interface                                                                                      ||
@@ -565,9 +582,13 @@ LIBASSERT_END_NAMESPACE
 
 #endif // __cplusplus
 
+#endif // !LIBASSERT_PHASE_1_PRODUCE_MACROS_ONLY
+
 #if LIBASSERT_IS_MSVC
  #pragma warning(pop)
 #endif
+
+#if defined(LIBASSERT_PHASE_1_PRODUCE_MACROS_ONLY)
 
 #if LIBASSERT_IS_CLANG || LIBASSERT_IS_GCC || !LIBASSERT_NON_CONFORMANT_MSVC_PREPROCESSOR
  // Macro mapping utility by William Swanson https://github.com/swansontec/map-macro/blob/master/map.h
@@ -741,17 +762,30 @@ LIBASSERT_END_NAMESPACE
 // Note: There is a current issue with ternaries: auto x = assert(b ? y : y); must copy y. This can be fixed with
 // lambdas but that's potentially very expensive compile-time wise. Need to investigate further.
 // Note: libassert::detail::expression_decomposer(libassert::detail::expression_decomposer{} << expr) done for ternary
+#if defined __cplusplus
+
 #if LIBASSERT_IS_MSVC
  #define LIBASSERT_INVOKE_VAL_PRETTY_FUNCTION_ARG ,libassert::detail::pretty_function_name_wrapper{libassert_msvc_pfunc}
 #else
  #define LIBASSERT_INVOKE_VAL_PRETTY_FUNCTION_ARG ,libassert::detail::pretty_function_name_wrapper{LIBASSERT_PFUNC}
 #endif
 #define LIBASSERT_PRETTY_FUNCTION_ARG ,libassert::detail::pretty_function_name_wrapper{LIBASSERT_PFUNC}
+
+#else // __cplusplus
+
+#define LIBASSERT_INVOKE_VAL_PRETTY_FUNCTION_ARG ,libassert_pretty_function_name_wrapper{LIBASSERT_PFUNC}
+#define LIBASSERT_PRETTY_FUNCTION_ARG ,libassert_pretty_function_name_wrapper{LIBASSERT_PFUNC}
+
+#endif // __cplusplus
+
+
 #if LIBASSERT_IS_CLANG // -Wall in clang
  #define LIBASSERT_IGNORE_UNUSED_VALUE _Pragma("GCC diagnostic ignored \"-Wunused-value\"")
 #else
  #define LIBASSERT_IGNORE_UNUSED_VALUE
 #endif
+
+#if defined __cplusplus
 
 #define LIBASSERT_BREAKPOINT_IF_DEBUGGING() \
     do \
@@ -760,11 +794,29 @@ LIBASSERT_END_NAMESPACE
         } \
     while(0)
 
+#else // __cplusplus
+
+int libassert_is_debugger_present(void);
+
+#define LIBASSERT_BREAKPOINT_IF_DEBUGGING() \
+    do \
+        if(libassert_is_debugger_present()) { \
+            LIBASSERT_BREAKPOINT(); \
+        } \
+    while(0)
+
+#endif // __cplusplus
+
 #ifdef LIBASSERT_BREAK_ON_FAIL
  #define LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL() LIBASSERT_BREAKPOINT_IF_DEBUGGING()
 #else
  #define LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL()
 #endif
+
+// kill the "early definition" from further above, which we used for magic_enum & friends.
+#undef LIBASSERT_INVOKE
+
+#if defined __cplusplus
 
 #define LIBASSERT_INVOKE(expr, name, type, failaction, ...) \
     /* must push/pop out here due to nasty clang bug https://github.com/llvm/llvm-project/issues/63897 */ \
@@ -779,6 +831,7 @@ LIBASSERT_END_NAMESPACE
             libassert::detail::expression_decomposer{} << expr \
         ); \
         LIBASSERT_WARNING_PRAGMA_POP_GCC \
+        LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); \
         if(LIBASSERT_STRONG_EXPECT(!static_cast<bool>(libassert_decomposer.get_value()), 0)) { \
             libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
             LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
@@ -802,6 +855,30 @@ LIBASSERT_END_NAMESPACE
         LIBASSERT_WARNING_PRAGMA_POP_CLANG \
     } while(0) \
 
+#else // __cplusplus
+
+#define LIBASSERT_INVOKE(expr, name, type, failaction, ...) \
+    /* must push/pop out here due to nasty clang bug https://github.com/llvm/llvm-project/issues/63897 */ \
+    /* must do awful stuff to workaround differences in where gcc and clang allow these directives to go */ \
+    do { \
+        LIBASSERT_WARNING_PRAGMA_PUSH_CLANG \
+        LIBASSERT_IGNORE_UNUSED_VALUE \
+        LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); \
+        if(!!(expr)) { \
+            LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
+            libassert_report_failure_in_expression(libassert_CFA_ ## failaction, \
+				name, #expr, libassert_params, \
+                     LIBASSERT_PRETTY_FUNCTION_ARG, \
+					 LIBASSERT_VA_ARGS(__VA_ARGS__) \
+                ); \
+        } \
+        LIBASSERT_WARNING_PRAGMA_POP_CLANG \
+    } while(0) \
+
+#endif // __cplusplus
+
+#if defined __cplusplus
+
 #define LIBASSERT_INVOKE_PANIC(name, type, ...) \
     do { \
         libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
@@ -813,8 +890,23 @@ LIBASSERT_END_NAMESPACE
         ); \
     } while(0) \
 
+#else // __cplusplus
+
+#define LIBASSERT_INVOKE_PANIC(name, type, ...) \
+    do { \
+        LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
+        LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, "", __VA_ARGS__) \
+        libassert_process_panic( \
+            libassert_params \
+            LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_PRETTY_FUNCTION_ARG \
+        ); \
+    } while(0) \
+
+#endif // __cplusplus
+
 // Workaround for gcc bug 105734 / libassert bug #24
 #define LIBASSERT_DESTROY_DECOMPOSER libassert_decomposer.~expression_decomposer() /* NOLINT(bugprone-use-after-move,clang-analyzer-cplusplus.Move) */
+
 #if LIBASSERT_IS_GCC
  #if __GNUC__ == 12 && __GNUC_MINOR__ == 1
   LIBASSERT_BEGIN_NAMESPACE
@@ -848,9 +940,12 @@ LIBASSERT_END_NAMESPACE
  }
  LIBASSERT_END_NAMESPACE
 
- #endif // __cplusplus
+#endif // __cplusplus
 
 #endif
+
+#if defined __cplusplus
+
 #define LIBASSERT_INVOKE_VAL(expr, doreturn, check_expression, name, type, failaction, ...) \
     /* must push/pop out here due to nasty clang bug https://github.com/llvm/llvm-project/issues/63897 */ \
     /* must do awful stuff to workaround differences in where gcc and clang allow these directives to go */ \
@@ -864,6 +959,7 @@ LIBASSERT_END_NAMESPACE
             libassert::detail::expression_decomposer{} << expr \
         ); \
         LIBASSERT_WARNING_PRAGMA_POP_GCC \
+        LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(check_expression); \
         decltype(auto) libassert_value = libassert_decomposer.get_value(); \
         constexpr bool libassert_ret_lhs = libassert_decomposer.ret_lhs(); \
         if constexpr(check_expression) { \
@@ -904,6 +1000,13 @@ LIBASSERT_END_NAMESPACE
         >(libassert_value, *std::launder(&libassert_decomposer)); \
     ) LIBASSERT_IF(doreturn)(.value,) \
     LIBASSERT_WARNING_PRAGMA_POP_CLANG
+
+#else // __cplusplus
+
+#define LIBASSERT_INVOKE_VAL(expr, doreturn, check_expression, name, type, failaction, ...) \
+    this_libassert_macro_cannot_be_used_in_a_C_language_source_file (:::)
+
+#endif // __cplusplus
 
 #ifdef NDEBUG
  #define LIBASSERT_ASSUME_ACTION LIBASSERT_UNREACHABLE_CALL();
@@ -1033,7 +1136,10 @@ LIBASSERT_END_NAMESPACE
  #endif
 #endif
 
+#endif // LIBASSERT_PHASE_1_PRODUCE_MACROS_ONLY
+
 #endif // LIBASSERT_HPP
+
 
 // Intentionally done outside the include guard. Libc++ leaks `assert` (among other things), so the include for
 // assert.hpp should go after other includes when using -DLIBASSERT_LOWERCASE.
@@ -1041,9 +1147,21 @@ LIBASSERT_END_NAMESPACE
  #ifdef assert
   #undef assert
  #endif
+
+ #ifndef LIBASSERT_INVOKE
+  #error "libassert's assert load process failed to properly initialize the `assert` & `LIBASSERT_INVOKE` macros. This suggests there's a bug in libassert itself."
+ #endif
+
  #ifndef NDEBUG
   #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, , __VA_ARGS__)
  #else
   #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, , __VA_ARGS__)
  #endif
 #endif
+
+
+#ifdef LIBASSERT_PHASE_2_DEFINE_CPP_TEMPLATES
+
+#include <libassert/assert-macros.hpp>
+
+#endif // LIBASSERT_PHASE_2_DEFINE_CPP_TEMPLATES

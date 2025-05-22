@@ -178,62 +178,6 @@ _CRT_END_C_HEADER
 #include <libassert/assert.hpp>
 
 
-#if defined __cplusplus && !defined __FZ_VALIDATE_BOOL_FOR_ASSERT_DEFINED__
-#define                             __FZ_VALIDATE_BOOL_FOR_ASSERT_DEFINED__    1
-
-#if !defined FZ_DO_NOT_VALIDATE_BOOL_FOR_ASSERT
-
-// These polymorphic 'assert implementation' test functions intend to catch potential coding mistakes in your assertion
-// statements. This is done by making the compiler treat any non-boolean & non-plain-integer assertion expression
-// as an illegal expression -- after all, these assertion expression are supposed to be *boolean expressions*!
-//
-// The consequent error reports will show up similar to this example:
-//
-//     assert(object.size());
-//
-//  -->
-//
-//     error C2280: 'bool fz_assert_impl::validateBool4Assert(unsigned __int64)': attempting to reference a deleted function (compiling source file foobar.cpp)
-//
-namespace fz_assert_impl
-{
-	static constexpr inline /* explicit */ bool validateBool4Assert(bool b) { return b; }
-	static constexpr inline bool validateBool4Assert(const void* b) { return !!b; }
-	static constexpr inline /* explicit */ bool validateBool4Assert(int b) { return !!b; }
-	static inline bool validateBool4Assert(unsigned int) = delete;      // catch unintended bool conversions, e.g. HRESULT
-	static inline bool validateBool4Assert(float) = delete; 
-	static inline bool validateBool4Assert(double) = delete; 
-	static inline bool validateBool4Assert(long int) = delete; 
-	static inline bool validateBool4Assert(unsigned long int) = delete; 
-	static inline bool validateBool4Assert(long long int) = delete; 
-	static inline bool validateBool4Assert(unsigned long long int) = delete; 
-}
-
-#ifndef NDEBUG
-
-#define assert(expression) (void)(                                                      \
-            (!!::fz_assert_impl::validateBool4Assert(expression)) ||                    \
-            (fz_sysassert(#expression, __FILE__, __func__, __LINE__), 0)				\
-        )
-
-#define assert_and_continue(expression) (void)(                                         \
-            (!!::fz_assert_impl::validateBool4Assert(expression)) ||                    \
-            (fz_sysassert_and_continue(#expression, __FILE__, __func__, __LINE__), 0)	\
-        )
-
-#else 
-
-#define assert(expression) (void)(0)
-
-#define assert_and_continue(expression) (void)(expression)
-
-#endif  // !NDEBUG
-
-#endif   // FZ_DO_NOT_VALIDATE_BOOL_FOR_ASSERT
-
-#endif   // __cplusplus && !__FZ_VALIDATE_BOOL_FOR_ASSERT_DEFINED__
-
-
 #ifndef assert
 
 _CRT_BEGIN_C_HEADER

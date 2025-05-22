@@ -16,6 +16,7 @@
 #if defined __cplusplus
 
 #ifdef LIBASSERT_USE_MAGIC_ENUM
+
  // relative include so that multiple library versions don't clash
  // e.g. if both libA and libB have different versions of libassert as a public
  // dependency, then any library that consumes both will have both sets of include
