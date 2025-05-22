@@ -26,11 +26,71 @@
 #include <libassert/platform.hpp>
 #include <libassert/utilities.hpp>
 
+#include <libassert/expression-typecheck.hpp>
+
 // When we include magic_enum, et al, we need an "early" version of the LIBASSERT_INVOKE macro for the preprocessor to expand
 // the assertion statements in those library header files while we load them from stringification.hpp.
 
+#if defined __cplusplus
 
-#include <libassert/expression-typecheck.hpp>
+namespace libassert {
+	int breakpoint_if_debugger_present(void);
+	void report_failure_in_expression(const char *name, const char *expr_str, const char *func, const char *sourcefile, int sourceline);
+}
+
+#define LIBASSERT_INVOKE(expr, name, type, failaction, ...) \
+    /* must push/pop out here due to nasty clang bug https://github.com/llvm/llvm-project/issues/63897 */ \
+    /* must do awful stuff to workaround differences in where gcc and clang allow these directives to go */ \
+    do { \
+        LIBASSERT_WARNING_PRAGMA_PUSH_CLANG \
+        LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); \
+        if(LIBASSERT_STRONG_EXPECT(!static_cast<bool>(expr), 0)) { \
+            /* LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); */ \
+			libassert::breakpoint_if_debugger_present(); \
+            failaction \
+            libassert::report_failure_in_expression( \
+				name, #expr, LIBASSERT_PFUNC, __FILE__, __LINE__ \
+            ); \
+        } \
+        LIBASSERT_WARNING_PRAGMA_POP_CLANG \
+    } while(0) \
+
+#else // __cplusplus
+
+int libassert_breakpoint_if_debugger_present(void);
+void libassert_report_failure_in_expression(const char *name, const char *expr_str, const char *func, const char *sourcefile, int sourceline);
+
+#define LIBASSERT_INVOKE(expr, name, type, failaction, ...) \
+    /* must push/pop out here due to nasty clang bug https://github.com/llvm/llvm-project/issues/63897 */ \
+    /* must do awful stuff to workaround differences in where gcc and clang allow these directives to go */ \
+    do { \
+        LIBASSERT_WARNING_PRAGMA_PUSH_CLANG \
+        LIBASSERT_IGNORE_UNUSED_VALUE \
+        LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); \
+        if(!!(expr)) { \
+            /* LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); */ \
+			libassert_breakpoint_if_debugger_present(); \
+            failaction \
+            libassert_report_failure_in_expression( \
+				name, #expr, LIBASSERT_PFUNC, __FILE__, __LINE__ \
+                ); \
+        } \
+        LIBASSERT_WARNING_PRAGMA_POP_CLANG \
+    } while(0) \
+
+#endif // __cplusplus
+
+#ifdef LIBASSERT_LOWERCASE
+#ifdef assert
+#undef assert
+#endif
+
+#ifndef NDEBUG
+#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, , __VA_ARGS__)
+#else
+#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, , __VA_ARGS__)
+#endif
+#endif
 
 #include <libassert/stringification.hpp>
 #include <libassert/expression-decomposition.hpp>
@@ -782,14 +842,10 @@ LIBASSERT_END_NAMESPACE
 
 #else // __cplusplus
 
-int libassert_is_debugger_present(void);
+int libassert_breakpoint_if_debugger_present(void);
 
 #define LIBASSERT_BREAKPOINT_IF_DEBUGGING() \
-    do \
-        if(libassert_is_debugger_present()) { \
-            LIBASSERT_BREAKPOINT(); \
-        } \
-    while(0)
+    libassert_breakpoint_if_debugger_present()
 
 #endif // __cplusplus
 
@@ -852,8 +908,9 @@ int libassert_is_debugger_present(void);
         LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); \
         if(!!(expr)) { \
             LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
-            libassert_report_failure_in_expression(libassert_CFA_ ## failaction, \
-				name, #expr, libassert_params, \
+            failaction \
+            libassert_report_failure_in_expression( \
+				name, #expr, \
                      LIBASSERT_PRETTY_FUNCTION_ARG, \
 					 LIBASSERT_VA_ARGS(__VA_ARGS__) \
                 ); \

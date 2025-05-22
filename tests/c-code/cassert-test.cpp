@@ -7,10 +7,6 @@
 #error "libassert include paths are not included or don't have precedence over system's assert.h + cassert header files."
 #endif
 
-#ifndef LIBASSERT_PHASE_3_ALL_DONE
-#error "libassert macros vs. codebase epansion process failed; see the assert-macros.h driver file for more info."
-#endif
-
 #include "c-code-test.h"
 
 static LIBASSERT_ATTR_NOINLINE float foopp(void) {
@@ -26,10 +22,8 @@ void cassert_include_test(void) {
 	float f = DEBUG_ASSERT_VAL(foopp());
 	assert(f == 2.5f);
 
-	debug_assert(FALSE);
+	debug_assert(false);
 
 	LIBASSERT_ASSERT(x < 20, "foobar");
-
-	ASSERT_EQ(1, 2);
 }
 

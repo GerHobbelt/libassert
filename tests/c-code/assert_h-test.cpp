@@ -7,6 +7,8 @@
 #error "libassert include paths are not included or don't have precedence over system's assert.h + cassert header files."
 #endif
 
+#include <stdlib.h>
+
 #include "c-code-test.h"
 
 static float fooc(void) {
@@ -21,7 +23,7 @@ void assert_h_include_test(void) {
 	float f = DEBUG_ASSERT_VAL(fooc());
 	assert(f == 2.5f);
 
-	debug_assert(FALSE);
+	debug_assert(0);
 
 	LIBASSERT_ASSERT(x < 20, "foobar");
 
