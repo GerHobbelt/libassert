@@ -33,10 +33,10 @@
 
 #if defined __cplusplus
 
-namespace libassert {
+LIBASSERT_BEGIN_NAMESPACE
 	int breakpoint_if_debugger_present(void);
 	void report_failure_in_expression(const char *name, const char *expr_str, const char *func, const char *sourcefile, int sourceline);
-}
+LIBASSERT_END_NAMESPACE
 
 #define LIBASSERT_INVOKE(expr, name, type, failaction, ...) \
     /* must push/pop out here due to nasty clang bug https://github.com/llvm/llvm-project/issues/63897 */ \
