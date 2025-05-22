@@ -67,9 +67,19 @@
 
 #if defined __cplusplus
 
+#if defined(__cpp_lib_remove_cvref) && (__cplusplus >= 201703L) && 0
+
 #define LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr) \
-	static_assert(std::is_same<std::remove_cv<decltype(expr)>::type, bool>::value, \
+	static_assert(std::is_same_v<std::remove_cvref_t<decltype(expr)>, bool>, \
 		"assertion expression result type must be boolean: implicit type conversions are NOT accepted.")
+
+#else
+
+#define LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr) \
+	static_assert(std::is_same<typename std::remove_cv<typename std::remove_reference<decltype(expr)>::type>::type, bool>::value, \
+		"assertion expression result type must be boolean: implicit type conversions are NOT accepted.")
+
+#endif // __cpp_lib_remove_cvref
 
 #else // __cplusplus
 
