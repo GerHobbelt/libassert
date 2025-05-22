@@ -15,6 +15,9 @@
  #include <intrin.h>
 #endif
 
+#include <libassert/platform.hpp>
+#include <libassert/utilities.hpp>
+
 // https://github.com/jeremy-rifkin/microfmt
 // Format: {[align][width][:[fill][base]]}  # width: number or {}
 
