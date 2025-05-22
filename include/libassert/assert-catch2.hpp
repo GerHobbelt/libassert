@@ -21,7 +21,8 @@
 // Note: a very Catch2-specific ASSERT() macro is being defined here!
 #define ASSERT(...) do { try { LIBASSERT_ASSERT(__VA_ARGS__); CATCH_SUCCEED(); } catch(std::exception& e) { CATCH_FAIL(e.what()); } } while(0)
 
-namespace libassert::detail {
+LIBASSERT_BEGIN_NAMESPACE
+namespace detail {
     // catch line wrapping can't handle ansi sequences before 3.6 https://github.com/catchorg/Catch2/issues/2833
     inline constexpr bool use_color = CATCH_VERSION_MAJOR > 3 || (CATCH_VERSION_MAJOR == 3 && CATCH_VERSION_MINOR >= 6);
 
@@ -46,6 +47,7 @@ namespace libassert::detail {
         return 1;
     } ();
 }
+LIBASSERT_END_NAMESPACE
 
 // Some testing utilities
 
