@@ -911,9 +911,8 @@ int libassert_breakpoint_if_debugger_present(void);
             failaction \
             libassert_report_failure_in_expression( \
 				name, #expr, \
-                     LIBASSERT_PRETTY_FUNCTION_ARG, \
-					 LIBASSERT_VA_ARGS(__VA_ARGS__) \
-                ); \
+                LIBASSERT_PFUNC, __FILE__, __LINE__ \
+            ); \
         } \
         LIBASSERT_WARNING_PRAGMA_POP_CLANG \
     } while(0) \
