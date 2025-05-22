@@ -1,0 +1,9 @@
+// cassert standard header (core)
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+// NOTE: no include guard
+
+// make sure we point at the libassert/include/assert.h file:
+#include "../include/assert.h"
