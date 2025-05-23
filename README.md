@@ -237,7 +237,7 @@ A lot of care is given to producing debug stringifications of values as effectiv
 numbers, should all be printed as you'd expect. Additionally containers, tuples, std::optional, smart pointers, etc. are
 all stringified to show as much information as possible. If a user defined type overloads `operator<<(std::ostream& o,
 const S& s)`, that overload will be called. Otherwise it a default message will be printed. Additionally, a
-stringification customiztaion point is provided:
+stringification customization point is provided:
 
 ```cpp
 template<> struct libassert::stringifier<MyObject> {
