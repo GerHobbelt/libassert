@@ -1,7 +1,6 @@
 # libassert <!-- omit in toc -->
 
-[![build](https://github.com/jeremy-rifkin/libassert/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/jeremy-rifkin/libassert/actions/workflows/build.yml)
-[![tests](https://github.com/jeremy-rifkin/libassert/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/jeremy-rifkin/libassert/actions/workflows/tests.yml)
+[![ci](https://github.com/jeremy-rifkin/libassert/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jeremy-rifkin/libassert/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jeremy-rifkin_libassert&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jeremy-rifkin_libassert)
 <br/>
 [![Community Discord Link](https://img.shields.io/badge/Chat%20on%20the%20(very%20small)-Community%20Discord-blue?labelColor=2C3239&color=7289DA&style=flat&logo=discord&logoColor=959DA5)](https://discord.gg/frjaAZvqUZ)
@@ -24,6 +23,7 @@
 - [Methodology](#methodology)
 - [Considerations](#considerations)
 - [In-Depth Library Documentation](#in-depth-library-documentation)
+  - [Library headers](#library-headers)
   - [Assertion Macros](#assertion-macros)
     - [Parameters](#parameters)
     - [Return value](#return-value)
@@ -40,6 +40,7 @@
 - [Integration with Test Libraries](#integration-with-test-libraries)
   - [Catch2](#catch2)
   - [GoogleTest](#googletest)
+- [ABI Versioning](#abi-versioning)
 - [Usage](#usage)
   - [CMake FetchContent](#cmake-fetchcontent)
   - [System-Wide Installation](#system-wide-installation)
@@ -871,6 +872,13 @@ TEST(Addition, Arithmetic) {
 Currently libassert provides `ASSERT` and `EXPECT` macros for gtest.
 
 This isn't as pretty as I would like, however, it gets the job done.
+
+# ABI Versioning
+
+Since libassert v2.2.0, the library uses an inline ABI versioning namespace and all symbols part of the public interface
+are secretly under the namespace `libassert::v1`. This is done to allow for potential future library evolution in an
+ABI-friendly manner. The namespace version is independent of the library major versions, and ABI changes are expected to
+be extremely rare.
 
 # Usage
 

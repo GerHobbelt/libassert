@@ -300,24 +300,6 @@ namespace detail {
             return ec.category().name() + (':' + std::to_string(ec.value())) + ' ' + ec.message();
         }
 
-        // I'd like to just write if constexpr(std::is_same_v<std::filesystem::path::value_type, char>) but this doesn't
-        // work because it needs to be dependent on a template and it's all awful.
-        template<typename T>
-        LIBASSERT_ATTR_COLD std::string stringify_path(
-            const std::basic_string<T>& native,
-            const std::filesystem::path& path
-        ) {
-            if constexpr(std::is_same_v<T, char>) {
-                return stringify(std::string_view(native));
-            } else {
-                return stringify(std::string_view(path.string()));
-            }
-        }
-
-        LIBASSERT_ATTR_COLD std::string stringify(const std::filesystem::path& path) {
-            return stringify_path(path.native(), path);
-        }
-
         #if __cplusplus >= 202002L
         LIBASSERT_ATTR_COLD std::string stringify(std::strong_ordering value) {
                 if(value == std::strong_ordering::less)       return "std::strong_ordering::less";
@@ -350,6 +332,15 @@ namespace detail {
             // is implementation-defined. MSVC prints pointers without the leading "0x" which
             // messes up the highlighter.
             oss<<std::showbase<<std::hex<<uintptr_t(value);
+            return std::move(oss).str();
+        }
+
+        LIBASSERT_ATTR_COLD std::string stringify_by_ostream(
+            const void* ptr,
+            void(*outputter)(std::ostream&, const void*)
+        ) {
+            std::ostringstream oss;
+            outputter(oss, ptr);
             return std::move(oss).str();
         }
 

@@ -6,7 +6,6 @@
 
 #if defined __cplusplus
 
-#include <cerrno>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -14,11 +13,8 @@
 #include <optional>
 #include <string_view>
 #include <string>
-#include <system_error>
-#include <tuple>
 #include <type_traits>
 #include <utility>
-#include <variant>
 #include <vector>
 
 #endif
@@ -97,18 +93,14 @@ void libassert_report_failure_in_expression(const char *name, const char *expr_s
 
 #if defined __cplusplus
 
-#if defined(__has_include) && __has_include(<cpptrace/basic.hpp>)
- #include <cpptrace/basic.hpp>
+#if defined(__has_include) && __has_include(<cpptrace/forward.hpp>)
+ #include <cpptrace/forward.hpp>
  #define HAVE_CPPTRACE_HPP  1
 #elif defined(__has_include) && __has_include(<cpptrace/cpptrace.hpp>)
  #include <cpptrace/cpptrace.hpp>
  #define HAVE_CPPTRACE_HPP  1
 #else
  #undef HAVE_CPPTRACE_HPP
-#endif
-
-#ifdef __cpp_lib_expected
- #include <expected>
 #endif
 
 #endif // __cplusplus
@@ -316,6 +308,12 @@ LIBASSERT_BEGIN_NAMESPACE
             virtual void add_path(std::string_view);
             virtual void finalize();
         };
+        struct trace_holder;
+        // deleter needed so unique ptr move/delete can work on the opaque pointer
+        struct LIBASSERT_EXPORT trace_holder_deleter {
+            void operator()(trace_holder*);
+        };
+        LIBASSERT_ATTR_NOINLINE LIBASSERT_EXPORT std::unique_ptr<trace_holder, trace_holder_deleter> generate_trace();
     }
 
     struct LIBASSERT_EXPORT assertion_info {
@@ -331,7 +329,7 @@ LIBASSERT_BEGIN_NAMESPACE
         size_t n_args;
     private:
 #ifdef HAVE_CPPTRACE_HPP
-	  		mutable std::variant<cpptrace::raw_trace, cpptrace::stacktrace> trace; // lazy, resolved when needed
+        std::unique_ptr<detail::trace_holder> trace;
 #endif
   			mutable std::unique_ptr<detail::path_handler> path_handler;
         detail::path_handler* get_path_handler() const; // will get and setup the path handler
@@ -340,7 +338,7 @@ LIBASSERT_BEGIN_NAMESPACE
         assertion_info(
             const detail::assert_static_parameters* static_params,
 #ifdef HAVE_CPPTRACE_HPP
-						cpptrace::raw_trace&& raw_trace,
+            std::unique_ptr<detail::trace_holder, detail::trace_holder_deleter> trace,
 #endif
             size_t n_args
         );
@@ -438,12 +436,6 @@ namespace detail {
         return descriptor;
     }
 
-    #define LIBASSERT_X(x) #x
-    #define LIBASSERT_Y(x) LIBASSERT_X(x)
-    constexpr const std::string_view errno_expansion = LIBASSERT_Y(errno);
-    #undef LIBASSERT_Y
-    #undef LIBASSERT_X
-
     struct pretty_function_name_wrapper {
         const char* pretty_function;
     };
@@ -457,31 +449,27 @@ namespace detail {
         info.function = t.pretty_function;
     }
 
-    [[nodiscard]] LIBASSERT_EXPORT extra_diagnostic create_errno_diagnostic(int value);
+    LIBASSERT_EXPORT void set_message(assertion_info& info, const char* value);
+    LIBASSERT_EXPORT void set_message(assertion_info& info, std::string_view value);
+    // used to enable errno stuff
+    LIBASSERT_EXPORT extra_diagnostic make_extra_diagnostic(std::string_view expression, int value);
 
     template<typename T>
     LIBASSERT_ATTR_COLD
     // TODO
     // NOLINTNEXTLINE(readability-function-cognitive-complexity)
     void process_arg(assertion_info& info, size_t i, sv_span args_strings, const T& t) {
-        if constexpr(isa<T, strip<decltype(errno)>>) {
-            if(args_strings.data[i] == errno_expansion) {
-                info.extra_diagnostics.push_back(create_errno_diagnostic(t));
-                return;
-            }
-        } else if constexpr(is_string_type<T>) {
+        if constexpr(is_string_type<T>) {
             if(i == 0) {
-                if constexpr(std::is_pointer_v<T>) {
-                    if(t == nullptr) {
-                        info.message = "(nullptr)";
-                        return;
-                    }
-                }
-                info.message = t;
+                set_message(info, t);
                 return;
             }
         }
-        info.extra_diagnostics.push_back({ args_strings.data[i], generate_stringification(t) });
+        if constexpr(isa<T, int>) {
+            info.extra_diagnostics.push_back(make_extra_diagnostic(args_strings.data[i], t));
+        } else {
+            info.extra_diagnostics.push_back({ args_strings.data[i], generate_stringification(t) });
+        }
     }
 
     template<typename... Args>
@@ -513,13 +501,7 @@ LIBASSERT_END_NAMESPACE
     ) {
         const size_t sizeof_extra_diagnostics = sizeof...(args) - 1; // - 1 for pretty function signature
         LIBASSERT_PRIMITIVE_DEBUG_ASSERT(sizeof...(args) <= params->args_strings.size);
-        assertion_info info(
-            params,
-#ifdef HAVE_CPPTRACE_HPP
-						cpptrace::generate_raw_trace(),
-#endif
-					sizeof_extra_diagnostics
-        );
+        assertion_info info(params, detail::generate_trace(), sizeof_extra_diagnostics);
         // process_args fills in the message, extra_diagnostics, and pretty_function
         process_args(info, params->args_strings, args...);
         // generate binary diagnostics
@@ -560,13 +542,7 @@ LIBASSERT_END_NAMESPACE
     ) {
         const size_t sizeof_extra_diagnostics = sizeof...(args) - 1; // - 1 for pretty function signature
         LIBASSERT_PRIMITIVE_DEBUG_ASSERT(sizeof...(args) <= params->args_strings.size);
-        assertion_info info(
-            params,
-#ifdef HAVE_CPPTRACE_HPP
-						cpptrace::generate_raw_trace(),
-#endif
-					  sizeof_extra_diagnostics
-        );
+        assertion_info info(params, detail::generate_trace(), sizeof_extra_diagnostics);
         // process_args fills in the message, extra_diagnostics, and pretty_function
         process_args(info, params->args_strings, args...);
         // send off

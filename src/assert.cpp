@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstddef>
+#include <cerrno>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -21,6 +22,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #if defined(__has_include) && __has_include(<cpptrace/basic.hpp>)
@@ -511,14 +513,71 @@ LIBASSERT_BEGIN_NAMESPACE
 LIBASSERT_END_NAMESPACE
 
 LIBASSERT_BEGIN_NAMESPACE
+    namespace detail {
+        struct trace_holder {
+            std::variant<cpptrace::raw_trace, cpptrace::stacktrace> trace; // lazy, resolved when needed
+
+            trace_holder(cpptrace::raw_trace raw_trace) : trace(raw_trace) {};
+
+            LIBASSERT_ATTR_COLD const cpptrace::raw_trace& get_raw_trace() const {
+                try {
+                    return std::get<cpptrace::raw_trace>(trace);
+                } catch(std::bad_variant_access&) {
+                    throw cpptrace::runtime_error("get_raw_trace may only be called before get_stacktrace is called because that resoles the trace internally");
+                }
+            }
+
+            LIBASSERT_ATTR_COLD const cpptrace::stacktrace& get_stacktrace() {
+                if(std::holds_alternative<cpptrace::raw_trace>(trace)) {
+                    // do resolution
+                    auto raw_trace = std::move(std::get<cpptrace::raw_trace>(trace));
+                    trace = raw_trace.resolve();
+                }
+                return std::get<cpptrace::stacktrace>(trace);
+            }
+        };
+
+        void trace_holder_deleter::operator()(trace_holder* ptr) {
+            delete ptr;
+        }
+
+        LIBASSERT_ATTR_NOINLINE std::unique_ptr<trace_holder, trace_holder_deleter> generate_trace() {
+            return std::unique_ptr<trace_holder, trace_holder_deleter>(
+                new trace_holder(cpptrace::generate_raw_trace(1)),
+                trace_holder_deleter{}
+            );
+        }
+
+        void set_message(assertion_info& info, const char* value) {
+            if(value == nullptr) {
+                info.message = "(nullptr)";
+                return;
+            }
+            info.message = value;
+        }
+
+        void set_message(assertion_info& info, std::string_view value) {
+            info.message = value;
+        }
+
+        constexpr std::string_view errno_expansion = STR(errno);
+        static_assert(std::is_same_v<decltype(errno), int&>);
+
+        extra_diagnostic make_extra_diagnostic(std::string_view expression, int value) {
+            if(expression == errno_expansion) {
+                return { "errno", microfmt::format("{>2:} \"{}\"", value, strerror_wrapper(value)) };
+            } else {
+                return { expression, generate_stringification(value) };
+            }
+        }
+    }
+
     using namespace detail;
 
-    LIBASSERT_ATTR_COLD assertion_info::assertion_info(
+    LIBASSERT_ATTR_COLD LIBASSERT_ATTR_NOINLINE assertion_info::assertion_info(
         const assert_static_parameters* static_params,
-#ifdef HAVE_CPPTRACE_HPP
-				cpptrace::raw_trace&& _raw_trace,
-#endif
-			  size_t _n_args
+        std::unique_ptr<detail::trace_holder, detail::trace_holder_deleter> _trace,
+        size_t _n_args
     ) :
         macro_name(static_params->macro_name),
         type(static_params->type),
@@ -526,11 +585,8 @@ LIBASSERT_BEGIN_NAMESPACE
         file_name(static_params->location.file),
         line(static_params->location.line),
         function("<error>"),
-#ifdef HAVE_CPPTRACE_HPP
-			  trace(std::move(_raw_trace)),
-#endif
-        n_args(_n_args)
-        {}
+        n_args(_n_args),
+        trace(_trace.release()) {}
 
     LIBASSERT_ATTR_COLD assertion_info::~assertion_info() = default;
     assertion_info::assertion_info(const assertion_info& other) :
@@ -544,10 +600,8 @@ LIBASSERT_BEGIN_NAMESPACE
         binary_diagnostics(other.binary_diagnostics),
         extra_diagnostics(other.extra_diagnostics),
         n_args(other.n_args),
-#ifdef HAVE_CPPTRACE_HPP
-		trace(other.trace),
-#endif
-		path_handler(other.path_handler ? other.path_handler->clone() : nullptr)
+        trace(other.trace ? std::make_unique<trace_holder>(*other.trace) : nullptr),
+        path_handler(other.path_handler ? other.path_handler->clone() : nullptr)
         {}
     assertion_info::assertion_info(assertion_info&&) = default;
     assertion_info& assertion_info::operator=(const assertion_info& other) {
@@ -561,10 +615,8 @@ LIBASSERT_BEGIN_NAMESPACE
         binary_diagnostics = other.binary_diagnostics;
         extra_diagnostics = other.extra_diagnostics;
         n_args = other.n_args;
-#ifdef HAVE_CPPTRACE_HPP
-		trace = other.trace;
-#endif
-		path_handler = other.path_handler ? other.path_handler->clone() : nullptr;
+        trace = other.trace ? std::make_unique<trace_holder>(*other.trace) : nullptr;
+        path_handler = other.path_handler ? other.path_handler->clone() : nullptr;
         return *this;
     }
     assertion_info& assertion_info::operator=(assertion_info&&) = default;
@@ -599,24 +651,15 @@ LIBASSERT_BEGIN_NAMESPACE
         }
     }
 
-#ifdef HAVE_CPPTRACE_HPP
-		LIBASSERT_ATTR_COLD const cpptrace::raw_trace& assertion_info::get_raw_trace() const {
-        try {
-            return std::get<cpptrace::raw_trace>(trace);
-        } catch(std::bad_variant_access&) {
-            throw cpptrace::runtime_error("assertion_info::get_raw_trace may only be called before assertion_info::get_stacktrace is called because that resoles the trace internally");
-        }
+    LIBASSERT_ATTR_COLD const cpptrace::raw_trace& assertion_info::get_raw_trace() const {
+        LIBASSERT_PRIMITIVE_ASSERT(trace != nullptr);
+        return trace->get_raw_trace();
     }
 
     LIBASSERT_ATTR_COLD const cpptrace::stacktrace& assertion_info::get_stacktrace() const {
-        if(trace.index() == 0) {
-            // do resolution
-            auto raw_trace = std::move(std::get<cpptrace::raw_trace>(trace));
-            trace = raw_trace.resolve();
-        }
-        return std::get<cpptrace::stacktrace>(trace);
+        LIBASSERT_PRIMITIVE_ASSERT(trace != nullptr);
+        return trace->get_stacktrace();
     }
-#endif
 
     std::string assertion_info::header(int width, const color_scheme& scheme) const {
         return tagline(scheme)
