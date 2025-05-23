@@ -7,7 +7,11 @@
 #include <string>
 #include <string_view>
 
+#endif // __cplusplus
+
 #include <libassert/platform.hpp>
+
+#if defined __cplusplus
 
 // =====================================================================================================================
 // || Core utilities                                                                                                  ||
@@ -32,8 +36,7 @@ LIBASSERT_END_NAMESPACE
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {
     // bootstrap with primitive implementations
-    LIBASSERT_EXPORT void primitive_assert_impl(
-        bool condition,
+    LIBASSERT_EXPORT bool primitive_assert_impl(
         bool normal_assert,
         const char* expression,
         const char* signature,
@@ -51,8 +54,23 @@ namespace detail {
     #define LIBASSERT_PHONY_USE(E) ((void)::libassert::detail::always_false<decltype(E)>)
 
     #ifndef NDEBUG
-     #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) \
-        libassert::detail::primitive_assert_impl(c, false, #c, LIBASSERT_PFUNC, {} LIBASSERT_VA_ARGS(__VA_ARGS__))
+ 	 #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) (void)((c) || ::libassert::detail::primitive_assert_impl( \
+        true, \
+        #c, \
+        "" LIBASSERT_PFUNC, \
+        {} LIBASSERT_VA_ARGS(__VA_ARGS__) \
+    ))
+    #else
+     #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) LIBASSERT_PHONY_USE(c)
+    #endif
+
+    #ifndef NDEBUG
+	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) (void)((c) || ::libassert::detail::primitive_assert_impl( \
+        false, \
+        #c, \
+        "" LIBASSERT_PFUNC, \
+        {} LIBASSERT_VA_ARGS(__VA_ARGS__) \
+    ))
     #else
      #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) LIBASSERT_PHONY_USE(c)
     #endif

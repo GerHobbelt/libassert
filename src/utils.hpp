@@ -19,14 +19,16 @@
 
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {
-    // Still present in release mode, nonfatal
-    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ::libassert::detail::primitive_assert_impl( \
-        c, \
+
+#if 0
+	// Still present in release mode, nonfatal
+    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) (void)((c) || ::libassert::detail::primitive_assert_impl( \
         true, \
         #c, \
         LIBASSERT_PFUNC, \
         {} LIBASSERT_VA_ARGS(__VA_ARGS__) \
-    )
+    ))
+#endif
 
     /*
      * string utilities

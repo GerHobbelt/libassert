@@ -4,6 +4,7 @@
 
 #define ASSERT_FAIL          custom_fail
 #define LIBASSERT_LOWERCASE
+#define LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS 1
 
 #include <algorithm>
 #include <array>
@@ -40,14 +41,14 @@
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 
-#define ASSERT_EQ(e1, e2, ...)		debug_assert(((e1) == (e2)), "ASSERT_EQ assertion failed", e1, e2 LIBASSERT_VA_ARGS(__VA_ARGS__))
-#define ASSERT_NEQ(e1, e2, ...)		debug_assert(((e1) != (e2)), "ASSERT_NE assertion failed", e1, e2 LIBASSERT_VA_ARGS(__VA_ARGS__))
+#define ASSERT_EQ(e1, e2, ...)		debug_assert(((e1) == (e2)), "ASSERT_EQ assertion failed", (e1), (e2), __VA_ARGS__)
+#define ASSERT_NEQ(e1, e2, ...)		debug_assert(((e1) != (e2)), "ASSERT_NE assertion failed", (e1), (e2), __VA_ARGS__)
 
-#define ASSERT_GTEQ(e1, e2, ...)		debug_assert(((e1) >= (e2)), "ASSERT_GTEQ assertion failed", e1, e2 LIBASSERT_VA_ARGS(__VA_ARGS__))
-#define ASSERT_LTEQ(e1, e2, ...)		debug_assert(((e1) <= (e2)), "ASSERT_LTEQ assertion failed", e1, e2 LIBASSERT_VA_ARGS(__VA_ARGS__))
+#define ASSERT_GTEQ(e1, e2, ...)		debug_assert(((e1) >= (e2)), "ASSERT_GTEQ assertion failed", (e1), (e2), __VA_ARGS__)
+#define ASSERT_LTEQ(e1, e2, ...)		debug_assert(((e1) <= (e2)), "ASSERT_LTEQ assertion failed", (e1), (e2), __VA_ARGS__)
 
-#define ASSERT_AND(e1, e2, ...)		debug_assert(((e1) && (e2)), "ASSERT_AND assertion failed", e1, e2 LIBASSERT_VA_ARGS(__VA_ARGS__))
-#define ASSERT_OR(e1, e2, ...)		debug_assert(((e1) || (e2)), "ASSERT_OR assertion failed", e1, e2 LIBASSERT_VA_ARGS(__VA_ARGS__))
+#define ASSERT_AND(e1, e2, ...)		debug_assert(((e1) && (e2)), "ASSERT_AND assertion failed", (e1), (e2), __VA_ARGS__)
+#define ASSERT_OR(e1, e2, ...)		debug_assert(((e1) || (e2)), "ASSERT_OR assertion failed", (e1), (e2), __VA_ARGS__)
 
 void qux();
 void wubble();
@@ -159,11 +160,13 @@ static auto min_items() {
 }
 
 static void zoog(const std::map<std::string, int>& map) {
-    #if __cplusplus >= 202002L
+	DEBUG_ASSERT(map.size() > 0);
+
+#if __cplusplus >= 202002L
      DEBUG_ASSERT(map.contains("foo"), "expected key not found", map);
-    #else
+#else
      DEBUG_ASSERT(map.count("foo") != 1, "expected key not found", map);
-    #endif
+#endif
     DEBUG_ASSERT(map.at("bar") >= 0, "unexpected value for foo in the map", map);
 }
 

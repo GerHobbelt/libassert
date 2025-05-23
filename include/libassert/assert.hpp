@@ -27,56 +27,8 @@
 // When we include magic_enum, et al, we need an "early" version of the LIBASSERT_INVOKE macro for the preprocessor to expand
 // the assertion statements in those library header files while we load them from stringification.hpp.
 
-#define LIBASSERT_EMPTY_ACTION    /**/
-
-#if defined __cplusplus
-
-LIBASSERT_BEGIN_NAMESPACE
-	int breakpoint_if_debugger_present(void);
-	void report_failure_in_expression(const char *name, const char *expr_str, const char *func, const char *sourcefile, int sourceline);
-LIBASSERT_END_NAMESPACE
-
 #define LIBASSERT_INVOKE(expr, name, type, failaction, ...) \
-    /* must push/pop out here due to nasty clang bug https://github.com/llvm/llvm-project/issues/63897 */ \
-    /* must do awful stuff to workaround differences in where gcc and clang allow these directives to go */ \
-    do { \
-        LIBASSERT_WARNING_PRAGMA_PUSH_CLANG \
-        LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); \
-        if(LIBASSERT_STRONG_EXPECT(!static_cast<bool>(expr), 0)) { \
-            /* LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); */ \
-			libassert::breakpoint_if_debugger_present(); \
-            failaction \
-            libassert::report_failure_in_expression( \
-				name, #expr, LIBASSERT_PFUNC, __FILE__, __LINE__ \
-            ); \
-        } \
-        LIBASSERT_WARNING_PRAGMA_POP_CLANG \
-    } while(0) \
-
-#else // __cplusplus
-
-int libassert_breakpoint_if_debugger_present(void);
-void libassert_report_failure_in_expression(const char *name, const char *expr_str, const char *func, const char *sourcefile, int sourceline);
-
-#define LIBASSERT_INVOKE(expr, name, type, failaction, ...) \
-    /* must push/pop out here due to nasty clang bug https://github.com/llvm/llvm-project/issues/63897 */ \
-    /* must do awful stuff to workaround differences in where gcc and clang allow these directives to go */ \
-    do { \
-        LIBASSERT_WARNING_PRAGMA_PUSH_CLANG \
-        LIBASSERT_IGNORE_UNUSED_VALUE \
-        LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); \
-        if(!!(expr)) { \
-            /* LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); */ \
-			libassert_breakpoint_if_debugger_present(); \
-            failaction \
-            libassert_report_failure_in_expression( \
-				name, #expr, LIBASSERT_PFUNC, __FILE__, __LINE__ \
-                ); \
-        } \
-        LIBASSERT_WARNING_PRAGMA_POP_CLANG \
-    } while(0) \
-
-#endif // __cplusplus
+    LIBASSERT_PRIMITIVE_ASSERT(expr, __VA_ARGS__)
 
 #ifdef LIBASSERT_LOWERCASE
 #ifdef assert
@@ -84,9 +36,9 @@ void libassert_report_failure_in_expression(const char *name, const char *expr_s
 #endif
 
 #ifndef NDEBUG
-#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion LIBASSERT_VA_ARGS(__VA_ARGS__))
+#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, __VA_ARGS__)
 #else
-#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion LIBASSERT_VA_ARGS(__VA_ARGS__))
+#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, __VA_ARGS__)
 #endif
 #endif
 
@@ -833,6 +785,8 @@ int libassert_breakpoint_if_debugger_present(void);
  #define LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL()
 #endif
 
+#if !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
+
 // kill the "early definition" from further above, which we used for magic_enum & friends.
 #undef LIBASSERT_INVOKE
 
@@ -856,7 +810,7 @@ int libassert_breakpoint_if_debugger_present(void);
             libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
             LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
             failaction \
-            LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, #expr LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+            LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, #expr, __VA_ARGS__) \
             if constexpr(sizeof libassert_decomposer > 32) { \
                 libassert::detail::process_assert_fail( \
                     libassert_decomposer, \
@@ -897,13 +851,15 @@ int libassert_breakpoint_if_debugger_present(void);
 
 #endif // __cplusplus
 
+#endif // !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
+
 #if defined __cplusplus
 
 #define LIBASSERT_INVOKE_PANIC(name, type, ...) \
     do { \
         libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
         LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
-        LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, "" LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+        LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, "", __VA_ARGS__) \
         libassert::detail::process_panic( \
             libassert_params \
             LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_PRETTY_FUNCTION_ARG \
@@ -915,7 +871,7 @@ int libassert_breakpoint_if_debugger_present(void);
 #define LIBASSERT_INVOKE_PANIC(name, type, ...) \
     do { \
         LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
-        LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, "" LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+        LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, "", __VA_ARGS__) \
         libassert_process_panic( \
             libassert_params \
             LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_PRETTY_FUNCTION_ARG \
@@ -966,6 +922,8 @@ int libassert_breakpoint_if_debugger_present(void);
 
 #if defined __cplusplus
 
+#if !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
+
 #define LIBASSERT_INVOKE_VAL(expr, doreturn, check_expression, name, type, failaction, ...) \
     /* must push/pop out here due to nasty clang bug https://github.com/llvm/llvm-project/issues/63897 */ \
     /* must do awful stuff to workaround differences in where gcc and clang allow these directives to go */ \
@@ -991,7 +949,7 @@ int libassert_breakpoint_if_debugger_present(void);
                 libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
                 LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
                 failaction \
-                LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, #expr LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+                LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, #expr, __VA_ARGS__) \
                 if constexpr(sizeof libassert_decomposer > 32) { \
                     libassert::detail::process_assert_fail( \
                         libassert_decomposer, \
@@ -1022,6 +980,13 @@ int libassert_breakpoint_if_debugger_present(void);
     ) LIBASSERT_IF(doreturn)(.value,) \
     LIBASSERT_WARNING_PRAGMA_POP_CLANG
 
+#else // !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
+
+#define LIBASSERT_INVOKE_VAL(expr, doreturn, check_expression, name, type, failaction, ...) \
+    this_libassert_macro_cannot_be_used_in_a_CPP_language_when_only_primitive_assertions_allowed (:::)
+
+#endif // !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
+
 #else // __cplusplus
 
 #define LIBASSERT_INVOKE_VAL(expr, doreturn, check_expression, name, type, failaction, ...) \
@@ -1029,34 +994,41 @@ int libassert_breakpoint_if_debugger_present(void);
 
 #endif // __cplusplus
 
+#define LIBASSERT_NOOP_CALL() \
+	do { \
+		/* nothing */ \
+	} while(0)
+
+#define LIBASSERT_EMPTY_ACTION   LIBASSERT_NOOP_CALL();
+
 #ifdef NDEBUG
  #define LIBASSERT_ASSUME_ACTION LIBASSERT_UNREACHABLE_CALL();
 #else
- #define LIBASSERT_ASSUME_ACTION
+ #define LIBASSERT_ASSUME_ACTION LIBASSERT_EMPTY_ACTION
 #endif
 
 // assertion macros
 
 // Debug assert
 #ifndef NDEBUG
- #define LIBASSERT_DEBUG_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "DEBUG_ASSERT", debug_assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
+ #define LIBASSERT_DEBUG_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "DEBUG_ASSERT", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
 #else
  #define LIBASSERT_DEBUG_ASSERT(expr, ...) (void)0
 #endif
 
 // Assert
-#define LIBASSERT_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "ASSERT", assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
+#define LIBASSERT_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "ASSERT", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
 // lowercase version intentionally done outside of the include guard here
 
 // Assume
-#define LIBASSERT_ASSUME(expr, ...) LIBASSERT_INVOKE(expr, "ASSUME", assumption, LIBASSERT_ASSUME_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
+#define LIBASSERT_ASSUME(expr, ...) LIBASSERT_INVOKE(expr, "ASSUME", assumption, LIBASSERT_ASSUME_ACTION, __VA_ARGS__)
 
 // Panic
-#define LIBASSERT_PANIC(...) LIBASSERT_INVOKE_PANIC("PANIC", panic LIBASSERT_VA_ARGS(__VA_ARGS__))
+#define LIBASSERT_PANIC(...) LIBASSERT_INVOKE_PANIC("PANIC", panic, __VA_ARGS__)
 
 // Unreachable
 #ifndef NDEBUG
- #define LIBASSERT_UNREACHABLE(...) LIBASSERT_INVOKE_PANIC("UNREACHABLE", unreachable LIBASSERT_VA_ARGS(__VA_ARGS__))
+ #define LIBASSERT_UNREACHABLE(...) LIBASSERT_INVOKE_PANIC("UNREACHABLE", unreachable, __VA_ARGS__)
 #else
  #define LIBASSERT_UNREACHABLE(...) LIBASSERT_UNREACHABLE_CALL()
 #endif
@@ -1064,14 +1036,14 @@ int libassert_breakpoint_if_debugger_present(void);
 // value variants
 
 #ifndef NDEBUG
- #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "DEBUG_ASSERT_VAL", debug_assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
+ #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "DEBUG_ASSERT_VAL", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
 #else
- #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, false, "DEBUG_ASSERT_VAL", debug_assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
+ #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, false, "DEBUG_ASSERT_VAL", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
 #endif
 
-#define LIBASSERT_ASSUME_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSUME_VAL", assumption, LIBASSERT_ASSUME_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
+#define LIBASSERT_ASSUME_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSUME_VAL", assumption, LIBASSERT_ASSUME_ACTION, __VA_ARGS__)
 
-#define LIBASSERT_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSERT_VAL", assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
+#define LIBASSERT_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSERT_VAL", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
 
 // non-prefixed versions
 
@@ -1103,7 +1075,7 @@ int libassert_breakpoint_if_debugger_present(void);
 
 #ifdef LIBASSERT_LOWERCASE
  #ifndef NDEBUG
-  #define debug_assert(expr, ...) LIBASSERT_INVOKE(expr, "debug_assert", debug_assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
+  #define debug_assert(expr, ...) LIBASSERT_INVOKE(expr, "debug_assert", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
  #else
   #define debug_assert(expr, ...) (void)0
  #endif
@@ -1111,14 +1083,14 @@ int libassert_breakpoint_if_debugger_present(void);
 
 #ifdef LIBASSERT_LOWERCASE
  #ifndef NDEBUG
-  #define debug_assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "debug_assert_val", debug_assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
+  #define debug_assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "debug_assert_val", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
  #else
-  #define debug_assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, false, "debug_assert_val", debug_assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
+  #define debug_assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, false, "debug_assert_val", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
  #endif
 #endif
 
 #ifdef LIBASSERT_LOWERCASE
- #define assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "assert_val", assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
+ #define assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "assert_val", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
 #endif
 
 // Wrapper macro to allow support for C++26's user generated static_assert messages.
@@ -1172,8 +1144,8 @@ int libassert_breakpoint_if_debugger_present(void);
  #endif
 
  #ifndef NDEBUG
-  #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
+  #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
  #else
-  #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
+  #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
  #endif
 #endif

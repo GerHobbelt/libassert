@@ -24,15 +24,13 @@
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {
     LIBASSERT_ATTR_COLD LIBASSERT_EXPORT
-    void primitive_assert_impl(
-        bool condition,
+    bool primitive_assert_impl(
         bool normal_assert,
         const char* expression,
         const char* signature,
         source_location location,
         const char* message
     ) {
-        if(!condition) {
             const char* action = normal_assert ? "Assert"                     : "Debug assert";
             const char* name   = normal_assert ? "LIBASSERT_PRIMITIVE_ASSERT" : "LIBASSERT_PRIMITIVE_DEBUG_ASSERT";
             std::string out_message;
@@ -56,7 +54,6 @@ namespace detail {
             }
             out_message += microfmt::format("    {}({});\n", name, expression);
             throw cpptrace::runtime_error(std::move(out_message));
-        }
     }
 
     [[noreturn]] LIBASSERT_ATTR_COLD LIBASSERT_EXPORT

@@ -137,6 +137,7 @@ _CRT_END_C_HEADER
 
 #define LIBASSERT_LOWERCASE     1
 #define LIBASSERT_BREAK_ON_FAIL 1
+//#define LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS 1
 #undef  LIBASSERT_PREFIX_ASSERTIONS   // --> define ASSERT() et al
 
 // #define LIBASSERT_STATIC_DATA(name, type, expr_str, ...) 
