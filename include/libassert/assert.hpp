@@ -331,7 +331,7 @@ LIBASSERT_BEGIN_NAMESPACE
 #ifdef HAVE_CPPTRACE_HPP
         std::unique_ptr<detail::trace_holder> trace;
 #endif
-  			mutable std::unique_ptr<detail::path_handler> path_handler;
+        mutable std::unique_ptr<detail::path_handler> path_handler;
         detail::path_handler* get_path_handler() const; // will get and setup the path handler
     public:
         assertion_info() = delete;
@@ -351,7 +351,7 @@ LIBASSERT_BEGIN_NAMESPACE
         std::string_view action() const;
 
 #ifdef HAVE_CPPTRACE_HPP
-				const cpptrace::raw_trace& get_raw_trace() const;
+        const cpptrace::raw_trace& get_raw_trace() const;
         const cpptrace::stacktrace& get_stacktrace() const;
 #endif
 
@@ -362,7 +362,7 @@ LIBASSERT_BEGIN_NAMESPACE
         [[nodiscard]] std::string print_binary_diagnostics(int width = 0, const color_scheme& scheme = get_color_scheme()) const;
         [[nodiscard]] std::string print_extra_diagnostics(int width = 0, const color_scheme& scheme = get_color_scheme()) const;
 #ifdef HAVE_CPPTRACE_HPP
-				[[nodiscard]] std::string print_stacktrace(int width = 0, const color_scheme& scheme = get_color_scheme()) const;
+        [[nodiscard]] std::string print_stacktrace(int width = 0, const color_scheme& scheme = get_color_scheme()) const;
 #endif
 
         [[nodiscard]] std::string to_string(int width = 0, const color_scheme& scheme = get_color_scheme()) const;

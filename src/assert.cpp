@@ -61,7 +61,7 @@ namespace detail {
     constexpr std::string_view libassert_detail_prefix = "libassert::" STR(LIBASSERT_ABI_NAMESPACE_TAG) "::detail::";
 
 #ifdef HAVE_CPPTRACE_HPP
-	LIBASSERT_ATTR_COLD
+    LIBASSERT_ATTR_COLD
     auto get_trace_window(const cpptrace::stacktrace& trace) {
         // Two boundaries: assert_detail and main
         // Both are found here, nothing is filtered currently at stack trace generation
@@ -628,12 +628,12 @@ LIBASSERT_BEGIN_NAMESPACE
             if(path_handler->has_add_path()) {
                 path_handler->add_path(file_name);
 #ifdef HAVE_CPPTRACE_HPP
-								const auto& stacktrace = get_stacktrace();
+                const auto& stacktrace = get_stacktrace();
                 for(const auto& frame : stacktrace.frames) {
                     path_handler->add_path(frame.filename);
                 }
 #endif
-								path_handler->finalize();
+                path_handler->finalize();
             }
         }
         return path_handler.get();
@@ -726,7 +726,7 @@ LIBASSERT_BEGIN_NAMESPACE
     }
 
 #ifdef HAVE_CPPTRACE_HPP
-		std::string assertion_info::print_stacktrace(int width, const color_scheme& scheme) const {
+    std::string assertion_info::print_stacktrace(int width, const color_scheme& scheme) const {
         std::string output = "Stack trace:\n";
         return libassert::detail::print_stacktrace(get_stacktrace(), width, scheme, get_path_handler());
     }
@@ -742,11 +742,11 @@ LIBASSERT_BEGIN_NAMESPACE
         output += print_binary_diagnostics(width, scheme);
         output += print_extra_diagnostics(width, scheme);
 #ifdef HAVE_CPPTRACE_HPP
-				// generate stack trace
+        // generate stack trace
         output += "\nStack trace:\n";
         output += print_stacktrace(width, scheme);
 #endif
-				return output;
+        return output;
     }
 LIBASSERT_END_NAMESPACE
 
