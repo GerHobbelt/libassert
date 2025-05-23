@@ -1,3 +1,4 @@
+#define LIBASSERT_DO_NOT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS
 #include <gtest/gtest.h>
 #include <libassert/assert.hpp>
 

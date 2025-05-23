@@ -65,6 +65,8 @@
 // everything helps here!
 // 
 
+#ifndef LIBASSERT_DO_NOT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS
+
 #if defined __cplusplus
 
 #if defined(__cpp_lib_remove_cvref) && (__cplusplus >= 201703L) && 0
@@ -87,5 +89,12 @@
 	(void)(0)
 
 #endif // __cplusplus
+
+#else // LIBASSERT_DO_NOT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS
+
+#define LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr) \
+	(void)(0)
+
+#endif // LIBASSERT_DO_NOT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS
 
 #endif
