@@ -816,7 +816,7 @@ gcc 10 and the library can surpress that warning for gcc 12. <!-- https://godbol
 
 **Defines:**
 
-- `LIBASSERT_USE_MAGIC_ENUM`: Use magic enum for stringifying enum values
+- `LIBASSERT_USE_MAGIC_ENUM`: Use [magic enum](https://github.com/Neargye/magic_enum) for stringifying enum values
 - `LIBASSERT_DECOMPOSE_BINARY_LOGICAL`: Decompose `&&` and `||`
 - `LIBASSERT_SAFE_COMPARISONS`: Enable safe signed-unsigned comparisons for decomposed expressions
 - `LIBASSERT_PREFIX_ASSERTIONS`: Prefixes all assertion macros with `LIBASSERT_`
@@ -824,8 +824,8 @@ gcc 10 and the library can surpress that warning for gcc 12. <!-- https://godbol
 - `LIBASSERT_NO_STRINGIFY_SMART_POINTER_OBJECTS`: Disables stringification of smart pointer contents
 
 **CMake:**
-- `LIBASSERT_USE_EXTERNAL_CPPTRACE`: Use an externam cpptrace instead of aquiring the library with FetchContent
-- `LIBASSERT_USE_EXTERNAL_MAGIC_ENUM`: Use an externam magic enum instead of aquiring the library with FetchContent
+- `LIBASSERT_USE_EXTERNAL_CPPTRACE`: Use an external cpptrace instead of aquiring the library with FetchContent
+- `LIBASSERT_USE_EXTERNAL_MAGIC_ENUM`: Use an external magic enum instead of aquiring the library with FetchContent
 
 ## Library Version
 
