@@ -40,6 +40,15 @@
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 
+#define ASSERT_EQ(e1, e2, ...)		debug_assert(((e1) == (e2)), "ASSERT_EQ assertion failed", e1, e2 LIBASSERT_VA_ARGS(__VA_ARGS__))
+#define ASSERT_NEQ(e1, e2, ...)		debug_assert(((e1) != (e2)), "ASSERT_NE assertion failed", e1, e2 LIBASSERT_VA_ARGS(__VA_ARGS__))
+
+#define ASSERT_GTEQ(e1, e2, ...)		debug_assert(((e1) >= (e2)), "ASSERT_GTEQ assertion failed", e1, e2 LIBASSERT_VA_ARGS(__VA_ARGS__))
+#define ASSERT_LTEQ(e1, e2, ...)		debug_assert(((e1) <= (e2)), "ASSERT_LTEQ assertion failed", e1, e2 LIBASSERT_VA_ARGS(__VA_ARGS__))
+
+#define ASSERT_AND(e1, e2, ...)		debug_assert(((e1) && (e2)), "ASSERT_AND assertion failed", e1, e2 LIBASSERT_VA_ARGS(__VA_ARGS__))
+#define ASSERT_OR(e1, e2, ...)		debug_assert(((e1) || (e2)), "ASSERT_OR assertion failed", e1, e2 LIBASSERT_VA_ARGS(__VA_ARGS__))
+
 void qux();
 void wubble();
 
@@ -216,7 +225,7 @@ public:
             DEBUG_ASSERT(map.count(1) == 2);
             debug_assert(map.count(1) >= 2 * garple(), "Error while doing XYZ");
         }
-        debug_assert(0, 2 == garple());
+        debug_assert(!!0, 2 == garple());
         {
             std::optional<float> parameter;
             #ifndef _MSC_VER
@@ -314,7 +323,7 @@ public:
         // Numeric
         // Tests useful during development
 	  {
-        /*debug_assert(.1f == .1);
+        debug_assert(.1f == .1);
         debug_assert(1.0 == 1.0 + std::numeric_limits<double>::epsilon());
         ASSERT_EQ(0x12p2, 12);
         ASSERT_EQ(0x12p2, 0b10);

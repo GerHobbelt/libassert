@@ -6,7 +6,7 @@ CATCH_TEST_CASE("1 + 1 is 2") {
 }
 
 static void foo(int x) {
-    LIBASSERT_ASSERT(x >= 20, "foobar");
+	LIBASSERT_INVOKE(x >= 20, "ASSERT", assertion, , "foobar");
 }
 
 CATCH_TEST_CASE("REQUIRE_ASSERT FAIL") {

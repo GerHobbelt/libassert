@@ -104,7 +104,7 @@
  #define LIBASSERT_IMPORT_ATTR __attribute__((visibility("default")))
 #endif
 
-#ifdef LIBASSERT_STATIC_DEFINE
+#if defined(LIBASSERT_STATIC_DEFINE) || defined(BUILD_MONOLITHIC)
  #define LIBASSERT_EXPORT
  #define LIBASSERT_NO_EXPORT
 #else

@@ -27,6 +27,8 @@
 // When we include magic_enum, et al, we need an "early" version of the LIBASSERT_INVOKE macro for the preprocessor to expand
 // the assertion statements in those library header files while we load them from stringification.hpp.
 
+#define LIBASSERT_EMPTY_ACTION    /**/
+
 #if defined __cplusplus
 
 LIBASSERT_BEGIN_NAMESPACE
@@ -82,14 +84,16 @@ void libassert_report_failure_in_expression(const char *name, const char *expr_s
 #endif
 
 #ifndef NDEBUG
-#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, , __VA_ARGS__)
+#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion LIBASSERT_VA_ARGS(__VA_ARGS__))
 #else
-#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, , __VA_ARGS__)
+#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion LIBASSERT_VA_ARGS(__VA_ARGS__))
 #endif
 #endif
 
 #include <libassert/stringification.hpp>
 #include <libassert/expression-decomposition.hpp>
+
+#ifndef LIBASSERT_NO_STACKTRACE
 
 #if defined __cplusplus
 
@@ -104,6 +108,8 @@ void libassert_report_failure_in_expression(const char *name, const char *expr_s
 #endif
 
 #endif // __cplusplus
+
+#endif // LIBASSERT_NO_STACKTRACE
 
 #if LIBASSERT_IS_MSVC
  #pragma warning(push)
@@ -192,11 +198,11 @@ LIBASSERT_BEGIN_NAMESPACE
         return highlight(stringify(t), scheme);
     }
 
-#ifdef HAVE_CPPTRACE_HPP
-		// generates a stack trace, formats to the given width
+	// generates a stack trace, formats to the given width
     [[nodiscard]] LIBASSERT_ATTR_NOINLINE LIBASSERT_EXPORT
     std::string stacktrace(int width = 0, const color_scheme& scheme = get_color_scheme(), std::size_t skip = 0);
-#endif
+
+	LIBASSERT_EXPORT bool can_produce_stacktrace(void);
 
     enum class literal_format : unsigned {
         // integers and floats are decimal by default, chars are of course chars, and everything else only has one
@@ -328,18 +334,14 @@ LIBASSERT_BEGIN_NAMESPACE
         std::vector<extra_diagnostic> extra_diagnostics;
         size_t n_args;
     private:
-#ifdef HAVE_CPPTRACE_HPP
         std::unique_ptr<detail::trace_holder> trace;
-#endif
         mutable std::unique_ptr<detail::path_handler> path_handler;
         detail::path_handler* get_path_handler() const; // will get and setup the path handler
     public:
         assertion_info() = delete;
         assertion_info(
             const detail::assert_static_parameters* static_params,
-#ifdef HAVE_CPPTRACE_HPP
             std::unique_ptr<detail::trace_holder, detail::trace_holder_deleter> trace,
-#endif
             size_t n_args
         );
         ~assertion_info();
@@ -355,15 +357,15 @@ LIBASSERT_BEGIN_NAMESPACE
         const cpptrace::stacktrace& get_stacktrace() const;
 #endif
 
+		bool can_produce_stacktrace(void);
+
         [[nodiscard]] std::string header(int width = 0, const color_scheme& scheme = get_color_scheme()) const;
         [[nodiscard]] std::string tagline(const color_scheme& scheme = get_color_scheme()) const;
         [[nodiscard]] std::string location() const;
         [[nodiscard]] std::string statement(const color_scheme& scheme = get_color_scheme()) const;
         [[nodiscard]] std::string print_binary_diagnostics(int width = 0, const color_scheme& scheme = get_color_scheme()) const;
         [[nodiscard]] std::string print_extra_diagnostics(int width = 0, const color_scheme& scheme = get_color_scheme()) const;
-#ifdef HAVE_CPPTRACE_HPP
         [[nodiscard]] std::string print_stacktrace(int width = 0, const color_scheme& scheme = get_color_scheme()) const;
-#endif
 
         [[nodiscard]] std::string to_string(int width = 0, const color_scheme& scheme = get_color_scheme()) const;
     };
@@ -750,7 +752,7 @@ LIBASSERT_END_NAMESPACE
         type LIBASSERT_COMMA \
         expr_str LIBASSERT_COMMA \
         {} LIBASSERT_COMMA \
-        {libassert_arg_strings, sizeof(libassert_arg_strings) / sizeof(std::string_view)} LIBASSERT_COMMA \
+        {libassert_arg_strings, sizeof(libassert_arg_strings) / sizeof(std::string_view)} \
     }; \
     const libassert_params_t* libassert_params = &_libassert_params;
 #else
@@ -766,7 +768,7 @@ LIBASSERT_END_NAMESPACE
             type LIBASSERT_COMMA \
             expr_str LIBASSERT_COMMA \
             {} LIBASSERT_COMMA \
-            {libassert_arg_strings, sizeof(libassert_arg_strings) / sizeof(std::string_view)} LIBASSERT_COMMA \
+            {libassert_arg_strings, sizeof(libassert_arg_strings) / sizeof(std::string_view)} \
         }; \
         return &_libassert_params; \
     }();
@@ -854,7 +856,7 @@ int libassert_breakpoint_if_debugger_present(void);
             libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
             LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
             failaction \
-            LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, #expr, __VA_ARGS__) \
+            LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, #expr LIBASSERT_VA_ARGS(__VA_ARGS__)) \
             if constexpr(sizeof libassert_decomposer > 32) { \
                 libassert::detail::process_assert_fail( \
                     libassert_decomposer, \
@@ -901,7 +903,7 @@ int libassert_breakpoint_if_debugger_present(void);
     do { \
         libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
         LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
-        LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, "", __VA_ARGS__) \
+        LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, "" LIBASSERT_VA_ARGS(__VA_ARGS__)) \
         libassert::detail::process_panic( \
             libassert_params \
             LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_PRETTY_FUNCTION_ARG \
@@ -913,7 +915,7 @@ int libassert_breakpoint_if_debugger_present(void);
 #define LIBASSERT_INVOKE_PANIC(name, type, ...) \
     do { \
         LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
-        LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, "", __VA_ARGS__) \
+        LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, "" LIBASSERT_VA_ARGS(__VA_ARGS__)) \
         libassert_process_panic( \
             libassert_params \
             LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_PRETTY_FUNCTION_ARG \
@@ -989,7 +991,7 @@ int libassert_breakpoint_if_debugger_present(void);
                 libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
                 LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
                 failaction \
-                LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, #expr, __VA_ARGS__) \
+                LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, #expr LIBASSERT_VA_ARGS(__VA_ARGS__)) \
                 if constexpr(sizeof libassert_decomposer > 32) { \
                     libassert::detail::process_assert_fail( \
                         libassert_decomposer, \
@@ -1037,24 +1039,24 @@ int libassert_breakpoint_if_debugger_present(void);
 
 // Debug assert
 #ifndef NDEBUG
- #define LIBASSERT_DEBUG_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "DEBUG_ASSERT", debug_assertion, , __VA_ARGS__)
+ #define LIBASSERT_DEBUG_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "DEBUG_ASSERT", debug_assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
 #else
  #define LIBASSERT_DEBUG_ASSERT(expr, ...) (void)0
 #endif
 
 // Assert
-#define LIBASSERT_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "ASSERT", assertion, , __VA_ARGS__)
+#define LIBASSERT_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "ASSERT", assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
 // lowercase version intentionally done outside of the include guard here
 
 // Assume
-#define LIBASSERT_ASSUME(expr, ...) LIBASSERT_INVOKE(expr, "ASSUME", assumption, LIBASSERT_ASSUME_ACTION, __VA_ARGS__)
+#define LIBASSERT_ASSUME(expr, ...) LIBASSERT_INVOKE(expr, "ASSUME", assumption, LIBASSERT_ASSUME_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
 
 // Panic
-#define LIBASSERT_PANIC(...) LIBASSERT_INVOKE_PANIC("PANIC", panic, __VA_ARGS__)
+#define LIBASSERT_PANIC(...) LIBASSERT_INVOKE_PANIC("PANIC", panic LIBASSERT_VA_ARGS(__VA_ARGS__))
 
 // Unreachable
 #ifndef NDEBUG
- #define LIBASSERT_UNREACHABLE(...) LIBASSERT_INVOKE_PANIC("UNREACHABLE", unreachable, __VA_ARGS__)
+ #define LIBASSERT_UNREACHABLE(...) LIBASSERT_INVOKE_PANIC("UNREACHABLE", unreachable LIBASSERT_VA_ARGS(__VA_ARGS__))
 #else
  #define LIBASSERT_UNREACHABLE(...) LIBASSERT_UNREACHABLE_CALL()
 #endif
@@ -1062,14 +1064,14 @@ int libassert_breakpoint_if_debugger_present(void);
 // value variants
 
 #ifndef NDEBUG
- #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "DEBUG_ASSERT_VAL", debug_assertion, , __VA_ARGS__)
+ #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "DEBUG_ASSERT_VAL", debug_assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
 #else
- #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, false, "DEBUG_ASSERT_VAL", debug_assertion, , __VA_ARGS__)
+ #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, false, "DEBUG_ASSERT_VAL", debug_assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
 #endif
 
-#define LIBASSERT_ASSUME_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSUME_VAL", assumption, LIBASSERT_ASSUME_ACTION, __VA_ARGS__)
+#define LIBASSERT_ASSUME_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSUME_VAL", assumption, LIBASSERT_ASSUME_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
 
-#define LIBASSERT_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSERT_VAL", assertion, , __VA_ARGS__)
+#define LIBASSERT_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSERT_VAL", assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
 
 // non-prefixed versions
 
@@ -1101,7 +1103,7 @@ int libassert_breakpoint_if_debugger_present(void);
 
 #ifdef LIBASSERT_LOWERCASE
  #ifndef NDEBUG
-  #define debug_assert(expr, ...) LIBASSERT_INVOKE(expr, "debug_assert", debug_assertion, , __VA_ARGS__)
+  #define debug_assert(expr, ...) LIBASSERT_INVOKE(expr, "debug_assert", debug_assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
  #else
   #define debug_assert(expr, ...) (void)0
  #endif
@@ -1109,14 +1111,14 @@ int libassert_breakpoint_if_debugger_present(void);
 
 #ifdef LIBASSERT_LOWERCASE
  #ifndef NDEBUG
-  #define debug_assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "debug_assert_val", debug_assertion, , __VA_ARGS__)
+  #define debug_assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "debug_assert_val", debug_assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
  #else
-  #define debug_assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, false, "debug_assert_val", debug_assertion, , __VA_ARGS__)
+  #define debug_assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, false, "debug_assert_val", debug_assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
  #endif
 #endif
 
 #ifdef LIBASSERT_LOWERCASE
- #define assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "assert_val", assertion, , __VA_ARGS__)
+ #define assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "assert_val", assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
 #endif
 
 // Wrapper macro to allow support for C++26's user generated static_assert messages.
@@ -1170,8 +1172,8 @@ int libassert_breakpoint_if_debugger_present(void);
  #endif
 
  #ifndef NDEBUG
-  #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, , __VA_ARGS__)
+  #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
  #else
-  #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, , __VA_ARGS__)
+  #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, LIBASSERT_EMPTY_ACTION LIBASSERT_VA_ARGS(__VA_ARGS__))
  #endif
 #endif
