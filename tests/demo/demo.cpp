@@ -313,37 +313,37 @@ public:
 
         // Numeric
         // Tests useful during development
-        /*debug_assert(.1f == .1);
-        debug_assert(1.0 == 1.0 + std::numeric_limits<double>::epsilon());
-        ASSERT_EQ(0x12p2, 12);
-        ASSERT_EQ(0x12p2, 0b10);
-        debug_assert(0b1000000 == 0x3);
-        debug_assert(.1 == 2);
-        debug_assert(true == false);
-        debug_assert(true ? false : true == false);
-        debug_assert(0b100 == 0x3);
+		{
+		debug_assert(.1f == .1);
+		debug_assert(1.0 == 1.0 + std::numeric_limits<double>::epsilon());
+		ASSERT_EQ(0x12p2, 12);
+		ASSERT_EQ(0x12p2, 0b10);
+		debug_assert(0b1000000 == 0x3);
+		debug_assert(.1 == 2);
+		debug_assert(true == false);
+		debug_assert(true ? false : true == false);
+		debug_assert(0b100 == 0x3);
 
-        debug_assert(0 == (2 == garple()));
-        ASSERT_GTEQ(map.count(1 == 1), 2);
-        ASSERT_EQ(map.count(1), 2, "Error while doing XYZ");
-        ASSERT_GTEQ(map.count(2 * garple()), 2, "Error while doing XYZ");
-        debug_assert(S<S<int>>(2) == S<S<int>>(4));
-        S<S<int>> a(1), b(2);
-        ASSERT_EQ(a, b);
-        const S<S<int>> c(4), d(8);
-        ASSERT_EQ(c, d);
-        S<void> g, h;
-        ASSERT_EQ(g, h);
-        ASSERT_EQ(1, 2);
-        ASSERT_EQ(&a, nullptr);
-        ASSERT_EQ((uintptr_t)&a, 0ULL & 0ULL);
-        ASSERT_AND(&a, nullptr);
-        ASSERT_AND(nullptr && nullptr, nullptr);
-        ASSERT_AND(&a, nullptr && nullptr);
-        ASSERT_AND((bool)nullptr && (bool)nullptr, (bool)nullptr);
-        ASSERT_AND((uintptr_t)&a, (bool)nullptr && (bool)nullptr); // FIXME: parentheses
-        ASSERT_EQ(foo, (int*)nullptr);
-
+		debug_assert(0 == (2 == garple()));
+		ASSERT_GTEQ(map.count(1 == 1), 2);
+		ASSERT_EQ(map.count(1), 2, "Error while doing XYZ");
+		ASSERT_GTEQ(map.count(2 * garple()), 2, "Error while doing XYZ");
+		debug_assert(S<S<int>>(2) == S<S<int>>(4));
+		S<S<int>> a(1), b(2);
+		ASSERT_EQ(a, b);
+		const S<S<int>> c(4), d(8);
+		ASSERT_EQ(c, d);
+		S<void> g, h;
+		ASSERT_EQ(g, h);
+		ASSERT_EQ(1, 2);
+		ASSERT_EQ(&a, nullptr);
+		ASSERT_EQ((uintptr_t)&a, 0ULL & 0ULL);
+		ASSERT_AND(&a, nullptr);
+		ASSERT_AND(nullptr && nullptr, nullptr);
+		ASSERT_AND(&a, nullptr && nullptr);
+		ASSERT_AND((bool)nullptr && (bool)nullptr, (bool)nullptr);
+		ASSERT_AND((uintptr_t)&a, (bool)nullptr && (bool)nullptr); // FIXME: parentheses
+		ASSERT_EQ(foo, (int*)nullptr);
 
         debug_assert(0 == (2  ==  garple()));
         //debug_assert(0 == 2 == garple());
@@ -378,24 +378,25 @@ public:
             return a + b;
         } (10, 32), 42);
         debug_assert('\n' == '\t');
-        debug_assert(<:](){return 42;%>() not_eq 42);
+		debug_assert(<:](){return 42;%>() not_eq 42);
 
-        debug_assert(&a == nullptr);
+		debug_assert(&a == nullptr);
 
-        {
-            std::string s = "h1ello";
-            debug_assert(std::find_if(s.begin(), s.end(), [](char c) {
-                if(c == '1') debug_assert(c != '1');
-                //debug_assert(!isdigit(c), c);
-                return c == 'e';
-            }) == s.end());
-        }
+		{
+			std::string s = "h1ello";
+			debug_assert(std::find_if(s.begin(), s.end(), [](char c) {
+				if (c == '1') debug_assert(c != '1');
+				//debug_assert(!isdigit(c), c);
+				return c == 'e';
+				}) == s.end());
+		}
 
-        debug_assert(0.1 == 0.2);
-        debug_assert(.1 == 0.2);
-        debug_assert(.1f == 0.2);
+		debug_assert(0.1 == 0.2);
+		debug_assert(.1 == 0.2);
+		debug_assert(.1f == 0.2);
 
-        debug_assert(true); // this should lead to another debug_assert(false) because we're in demo mode*/
+		debug_assert(true); // this should lead to another debug_assert(false) because we're in demo mode
+		}
     }
 };
 
