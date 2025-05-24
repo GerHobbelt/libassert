@@ -1073,7 +1073,6 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 // non-prefixed versions
 
 #ifndef LIBASSERT_PREFIX_ASSERTIONS
- #undef ASSERT
  #if LIBASSERT_IS_CLANG || LIBASSERT_IS_GCC || !LIBASSERT_NON_CONFORMANT_MSVC_PREPROCESSOR
   #define DEBUG_ASSERT(...) LIBASSERT_DEBUG_ASSERT(__VA_ARGS__)
   #define ASSERT(...) LIBASSERT_ASSERT(__VA_ARGS__)
