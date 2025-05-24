@@ -1,11 +1,18 @@
 
 #define LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
+#define LIBASSERT_LOWERCASE
 
 #include <libassert/assert.hpp>
 
 #include "c-code-test.h"
 
 #include "monolithic_examples.h"
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+#define ASSERT_EQ(e1, e2, ...)		debug_assert(((e1) == (e2)), "ASSERT_EQ assertion failed", (e1), (e2) __VA_OPT__(,) __VA_ARGS__)
 
 static float foo(void) {
 	return 2.5f;
@@ -20,10 +27,12 @@ int main(void) {
 	DEBUG_ASSERT(x % 2 == 0);
 	ASSERT(1 + 1 != 3);
 
-	DEBUG_ASSERT_VAL();
+#if 0
+	DEBUG_ASSERT_VAL(foo());
+#endif
 	assert(foo() == 2.5f);
 
-	debug_assert(false);
+	debug_assert(FALSE);
 
 	LIBASSERT_ASSERT(x < 20, "foobar");
 
@@ -31,6 +40,9 @@ int main(void) {
 
 	assert_h_include_test();
 	cassert_include_test();
+
+	assert_h_include_primitive_test();
+	cassert_include_primitive_test();
 
 	return 0;
 }

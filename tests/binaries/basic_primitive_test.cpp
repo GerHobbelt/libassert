@@ -16,7 +16,7 @@ static std::optional<float> foo() {
 
 
 #if defined(BUILD_MONOLITHIC)
-#define main    assert_basic_test_main
+#define main    assert_basic_primitive_test_main
 #endif
 
 extern "C"

@@ -17,7 +17,7 @@ static float fooc(void) {
 	return 2.5f;
 }
 
-void assert_h_include_test(void) {
+void assert_h_include_primitive_test(void) {
 	int x = 4;
 	DEBUG_ASSERT(x % 2 == 0);
 	ASSERT(1 + 1 != 3);

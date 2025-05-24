@@ -458,6 +458,7 @@ LIBASSERT_BEGIN_NAMESPACE
             case assert_type::panic:
             case assert_type::unreachable:
                 (void)fflush(stderr);
+				LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL();
                 std::abort();
                 // Breaking here as debug CRT allows aborts to be ignored, if someone wants to make a debug build of
                 // this library

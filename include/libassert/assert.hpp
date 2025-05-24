@@ -876,7 +876,8 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 				1 /* true */, \
 				#expr, \
 				name, __FILE__, __LINE__, LIBASSERT_PFUNC, \
-				LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)); \
+				LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+			); \
         } \
         LIBASSERT_WARNING_PRAGMA_POP_MSVC \
         LIBASSERT_WARNING_PRAGMA_POP_CLANG \
@@ -1043,24 +1044,24 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 
 // Debug assert
 #ifndef NDEBUG
- #define LIBASSERT_DEBUG_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "DEBUG_ASSERT", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+ #define LIBASSERT_DEBUG_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "DEBUG_ASSERT", debug_assertion, LIBASSERT_EMPTY_ACTION  __VA_OPT__(,) __VA_ARGS__)
 #else
  #define LIBASSERT_DEBUG_ASSERT(expr, ...) (void)0
 #endif
 
 // Assert
-#define LIBASSERT_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "ASSERT", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+#define LIBASSERT_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "ASSERT", assertion, LIBASSERT_EMPTY_ACTION __VA_OPT__(,) __VA_ARGS__)
 // lowercase version intentionally done outside of the include guard here
 
 // Assume
-#define LIBASSERT_ASSUME(expr, ...) LIBASSERT_INVOKE(expr, "ASSUME", assumption, LIBASSERT_ASSUME_ACTION, __VA_ARGS__)
+#define LIBASSERT_ASSUME(expr, ...) LIBASSERT_INVOKE(expr, "ASSUME", assumption, LIBASSERT_ASSUME_ACTION __VA_OPT__(,) __VA_ARGS__)
 
 // Panic
-#define LIBASSERT_PANIC(...) LIBASSERT_INVOKE_PANIC("PANIC", panic, __VA_ARGS__)
+#define LIBASSERT_PANIC(...) LIBASSERT_INVOKE_PANIC("PANIC", panic __VA_OPT__(,) __VA_ARGS__)
 
 // Unreachable
 #ifndef NDEBUG
- #define LIBASSERT_UNREACHABLE(...) LIBASSERT_INVOKE_PANIC("UNREACHABLE", unreachable, __VA_ARGS__)
+ #define LIBASSERT_UNREACHABLE(...) LIBASSERT_INVOKE_PANIC("UNREACHABLE", unreachable __VA_OPT__(,) __VA_ARGS__)
 #else
  #define LIBASSERT_UNREACHABLE(...) LIBASSERT_UNREACHABLE_CALL()
 #endif
@@ -1068,14 +1069,14 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 // value variants
 
 #ifndef NDEBUG
- #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "DEBUG_ASSERT_VAL", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+ #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "DEBUG_ASSERT_VAL", debug_assertion, LIBASSERT_EMPTY_ACTION __VA_OPT__(,) __VA_ARGS__)
 #else
- #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, false, "DEBUG_ASSERT_VAL", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+ #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, false, "DEBUG_ASSERT_VAL", debug_assertion, LIBASSERT_EMPTY_ACTION __VA_OPT__(,) __VA_ARGS__)
 #endif
 
-#define LIBASSERT_ASSUME_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSUME_VAL", assumption, LIBASSERT_ASSUME_ACTION, __VA_ARGS__)
+#define LIBASSERT_ASSUME_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSUME_VAL", assumption, LIBASSERT_ASSUME_ACTION __VA_OPT__(,) __VA_ARGS__)
 
-#define LIBASSERT_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSERT_VAL", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+#define LIBASSERT_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSERT_VAL", assertion, LIBASSERT_EMPTY_ACTION __VA_OPT__(,) __VA_ARGS__)
 
 // non-prefixed versions
 

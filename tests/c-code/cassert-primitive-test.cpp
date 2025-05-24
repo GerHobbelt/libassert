@@ -17,7 +17,7 @@ static LIBASSERT_ATTR_NOINLINE float foopp(void) {
 }
 
 extern "C"
-void cassert_include_test(void) {
+void cassert_include_primitive_test(void) {
 	int x = 4;
 	DEBUG_ASSERT(x % 2 == 0);
 	ASSERT(1 + 1 != 3);

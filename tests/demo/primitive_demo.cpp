@@ -426,7 +426,7 @@ public:
 
 
 #if defined(BUILD_MONOLITHIC)
-#define main    assert_demo_main
+#define main    assert_primitive_demo_main
 #endif
 
 extern "C"

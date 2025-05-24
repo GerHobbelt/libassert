@@ -4,7 +4,7 @@
 #include "monolithic_examples.h"
 
 #if defined(BUILD_MONOLITHIC)
-#define main    assert_basic_demo_test_main
+#define main    assert_basic_primitive_demo_test_main
 #endif
 
 extern "C"
