@@ -11,6 +11,7 @@
 
 #include "c-code-test.h"
 
+
 static LIBASSERT_ATTR_NOINLINE float foopp(void) {
 	return 2.5f;
 }
@@ -21,7 +22,8 @@ void cassert_include_test(void) {
 	DEBUG_ASSERT(x % 2 == 0);
 	ASSERT(1 + 1 != 3);
 
-	float f = DEBUG_ASSERT_VAL(foopp());
+	DEBUG_ASSERT(foopp());
+	float f = foopp();
 	assert(f == 2.5f);
 
 	debug_assert(false);

@@ -75,20 +75,20 @@ namespace detail {
 
 #else // !LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
 
-    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) (void)((c) || ::libassert::detail::primitive_assert_impl( \
+    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((c) || ::libassert::detail::primitive_assert_impl( \
         true, \
         #c, \
         "" LIBASSERT_PFUNC, \
         {}, LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
-    ))
+    )))
     
     #ifndef NDEBUG
-	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) (void)((c) || ::libassert::detail::primitive_assert_impl( \
+	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) ((void)((c) || ::libassert::detail::primitive_assert_impl( \
         false, \
         #c, \
         "" LIBASSERT_PFUNC, \
         {}, LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
-    ))
+    )))
     #else
      #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) LIBASSERT_PHONY_USE(c)
     #endif
@@ -236,20 +236,20 @@ LIBASSERT_END_NAMESPACE
 
 #else // __cplusplus
 
-    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((c) || libassert_detail_primitive_assert_impl( \
+    #define LIBASSERT_PRIMITIVE_ASSERT(expr, ...) ((void)((expr) || libassert_detail_primitive_assert_impl( \
         1 /* true */, \
-        #c, \
+        #expr, \
         "", __FILE__, __LINE__, LIBASSERT_PFUNC, \
         LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
     )))
     
     #ifndef NDEBUG
-	 #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) ((void)((c) || libassert_detail_primitive_assert_impl( \
+	 #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(expr, ...) ((void)((expr) || libassert_detail_primitive_assert_impl( \
         0 /* false */, \
-        #c, \
+        #expr, \
         "", __FILE__, __LINE__, LIBASSERT_PFUNC, \
         LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
-    )))
+     )))
     #else
      #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) LIBASSERT_PHONY_USE(c)
     #endif

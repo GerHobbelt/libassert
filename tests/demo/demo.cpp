@@ -40,14 +40,14 @@
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 
-#define ASSERT_EQ(e1, e2, ...)		debug_assert(((e1) == (e2)), "ASSERT_EQ assertion failed", (e1), (e2), __VA_ARGS__)
-#define ASSERT_NEQ(e1, e2, ...)		debug_assert(((e1) != (e2)), "ASSERT_NE assertion failed", (e1), (e2), __VA_ARGS__)
+#define ASSERT_EQ(e1, e2, ...)		debug_assert(((e1) == (e2)), "ASSERT_EQ assertion failed", (e1), (e2) __VA_OPT__(,) __VA_ARGS__)
+#define ASSERT_NEQ(e1, e2, ...)		debug_assert(((e1) != (e2)), "ASSERT_NE assertion failed", (e1), (e2) __VA_OPT__(,) __VA_ARGS__)
 
-#define ASSERT_GTEQ(e1, e2, ...)		debug_assert(((e1) >= (e2)), "ASSERT_GTEQ assertion failed", (e1), (e2), __VA_ARGS__)
-#define ASSERT_LTEQ(e1, e2, ...)		debug_assert(((e1) <= (e2)), "ASSERT_LTEQ assertion failed", (e1), (e2), __VA_ARGS__)
+#define ASSERT_GTEQ(e1, e2, ...)		debug_assert(((e1) >= (e2)), "ASSERT_GTEQ assertion failed", (e1), (e2) __VA_OPT__(,) __VA_ARGS__)
+#define ASSERT_LTEQ(e1, e2, ...)		debug_assert(((e1) <= (e2)), "ASSERT_LTEQ assertion failed", (e1), (e2) __VA_OPT__(,) __VA_ARGS__)
 
-#define ASSERT_AND(e1, e2, ...)		debug_assert(((e1) && (e2)), "ASSERT_AND assertion failed", (e1), (e2), __VA_ARGS__)
-#define ASSERT_OR(e1, e2, ...)		debug_assert(((e1) || (e2)), "ASSERT_OR assertion failed", (e1), (e2), __VA_ARGS__)
+#define ASSERT_AND(e1, e2, ...)		debug_assert(((e1) && (e2)), "ASSERT_AND assertion failed", (e1), (e2) __VA_OPT__(,) __VA_ARGS__)
+#define ASSERT_OR(e1, e2, ...)		debug_assert(((e1) || (e2)), "ASSERT_OR assertion failed", (e1), (e2) __VA_OPT__(,) __VA_ARGS__)
 
 void qux();
 void wubble();
@@ -329,7 +329,8 @@ public:
 	  {
         debug_assert(.1f == .1);
         debug_assert(1.0 == 1.0 + std::numeric_limits<double>::epsilon());
-        ASSERT_EQ(0x12p2, 12);
+		debug_assert(((0x12p2) == (12)), "ASSERT_EQ assertion failed", (0x12p2), (12));
+        ASSERT_EQ(0x12p2, 12, "+ user message...", 25.0f, -42);
         ASSERT_EQ(0x12p2, 0b10);
         debug_assert(0b1000000 == 0x3);
         debug_assert(.1 == 2);
@@ -337,7 +338,7 @@ public:
         debug_assert(true ? false : true == false);
         debug_assert(0b100 == 0x3);
 
-        debug_assert(0 == (2 == garple()));
+        debug_assert(0 == +(2 == garple())); // add unary + operator or you'll get this warning (with subsequent errors) --> `LIBASSERT_GEN_OP_BOILERPLATE(eq,   ==)` @ expression-decomposition.hpp(58,9): warning C4805: '==': unsafe mix of type 'B' and type 'A' in operation
 		std::map<int, int> map{{1,1}};
 		ASSERT_GTEQ(map.count(1 == 1), 2);
         ASSERT_EQ(map.count(1), 2, "Error while doing XYZ");
@@ -359,8 +360,14 @@ public:
         ASSERT_AND((uintptr_t)&a, (bool)nullptr && (bool)nullptr); // FIXME: parentheses
         //ASSERT_EQ(foo, (int*)nullptr);
 
-        debug_assert(0 == (2  ==  garple()));
-        debug_assert(0 == 2 == garple());
+LIBASSERT_WARNING_PRAGMA_PUSH_CLANG 
+LIBASSERT_WARNING_PRAGMA_PUSH_MSVC 
+        debug_assert(0 == +(2  ==  garple()));
+#pragma warning(disable: 4805) // '==': unsafe mix of type 'int' and type 'int' in operation
+		debug_assert(0 == (2 == garple()));
+		debug_assert(0 == 2 == garple());
+LIBASSERT_WARNING_PRAGMA_POP_MSVC 
+LIBASSERT_WARNING_PRAGMA_POP_CLANG
 
         debug_assert(true ? false : true, "pffft");
         {

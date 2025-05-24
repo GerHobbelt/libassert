@@ -825,6 +825,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
     /* must do awful stuff to workaround differences in where gcc and clang allow these directives to go */ \
     do { \
         LIBASSERT_WARNING_PRAGMA_PUSH_CLANG \
+        LIBASSERT_WARNING_PRAGMA_PUSH_MSVC \
         LIBASSERT_IGNORE_UNUSED_VALUE \
         LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_CLANG \
         LIBASSERT_WARNING_PRAGMA_PUSH_GCC \
@@ -854,6 +855,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
                 ); \
             } \
         } \
+        LIBASSERT_WARNING_PRAGMA_POP_MSVC \
         LIBASSERT_WARNING_PRAGMA_POP_CLANG \
     } while(0) \
 
@@ -864,16 +866,19 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
     /* must do awful stuff to workaround differences in where gcc and clang allow these directives to go */ \
     do { \
         LIBASSERT_WARNING_PRAGMA_PUSH_CLANG \
+        LIBASSERT_WARNING_PRAGMA_PUSH_MSVC \
         LIBASSERT_IGNORE_UNUSED_VALUE \
         LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); \
         if(!!(expr)) { \
             LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
             failaction \
-            libassert_report_failure_in_expression( \
-				name, #expr, \
-                LIBASSERT_PFUNC, __FILE__, __LINE__ \
-            ); \
+            libassert_detail_primitive_assert_impl( \
+				1 /* true */, \
+				#expr, \
+				name, __FILE__, __LINE__, LIBASSERT_PFUNC, \
+				LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)); \
         } \
+        LIBASSERT_WARNING_PRAGMA_POP_MSVC \
         LIBASSERT_WARNING_PRAGMA_POP_CLANG \
     } while(0) \
 
@@ -956,6 +961,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
     /* must push/pop out here due to nasty clang bug https://github.com/llvm/llvm-project/issues/63897 */ \
     /* must do awful stuff to workaround differences in where gcc and clang allow these directives to go */ \
     LIBASSERT_WARNING_PRAGMA_PUSH_CLANG \
+    LIBASSERT_WARNING_PRAGMA_PUSH_MSVC \
     LIBASSERT_IGNORE_UNUSED_VALUE \
     LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_CLANG \
     LIBASSERT_STMTEXPR( \
@@ -1006,6 +1012,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
             std::is_lvalue_reference_v<decltype(libassert_value)> \
         >(libassert_value, *std::launder(&libassert_decomposer)); \
     ) LIBASSERT_IF(doreturn)(.value,) \
+    LIBASSERT_WARNING_PRAGMA_POP_MSVC \
     LIBASSERT_WARNING_PRAGMA_POP_CLANG
 
 #else // !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)

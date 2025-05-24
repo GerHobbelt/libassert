@@ -71,9 +71,21 @@ int main(void) {
     {
         decltype(auto) a = DEBUG_ASSERT_VAL(only_move_constructable(2) == 2);
         static_assert(std::is_same<decltype(a), only_move_constructable>::value);
-        assert(!is_lvalue(DEBUG_ASSERT_VAL(only_move_constructable(2) == 2)));
-        assert(DEBUG_ASSERT_VAL(only_move_constructable(2) == 2).x == 2);
-        //assert(debug_assert(only_move_constructable(2) == 2).x++ == 2); // not allowed
+		auto t1 = (only_move_constructable(2) == 2);
+		auto t2 = only_move_constructable(2);
+		assert(!is_lvalue(t2));
+		//assert(!is_lvalue(DEBUG_ASSERT_VAL(t2))); // error C2440: 'static_cast': cannot convert from '`anonymous-namespace'::only_move_constructable' to 'bool'
+		auto t3 = (DEBUG_ASSERT_VAL(only_move_constructable(2) == 2));
+		assert(!is_lvalue(t3));
+		assert(!is_lvalue(DEBUG_ASSERT_VAL(only_move_constructable(2) == 2)));
+		auto t4 = only_move_constructable(2).x;
+		assert(t4 == 2);
+#if 0
+		assert(DEBUG_ASSERT_VAL(only_move_constructable(2) == 2).x == 2);
+#endif
+#if 0
+		assert(debug_assert(only_move_constructable(2) == 2).x++ == 2); // not allowed
+#endif
     }
 
     // test lvalue

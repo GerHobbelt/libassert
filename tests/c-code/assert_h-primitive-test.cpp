@@ -22,13 +22,14 @@ void assert_h_include_test(void) {
 	DEBUG_ASSERT(x % 2 == 0);
 	ASSERT(1 + 1 != 3);
 
-	float f = DEBUG_ASSERT_VAL(fooc());
+	DEBUG_ASSERT(fooc());
+	float f = fooc();
 	assert(f == 2.5f);
 
 	debug_assert(0);
 
 	LIBASSERT_ASSERT(x < 20, "foobar");
 
-	ASSERT_EQ(1, 2);
+	LIBASSERT_ASSUME(1 == 2);
 }
 

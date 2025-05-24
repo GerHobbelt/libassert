@@ -23,10 +23,11 @@ void assert_h_include_test(void) {
 	float f = DEBUG_ASSERT_VAL(fooc());
 	assert(f == 2.5f);
 
-	debug_assert(0);
+	debug_assert(!!0);
+	// ^^^ Using `!!` operator because otherwise: error C2338: static_assert failed: 'assertion expression result type must be boolean: implicit type conversions are NOT accepted.'
 
 	LIBASSERT_ASSERT(x < 20, "foobar");
 
-	ASSERT_EQ(1, 2);
+	LIBASSERT_ASSERT(1 == 2);
 }
 

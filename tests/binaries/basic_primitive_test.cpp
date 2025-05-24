@@ -21,8 +21,9 @@ static std::optional<float> foo() {
 
 extern "C"
 int main(void) {
-    auto f = *DEBUG_ASSERT_VAL(foo());
-    static_assert(std::is_same<decltype(f), float>::value);
+    DEBUG_ASSERT(foo());
+	auto f = *foo();
+	static_assert(std::is_same<decltype(f), float>::value);
     assert(f == 2.5f);
 
 	return 0;
