@@ -1,4 +1,6 @@
 
+#define LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
+
 #include <libassert/assert.hpp>
 
 #include "c-code-test.h"
@@ -10,7 +12,7 @@ static float foo(void) {
 }
 
 #if defined(BUILD_MONOLITHIC)
-#define main    assert_c_code_test_main
+#define main    assert_c_code_primitive_test_main
 #endif
 
 int main(void) {

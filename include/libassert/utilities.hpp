@@ -23,13 +23,13 @@ LIBASSERT_BEGIN_NAMESPACE
     // still needed.
     struct source_location {
         const char* file;
-        //const char* function; // disabled for now due to static constexpr restrictions
+        const char* function; // disabled for now due to static constexpr restrictions
         int line;
         constexpr source_location(
-            //const char* _function /*= __builtin_FUNCTION()*/,
+            const char* _function = __builtin_FUNCTION(),
             const char* _file = __builtin_FILE(),
             int _line         = __builtin_LINE()
-        ) : file(_file), /*function(_function),*/ line(_line) {}
+        ) : file(_file), function(_function), line(_line) {}
     };
 LIBASSERT_END_NAMESPACE
 
@@ -53,17 +53,15 @@ namespace detail {
     // always_false is just convenient to use here
     #define LIBASSERT_PHONY_USE(E) ((void)::libassert::detail::always_false<decltype(E)>)
 
-    #ifndef NDEBUG
- 	 #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) (void)((c) || ::libassert::detail::primitive_assert_impl( \
+#if !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
+
+    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) (void)((c) || ::libassert::detail::primitive_assert_impl( \
         true, \
         #c, \
         "" LIBASSERT_PFUNC, \
         {} LIBASSERT_VA_ARGS(__VA_ARGS__) \
     ))
-    #else
-     #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) LIBASSERT_PHONY_USE(c)
-    #endif
-
+    
     #ifndef NDEBUG
 	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) (void)((c) || ::libassert::detail::primitive_assert_impl( \
         false, \
@@ -74,6 +72,28 @@ namespace detail {
     #else
      #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) LIBASSERT_PHONY_USE(c)
     #endif
+
+#else // !LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
+
+    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) (void)((c) || ::libassert::detail::primitive_assert_impl( \
+        true, \
+        #c, \
+        "" LIBASSERT_PFUNC, \
+        {}, LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+    ))
+    
+    #ifndef NDEBUG
+	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) (void)((c) || ::libassert::detail::primitive_assert_impl( \
+        false, \
+        #c, \
+        "" LIBASSERT_PFUNC, \
+        {}, LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+    ))
+    #else
+     #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) LIBASSERT_PHONY_USE(c)
+    #endif
+
+#endif // !LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
 
     #define LIBASSERT_PRIMITIVE_PANIC(message) ::libassert::detail::primitive_panic_impl(LIBASSERT_PFUNC, {}, message)
 }
