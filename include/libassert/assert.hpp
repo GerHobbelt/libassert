@@ -1011,14 +1011,16 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 #else // !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
 
 #define LIBASSERT_INVOKE_VAL(expr, doreturn, check_expression, name, type, failaction, ...) \
-    this_libassert_macro_cannot_be_used_in_a_CPP_language_when_only_primitive_assertions_allowed (:::)
+    _Pragma("message(\"libassert NOTICE: *_VAL libassert macros cannot be used in a CPP language when only primitive assertions are allowed\")") \
+    ; not_allowed . not_allowed . not_allowed ::: ; 
 
 #endif // !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
 
 #else // __cplusplus
 
 #define LIBASSERT_INVOKE_VAL(expr, doreturn, check_expression, name, type, failaction, ...) \
-    this_libassert_macro_cannot_be_used_in_a_C_language_source_file (:::)
+    _Pragma("message(\"libassert NOTICE: *_VAL libassert macros cannot be used in a C language source files\")") \
+    ; not_allowed . not_allowed . not_allowed ::: ; 
 
 #endif // __cplusplus
 
