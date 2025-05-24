@@ -4,6 +4,7 @@
 
 #define ASSERT_FAIL          custom_fail
 #define LIBASSERT_LOWERCASE
+#define LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS 1
 
 #include <algorithm>
 #include <array>
@@ -215,7 +216,8 @@ public:
             debug_assert(open(path, O_RDONLY) >= 0, "Internal error with foobars", errno, path);
         }
         {
-            FILE* f = ASSERT_VAL(fopen(path, "r") != nullptr, "Internal error with foobars", errno, path);
+			FILE* f = fopen(path, "r");
+			ASSERT(f != nullptr, "Internal error with foobars", errno, path);
             LIBASSERT_PHONY_USE(f);
         }
         debug_assert(false, "Error while doing XYZ");
@@ -240,8 +242,9 @@ public:
              ASSERT(!!parameter);
              debug_assert(!!get_param());
             #endif
-            auto x = [&] () -> decltype(auto) { 
-				return ASSERT_VAL(parameter); 
+            auto x = [&] () -> decltype(auto) {
+				ASSERT(parameter);
+				return parameter;
 			};
             static_assert(std::is_same<decltype(x()), std::optional<float>&>::value);
         }
