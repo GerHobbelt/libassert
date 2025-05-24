@@ -130,10 +130,14 @@ void __cdecl fz_sysassert_and_continue(const char * _Message, const char * _File
 
 _CRT_END_C_HEADER
 
+#if 0
 #define LIBASSERT_USE_MAGIC_ENUM     1
+#endif
 
+#if 0
 #define LIBASSERT_USE_FMT            1
 //#define LIBASSERT_USE_STD_FORMAT     1  // <-- is set up in libassert/platform.hpp
+#endif
 
 #define LIBASSERT_LOWERCASE     1
 

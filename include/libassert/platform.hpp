@@ -297,12 +297,18 @@ LIBASSERT_END_NAMESPACE
  #define LIBASSERT_BREAKPOINT()
 #endif
 
-#if defined __cplusplus
+// auto-detect libraries to use, when those have not yet been forcibly specified by the user to use
 
-#if !defined(LIBASSERT_NO_STD_FORMAT) && defined(__has_include) && __has_include(<format>) && defined(__cpp_lib_format)
- #define LIBASSERT_USE_STD_FORMAT
+#if !defined(LIBASSERT_USE_MAGIC_ENUM) && defined(__has_include) && (__has_include(<magic_enum/magic_enum.hpp>) || __has_include(<magic_enum.hpp>))
+#define LIBASSERT_USE_MAGIC_ENUM
 #endif
 
-#endif // __cplusplus
+#if !defined(LIBASSERT_USE_FMT) && !defined(LIBASSERT_USE_STD_FORMAT) && defined(__has_include) && __has_include(<fmt/format.h>)
+#define LIBASSERT_USE_FMT
+#endif
+
+#if !defined(LIBASSERT_NO_STD_FORMAT) && !defined(LIBASSERT_USE_FMT) && !defined(LIBASSERT_USE_STD_FORMAT) && defined(__has_include) && __has_include(<format.h>) && defined(__cpp_lib_format)
+#define LIBASSERT_USE_STD_FORMAT
+#endif
 
 #endif

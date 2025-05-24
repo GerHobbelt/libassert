@@ -1,6 +1,7 @@
+#define LIBASSERT_PREFIX_ASSERTIONS
+
 #include <gtest/gtest.h>
 
-#define LIBASSERT_PREFIX_ASSERTIONS
 #include <libassert/assert.hpp>
 
 #include "tokenizer.hpp"
