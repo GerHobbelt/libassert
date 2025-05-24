@@ -1,6 +1,8 @@
 #include <libassert/assert-gtest.hpp>
 
-#ifdef LIBASSERT_USE_STD_FORMAT
+#if __cplusplus >= 202302L
+
+#if defined(LIBASSERT_USE_STD_FORMAT) || defined(LIBASSERT_USE_FMT)
 
 #include <format>
 
@@ -106,5 +108,7 @@ TEST(LibassertFmt, StdFormatContainers) {
     std::vector<fmtable> fvec{{{2}, {3}}};
     ASSERT(libassert::detail::generate_stringification(fvec) == "std::vector<fmtable>: [{2}, {3}]");
 }
+
+#endif
 
 #endif
