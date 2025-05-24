@@ -1,5 +1,5 @@
-#define ASSERT_FAIL          custom_fail
 #undef LIBASSERT_LOWERCASE
+
 #include <cassert>
 #include <libassert/assert.hpp>
 
@@ -16,11 +16,6 @@
 using namespace libassert::detail;
 
 namespace {
-
-void custom_fail(libassert::assert_type, const libassert::assertion_info& assertion) {
-    std::cerr<<assertion.to_string(libassert::terminal_width(2), libassert::color_scheme::ansi_rgb)<<std::endl<<std::endl;
-    abort();
-}
 
 // Some test cases for TMP stuff
 static_assert(std::is_same<decltype(std::declval<expression_decomposer<int, nothing, nothing>>().get_value()), int&>::value);

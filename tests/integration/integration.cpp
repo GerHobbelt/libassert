@@ -1,4 +1,3 @@
-#define ASSERT_FAIL          custom_fail
 #define LIBASSERT_LOWERCASE
 
 #include <algorithm>

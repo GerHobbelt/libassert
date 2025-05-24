@@ -2,7 +2,6 @@
 #define _CRT_SECURE_NO_WARNINGS // for fopen
 #endif
 
-#define ASSERT_FAIL          custom_fail
 #define LIBASSERT_LOWERCASE
 #define LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS 1
 
