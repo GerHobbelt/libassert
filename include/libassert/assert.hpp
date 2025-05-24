@@ -30,6 +30,11 @@
 #define LIBASSERT_INVOKE(expr, name, type, failaction, ...) \
     LIBASSERT_PRIMITIVE_ASSERT(expr, __VA_ARGS__)
 
+#define LIBASSERT_NOOP_STATEMENT() \
+	do { \
+		/* nothing */ \
+	} while(0)
+
 #ifdef LIBASSERT_LOWERCASE
 #ifdef assert
 #undef assert
@@ -38,7 +43,7 @@
 #ifndef NDEBUG
 #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, __VA_ARGS__)
 #else
-#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, __VA_ARGS__)
+#define assert(expr, ...) LIBASSERT_NOOP_STATEMENT()
 #endif
 #endif
 
@@ -495,7 +500,7 @@ LIBASSERT_END_NAMESPACE
         Args&&... args
     ) {
         const size_t sizeof_extra_diagnostics = sizeof...(args) - 1; // - 1 for pretty function signature
-        LIBASSERT_PRIMITIVE_DEBUG_ASSERT(sizeof...(args) <= params->args_strings.size);
+        LIBASSERT_PRIMITIVE_ASSERT(sizeof...(args) <= params->args_strings.size);
         assertion_info info(params, detail::generate_trace(), sizeof_extra_diagnostics);
         // process_args fills in the message, extra_diagnostics, and pretty_function
         process_args(info, params->args_strings, args...);
@@ -652,6 +657,8 @@ LIBASSERT_END_NAMESPACE
   #define LIBASSERT_WARNING_PRAGMA_POP_GCC _Pragma("GCC diagnostic pop")
   #define LIBASSERT_WARNING_PRAGMA_PUSH_CLANG
   #define LIBASSERT_WARNING_PRAGMA_POP_CLANG
+  #define LIBASSERT_WARNING_PRAGMA_PUSH_MSVC
+  #define LIBASSERT_WARNING_PRAGMA_POP_MSVC
  #else
   #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_CLANG \
      _Pragma("GCC diagnostic ignored \"-Wparentheses\"") \
@@ -661,12 +668,26 @@ LIBASSERT_END_NAMESPACE
   #define LIBASSERT_WARNING_PRAGMA_POP_GCC
   #define LIBASSERT_WARNING_PRAGMA_PUSH_CLANG _Pragma("GCC diagnostic push")
   #define LIBASSERT_WARNING_PRAGMA_POP_CLANG _Pragma("GCC diagnostic pop")
+  #define LIBASSERT_WARNING_PRAGMA_PUSH_MSVC
+  #define LIBASSERT_WARNING_PRAGMA_POP_MSVC
  #endif
+#elif LIBASSERT_IS_MSVC
+ #define LIBASSERT_WARNING_PRAGMA_PUSH_CLANG
+ #define LIBASSERT_WARNING_PRAGMA_POP_CLANG
+ #define LIBASSERT_WARNING_PRAGMA_PUSH_GCC
+ #define LIBASSERT_WARNING_PRAGMA_POP_GCC
+ // https://learn.microsoft.com/en-us/cpp/preprocessor/pragma-directives-and-the-pragma-keyword?view=msvc-170
+ #define LIBASSERT_WARNING_PRAGMA_PUSH_MSVC   _Pragma("warning(push)")
+ #define LIBASSERT_WARNING_PRAGMA_POP_MSVC    _Pragma("warning(pop)")
+ #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_GCC
+ #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_CLANG
 #else
  #define LIBASSERT_WARNING_PRAGMA_PUSH_CLANG
  #define LIBASSERT_WARNING_PRAGMA_POP_CLANG
  #define LIBASSERT_WARNING_PRAGMA_PUSH_GCC
  #define LIBASSERT_WARNING_PRAGMA_POP_GCC
+ #define LIBASSERT_WARNING_PRAGMA_PUSH_MSVC
+ #define LIBASSERT_WARNING_PRAGMA_POP_MSVC
  #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_GCC
  #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_CLANG
 #endif
@@ -757,9 +778,18 @@ LIBASSERT_END_NAMESPACE
 
 #if LIBASSERT_IS_CLANG // -Wall in clang
  #define LIBASSERT_IGNORE_UNUSED_VALUE _Pragma("GCC diagnostic ignored \"-Wunused-value\"")
+#elif LIBASSERT_IS_MSVC
+#define LIBASSERT_IGNORE_UNUSED_VALUE  _Pragma("warning(disable: 4101)") // warning C4101: 'info': unreferenced local variable
 #else
  #define LIBASSERT_IGNORE_UNUSED_VALUE
 #endif
+
+
+#if defined __cplusplus
+extern "C"
+#endif // __cplusplus
+LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
+
 
 #if defined __cplusplus
 
@@ -771,8 +801,6 @@ LIBASSERT_END_NAMESPACE
     while(0)
 
 #else // __cplusplus
-
-int libassert_breakpoint_if_debugger_present(void);
 
 #define LIBASSERT_BREAKPOINT_IF_DEBUGGING() \
     libassert_breakpoint_if_debugger_present()
@@ -994,12 +1022,7 @@ int libassert_breakpoint_if_debugger_present(void);
 
 #endif // __cplusplus
 
-#define LIBASSERT_NOOP_CALL() \
-	do { \
-		/* nothing */ \
-	} while(0)
-
-#define LIBASSERT_EMPTY_ACTION   LIBASSERT_NOOP_CALL();
+#define LIBASSERT_EMPTY_ACTION   LIBASSERT_NOOP_STATEMENT();
 
 #ifdef NDEBUG
  #define LIBASSERT_ASSUME_ACTION LIBASSERT_UNREACHABLE_CALL();

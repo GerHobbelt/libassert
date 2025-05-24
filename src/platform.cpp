@@ -161,6 +161,11 @@ LIBASSERT_BEGIN_NAMESPACE
         }
     }
 
+	extern "C"
+	LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void) {
+		LIBASSERT_BREAKPOINT_IF_DEBUGGING();
+	}
+
     LIBASSERT_ATTR_COLD LIBASSERT_EXPORT
     void set_debugger_check_mode(debugger_check_mode mode) noexcept {
         check_mode = mode;
