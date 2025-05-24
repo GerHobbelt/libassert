@@ -20,14 +20,16 @@
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {
 
-#if 0
+#if 0    // this one is now publicly available via `assert.hpp`
+
 	// Still present in release mode, nonfatal
-    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) (void)((c) || ::libassert::detail::primitive_assert_impl( \
+    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((c) || ::libassert::detail::primitive_assert_impl( \
         true, \
         #c, \
         LIBASSERT_PFUNC, \
         {} LIBASSERT_VA_ARGS(__VA_ARGS__) \
-    ))
+    )))
+
 #endif
 
     /*

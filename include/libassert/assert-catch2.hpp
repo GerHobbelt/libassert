@@ -17,7 +17,7 @@
 #endif
 
 // TODO: CHECK/REQUIRE?
-#undef ASSERT
+
 // Note: a very Catch2-specific ASSERT() macro is being defined here!
 #define ASSERT(...) do { try { LIBASSERT_ASSERT(__VA_ARGS__); CATCH_SUCCEED(); } catch(std::exception& e) { CATCH_FAIL(e.what()); } } while(0)
 

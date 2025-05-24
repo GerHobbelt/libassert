@@ -171,8 +171,7 @@
  #define LIBASSERT_VA_ARGS(...) , ##__VA_ARGS__
 #endif
 
-#define LIBASSERT_BASIC_STRINGIFY1(x) #x
-#define LIBASSERT_BASIC_STRINGIFY(x)  LIBASSERT_BASIC_STRINGIFY1(x)
+#define LIBASSERT_BASIC_STRINGIFY(x)  #x
 
 ///
 /// C++20 functionality wrappers.

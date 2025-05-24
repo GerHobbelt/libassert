@@ -171,3 +171,15 @@ namespace detail {
     }
 }
 LIBASSERT_END_NAMESPACE
+
+
+extern "C"
+LIBASSERT_EXPORT int libassert_detail_primitive_assert_impl(int mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const char *message) {
+	using namespace ::libassert;
+
+    source_location location{ function, file, line };
+	detail::primitive_assert_impl(!!mode, expr, signature, location, message);
+
+	return 0;
+}
+

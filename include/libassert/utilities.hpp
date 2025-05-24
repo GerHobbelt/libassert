@@ -234,6 +234,31 @@ namespace detail {
 }
 LIBASSERT_END_NAMESPACE
 
+#else // __cplusplus
+
+    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((c) || libassert_detail_primitive_assert_impl( \
+        1 /* true */, \
+        #c, \
+        "", __FILE__, __LINE__, LIBASSERT_PFUNC, \
+        LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+    )))
+    
+    #ifndef NDEBUG
+	 #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) ((void)((c) || libassert_detail_primitive_assert_impl( \
+        0 /* false */, \
+        #c, \
+        "", __FILE__, __LINE__, LIBASSERT_PFUNC, \
+        LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+    )))
+    #else
+     #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) LIBASSERT_PHONY_USE(c)
+    #endif
+
 #endif // __cplusplus
+
+#if defined __cplusplus
+extern "C"
+#endif // __cplusplus
+LIBASSERT_EXPORT int libassert_detail_primitive_assert_impl(int mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const char *message);
 
 #endif
