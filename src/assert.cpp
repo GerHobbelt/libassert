@@ -487,8 +487,7 @@ LIBASSERT_BEGIN_NAMESPACE
 
     namespace detail {
         LIBASSERT_ATTR_COLD LIBASSERT_EXPORT void fail(const assertion_info& info) {
-			auto handler = detail::get_failure_handler().load();
-			handler(info);
+            detail::get_failure_handler().load()(info);
         }
     }
 
