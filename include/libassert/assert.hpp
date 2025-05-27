@@ -511,7 +511,7 @@ LIBASSERT_END_NAMESPACE
 
     // TODO: Re-evaluate benefit of this at all in non-cold path code
     template<typename A, typename B, typename C, typename... Args>
-		[[nodiscard]] LIBASSERT_ATTR_COLD LIBASSERT_ATTR_NOINLINE
+    [[nodiscard]] LIBASSERT_ATTR_COLD LIBASSERT_ATTR_NOINLINE
     expression_decomposer<A, B, C> process_assert_fail_m(
         expression_decomposer<A, B, C> decomposer,
         const assert_static_parameters* params,

@@ -753,7 +753,7 @@ LIBASSERT_END_NAMESPACE
 
 LIBASSERT_BEGIN_NAMESPACE
 #ifdef HAVE_CPPTRACE_HPP
-	[[nodiscard]] LIBASSERT_ATTR_COLD LIBASSERT_ATTR_NOINLINE
+    [[nodiscard]] LIBASSERT_ATTR_COLD LIBASSERT_ATTR_NOINLINE
     std::string stacktrace(int width, const color_scheme& scheme, std::size_t skip) {
         auto trace = cpptrace::generate_trace(skip + 1);
         detail::identity_path_handler handler;
