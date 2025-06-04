@@ -172,7 +172,6 @@ namespace detail {
 }
 LIBASSERT_END_NAMESPACE
 
-
 extern "C"
 LIBASSERT_EXPORT int libassert_detail_primitive_assert_impl(int mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const char *message) {
 	using namespace ::libassert;
