@@ -35,15 +35,26 @@
 		/* nothing */ \
 	} while(0)
 
+#define LIBASSERT_NOOP_EXPRESSION() \
+	((void)0)
+
 #ifdef LIBASSERT_LOWERCASE
 #ifdef assert
 #undef assert
 #endif
 
+#ifndef LIBASSERT_ASSERT_IS_EXPRESSION
 #ifndef NDEBUG
 #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, __VA_ARGS__)
 #else
 #define assert(expr, ...) LIBASSERT_NOOP_STATEMENT()
+#endif
+#else
+#ifndef NDEBUG
+#define assert(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "assert_simple", assertion, __VA_ARGS__)
+#else
+#define assert(expr, ...) LIBASSERT_NOOP_EXPRESSION()
+#endif
 #endif
 #endif
 
@@ -1032,6 +1043,40 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 
 #endif // __cplusplus
 
+
+#if defined __cplusplus
+
+// same as LIBASSERT_INVOKE, but now the entire macro is an expression rather than a statement type.
+#define LIBASSERT_INVOKE_EXPRESSION(expr, name, type, ...) \
+        (static_cast<bool>(expr) ? \
+		((void)0) : \
+		(libassert_breakpoint_if_debugger_present(), \
+		(void)libassert_detail_primitive_assert_impl( \
+				1 /* true */, \
+				#expr, \
+				name, __FILE__, __LINE__, LIBASSERT_PFUNC, \
+				LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+			) \
+        ))
+
+#else // __cplusplus
+
+// same as LIBASSERT_INVOKE, but now the entire macro is an expression rather than a statement type.
+#define LIBASSERT_INVOKE_EXPRESSION(expr, name, type, ...) \
+        (!!(expr) ? \
+		((void)0) : \
+		(libassert_breakpoint_if_debugger_present(), \
+		(void)libassert_detail_primitive_assert_impl( \
+				1 /* true */, \
+				#expr, \
+				name, __FILE__, __LINE__, LIBASSERT_PFUNC, \
+				LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+			) \
+        ))
+
+#endif // __cplusplus
+
+
 #define LIBASSERT_EMPTY_ACTION   LIBASSERT_NOOP_STATEMENT();
 
 #ifdef NDEBUG
@@ -1175,9 +1220,17 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
   #error "libassert's assert load process failed to properly initialize the `assert` & `LIBASSERT_INVOKE` macros. This suggests there's a bug in libassert itself."
  #endif
 
- #ifndef NDEBUG
-  #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
- #else
-  #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
- #endif
+#ifndef LIBASSERT_ASSERT_IS_EXPRESSION
+#ifndef NDEBUG
+#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+#else
+#define assert(expr, ...) LIBASSERT_NOOP_STATEMENT()
+#endif
+#else
+#ifndef NDEBUG
+#define assert(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "assert", assertion, __VA_ARGS__)
+#else
+#define assert(expr, ...) LIBASSERT_NOOP_EXPRESSION()
+#endif
+#endif
 #endif

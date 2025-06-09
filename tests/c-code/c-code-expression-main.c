@@ -1,12 +1,10 @@
 
-#define LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
+#define LIBASSERT_ASSERT_IS_EXPRESSION
 #define LIBASSERT_LOWERCASE
 
 #include <libassert/assert.hpp>
 
 #include "c-code-test.h"
-
-#include "monolithic_examples.h"
 
 #ifndef FALSE
 #define FALSE 0
@@ -18,11 +16,7 @@ static float foo(void) {
 	return 2.5f;
 }
 
-#if defined(BUILD_MONOLITHIC)
-#define main    assert_c_code_primitive_test_main
-#endif
-
-int main(void) {
+void assert_h_include_expression_test(void) {
 	int x = 4;
 	DEBUG_ASSERT(x % 2 == 0);
 	ASSERT(1 + 1 != 3);
@@ -32,21 +26,12 @@ int main(void) {
 #endif
 	assert(foo() == 2.5f);
 
+	assert(foo() == 2.5f), assert(x > 5);
+
 	debug_assert(FALSE);
 
 	LIBASSERT_ASSERT(x < 20, "foobar");
 
 	ASSERT_EQ(1, 2);
-
-	assert_h_include_test();
-	cassert_include_test();
-
-	assert_h_include_primitive_test();
-	cassert_include_primitive_test();
-
-	assert_h_include_expression_test();
-	cassert_include_expression_test();
-
-	return 0;
 }
 
