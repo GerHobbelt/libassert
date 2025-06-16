@@ -880,7 +880,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
         LIBASSERT_WARNING_PRAGMA_PUSH_MSVC \
         LIBASSERT_IGNORE_UNUSED_VALUE \
         LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); \
-        if(!!(expr)) { \
+        if(!(expr)) { \
             LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
             failaction \
             libassert_detail_primitive_assert_impl( \
