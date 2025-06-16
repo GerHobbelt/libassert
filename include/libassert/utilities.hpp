@@ -55,27 +55,27 @@ namespace detail {
 
 #if !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
 
-    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) (void)((c) || ::libassert::detail::primitive_assert_impl( \
+    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((!!(c)) || ::libassert::detail::primitive_assert_impl( \
         true, \
         #c, \
         "" LIBASSERT_PFUNC, \
         {} LIBASSERT_VA_ARGS(__VA_ARGS__) \
-    ))
+    )))
     
     #ifndef NDEBUG
-	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) (void)((c) || ::libassert::detail::primitive_assert_impl( \
+	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) ((void)((!!(c)) || ::libassert::detail::primitive_assert_impl( \
         false, \
         #c, \
         "" LIBASSERT_PFUNC, \
         {} LIBASSERT_VA_ARGS(__VA_ARGS__) \
-    ))
+    )))
     #else
      #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) LIBASSERT_PHONY_USE(c)
     #endif
 
 #else // !LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
 
-    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((c) || ::libassert::detail::primitive_assert_impl( \
+    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((!!(c)) || ::libassert::detail::primitive_assert_impl( \
         true, \
         #c, \
         "" LIBASSERT_PFUNC, \
@@ -83,7 +83,7 @@ namespace detail {
     )))
     
     #ifndef NDEBUG
-	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) ((void)((c) || ::libassert::detail::primitive_assert_impl( \
+	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) ((void)((!!(c)) || ::libassert::detail::primitive_assert_impl( \
         false, \
         #c, \
         "" LIBASSERT_PFUNC, \
@@ -236,7 +236,7 @@ LIBASSERT_END_NAMESPACE
 
 #else // __cplusplus
 
-    #define LIBASSERT_PRIMITIVE_ASSERT(expr, ...) ((void)((expr) || libassert_detail_primitive_assert_impl( \
+    #define LIBASSERT_PRIMITIVE_ASSERT(expr, ...) ((void)((!!(expr)) || libassert_detail_primitive_assert_impl( \
         1 /* true */, \
         #expr, \
         "", __FILE__, __LINE__, LIBASSERT_PFUNC, \
@@ -244,7 +244,7 @@ LIBASSERT_END_NAMESPACE
     )))
     
     #ifndef NDEBUG
-	 #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(expr, ...) ((void)((expr) || libassert_detail_primitive_assert_impl( \
+	 #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(expr, ...) ((void)((!!(expr)) || libassert_detail_primitive_assert_impl( \
         0 /* false */, \
         #expr, \
         "", __FILE__, __LINE__, LIBASSERT_PFUNC, \
