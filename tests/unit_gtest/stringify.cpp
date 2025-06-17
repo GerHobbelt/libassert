@@ -190,6 +190,12 @@ TEST(Stringify, Containers) {
 }
 
 TEST(Stringify, LiteralFormatting) {
+    struct resetter {
+        ~resetter() {
+            libassert::set_fixed_literal_format(libassert::literal_format::default_format);
+            libassert::set_literal_format_mode(libassert::literal_format_mode::infer);
+        }
+    } reset;
     ASSERT(generate_stringification(100) == "100");
     libassert::set_fixed_literal_format(libassert::literal_format::integer_hex | libassert::literal_format::integer_octal);
     libassert::detail::set_literal_format("", "", "", false);
@@ -231,6 +237,13 @@ TEST(Stringify, Regression01) {
     ASSERT(!b);
     basic_fields fields;
     ASSERT(fields.begin() == fields.end());
+}
+
+TEST(Stringify, Tuples) {
+    std::tuple<int, float> tuple{1, 2};
+    ASSERT(generate_stringification(tuple) == R"(std::tuple<int, float>: [1, 2.0])");
+    std::tuple<> tuple2;
+    ASSERT(generate_stringification(tuple2) == R"(std::tuple<>: [])");
 }
 
 // TODO: Other formats
