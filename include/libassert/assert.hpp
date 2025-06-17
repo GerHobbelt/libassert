@@ -43,7 +43,10 @@
 #undef assert
 #endif
 
-#ifndef LIBASSERT_ASSERT_IS_EXPRESSION
+// assert() must act like it's an expression type, rather than a statement type.
+// Some libraries' assertions depend on this behaviour, where the assert() macro
+// can be incorporated inside a comma-separated expression statement.
+#if !defined(LIBASSERT_ASSERT_IS_EXPRESSION) && 0
 #ifndef NDEBUG
 #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, __VA_ARGS__)
 #else
@@ -1220,7 +1223,10 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
   #error "libassert's assert load process failed to properly initialize the `assert` & `LIBASSERT_INVOKE` macros. This suggests there's a bug in libassert itself."
  #endif
 
-#ifndef LIBASSERT_ASSERT_IS_EXPRESSION
+// assert() must act like it's an expression type, rather than a statement type.
+// Some libraries' assertions depend on this behaviour, where the assert() macro
+// can be incorporated inside a comma-separated expression statement.
+#if !defined(LIBASSERT_ASSERT_IS_EXPRESSION) && 0
 #ifndef NDEBUG
 #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
 #else
