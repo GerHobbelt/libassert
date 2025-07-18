@@ -49,6 +49,7 @@
   - [Package Managers](#package-managers)
     - [Conan](#conan)
     - [Vcpkg](#vcpkg)
+  - [C++20 Moduels](#c20-moduels)
 - [Platform Logistics](#platform-logistics)
 - [Replacing \<cassert\>](#replacing-cassert)
 - [FAQ](#faq)
@@ -119,7 +120,7 @@ include(FetchContent)
 FetchContent_Declare(
   libassert
   GIT_REPOSITORY https://github.com/jeremy-rifkin/libassert.git
-  GIT_TAG        v2.1.5 # <HASH or TAG>
+  GIT_TAG        v2.2.0 # <HASH or TAG>
 )
 FetchContent_MakeAvailable(libassert)
 target_link_libraries(your_target libassert::assert)
@@ -379,6 +380,13 @@ The operation between left and right hand sides of the top-level operation in th
 function object.
 
 Note: Boolean logical operators (`&&` and `||`) are not decomposed by default due to short circuiting.
+
+Note: Because of limitations with C macros, expressions with template arguments will need to be templatized. E.g.
+`ASSERT(foo<a, b>() == c)` needs to be written as `ASSERT((foo<a, b>()) == c)`.
+
+Note: Because libassert's expression decomposition system involves binding to references there can be problems when
+asserting comparisons involving bit fields. A simple workaround is to rewrite an assertion like `ASSERT(s.bit == 1)` as
+`ASSERT(+s.bit == 1)`, `ASSERT(s.bit * 1 == 1)`, or similar.
 
 #### `assertion message` <!-- omit in toc -->
 
@@ -818,6 +826,7 @@ gcc 10 and the library can surpress that warning for gcc 12. <!-- https://godbol
 **Defines:**
 
 - `LIBASSERT_USE_MAGIC_ENUM`: Use [magic enum](https://github.com/Neargye/magic_enum) for stringifying enum values
+- `LIBASSERT_USE_ENCHANTUM`: Use [enchantum](https://github.com/ZXShady/enchantum) for stringifying enum values
 - `LIBASSERT_DECOMPOSE_BINARY_LOGICAL`: Decompose `&&` and `||`
 - `LIBASSERT_SAFE_COMPARISONS`: Enable safe signed-unsigned comparisons for decomposed expressions
 - `LIBASSERT_PREFIX_ASSERTIONS`: Prefixes all assertion macros with `LIBASSERT_`
@@ -825,8 +834,12 @@ gcc 10 and the library can surpress that warning for gcc 12. <!-- https://godbol
 - `LIBASSERT_NO_STRINGIFY_SMART_POINTER_OBJECTS`: Disables stringification of smart pointer contents
 
 **CMake:**
-- `LIBASSERT_USE_EXTERNAL_CPPTRACE`: Use an external [cpptrace](https://github.com/jeremy-rifkin/cpptrace) instead of aquiring the library with FetchContent
-- `LIBASSERT_USE_EXTERNAL_MAGIC_ENUM`: Use an external [magic enum](https://github.com/Neargye/magic_enum) instead of aquiring the library with FetchContent
+- `LIBASSERT_USE_EXTERNAL_CPPTRACE`: Use an external [cpptrace](https://github.com/jeremy-rifkin/cpptrace) instead of
+  acquiring the library with FetchContent
+- `LIBASSERT_USE_EXTERNAL_MAGIC_ENUM`: Use an external [magic enum](https://github.com/Neargye/magic_enum) instead of
+  acquiring the library with FetchContent
+- `LIBASSERT_USE_EXTERNAL_ENCHANTUM`: Use an external [enchantum](https://github.com/ZXShady/enchantum) instead of
+  acquiring the library with FetchContent
 
 ## Library Version
 
@@ -898,7 +911,7 @@ include(FetchContent)
 FetchContent_Declare(
   libassert
   GIT_REPOSITORY https://github.com/jeremy-rifkin/libassert.git
-  GIT_TAG        v2.1.5 # <HASH or TAG>
+  GIT_TAG        v2.2.0 # <HASH or TAG>
 )
 FetchContent_MakeAvailable(libassert)
 target_link_libraries(your_target libassert::assert)
@@ -913,7 +926,7 @@ information.
 
 ```sh
 git clone https://github.com/jeremy-rifkin/libassert.git
-git checkout v2.1.5
+git checkout v2.2.0
 mkdir libassert/build
 cd libassert/build
 cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -949,7 +962,7 @@ you when installing new libraries.
 
 ```ps1
 git clone https://github.com/jeremy-rifkin/libassert.git
-git checkout v2.1.5
+git checkout v2.2.0
 mkdir libassert/build
 cd libassert/build
 cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -967,7 +980,7 @@ To install just for the local user (or any custom prefix):
 
 ```sh
 git clone https://github.com/jeremy-rifkin/libassert.git
-git checkout v2.1.5
+git checkout v2.2.0
 mkdir libassert/build
 cd libassert/build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/wherever
@@ -1016,7 +1029,7 @@ Libassert is available through conan at https://conan.io/center/recipes/libasser
 
 ```
 [requires]
-libassert/2.1.5
+libassert/2.2.0
 [generators]
 CMakeDeps
 CMakeToolchain

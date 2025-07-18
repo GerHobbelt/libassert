@@ -12,7 +12,7 @@ set(package_name "libassert")
 # create base project
 project(
   libassert
-  VERSION 2.1.5
+  VERSION 2.2.0
   DESCRIPTION "The most over-engineered C++ assertion library"
   HOMEPAGE_URL "https://github.com/jeremy-rifkin/libassert"
   LANGUAGES CXX
@@ -82,7 +82,7 @@ set(LIBASSERT_ENCHANTUM_REPO "https://github.com/ZXShady/enchantum.git")
 set(LIBASSERT_ENCHANTUM_TAG "c460fbf0fcfe01eb49cd8e5790f05ced7e2a6bb6") # 0.3.0
 
 set(LIBASSERT_CPPTRACE_REPO "https://github.com/jeremy-rifkin/cpptrace.git")
-set(LIBASSERT_CPPTRACE_TAG "origin/dev") # libassert/dev tracks cpptrace/dev
+set(LIBASSERT_CPPTRACE_TAG "de1780287e0938c8b33a6dbc7fbdfb39da07f5bb") # 1.0.1
 
 # obtain cpptrace
 if(LIBASSERT_USE_EXTERNAL_CPPTRACE)
@@ -229,15 +229,11 @@ if(LIBASSERT_SANITIZER_BUILD)
 endif()
 
 if(
-  LIBASSERT_BUILD_TESTING AND NOT (
-    "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND "${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS 9.0
-  )
+  LIBASSERT_BUILD_TESTING
+  AND NOT ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND "${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS 9.0)
+  AND NOT LIBASSERT_USE_ENCHANTUM
 )
-  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS 11.0 OR LIBASSERT_DESIRED_CXX_STANDARD STREQUAL "cxx_std_17")
-    set(LIBASSERT_USE_MAGIC_ENUM ON)
-  else()
-    set(LIBASSERT_USE_ENCHANTUM ON)
-  endif()
+  set(LIBASSERT_USE_MAGIC_ENUM ON)
 endif()
 
 if(LIBASSERT_USE_MAGIC_ENUM AND LIBASSERT_USE_ENCHANTUM)
