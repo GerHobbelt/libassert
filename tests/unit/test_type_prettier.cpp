@@ -1,7 +1,12 @@
 #include <iostream>
 #include <string>
 
+#ifdef TEST_MODULE
+import libassert;
+#include <libassert/assert-macros.hpp>
+#else
 #include <libassert/assert.hpp>
+#endif
 
 #include "monolithic_examples.h"
 

@@ -1,6 +1,5 @@
 #undef LIBASSERT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS
 #include <gtest/gtest.h>
-#include <libassert/assert.hpp>
 
 #include "utils.hpp"
 #include "microfmt.hpp"
@@ -13,6 +12,13 @@
 #include <set>
 #include <string>
 #include <vector>
+
+#ifdef TEST_MODULE
+import libassert;
+#include <libassert/assert-macros.hpp>
+#else
+#include <libassert/assert.hpp>
+#endif
 
 using namespace std::literals;
 
@@ -717,7 +723,7 @@ TEST(LibassertBasic, LvalueForwarding) {
     EXPECT_EQ(x, 0);
 }
 
-#ifdef LIBASSERT_USE_MAGIC_ENUM
+#if defined(LIBASSERT_USE_MAGIC_ENUM) || defined(LIBASSERT_USE_ENCHANTUM)
 enum foo_e { A, B };
 enum class bar_e { A, B };
 TEST(LibassertBasic, EnumHandling) {

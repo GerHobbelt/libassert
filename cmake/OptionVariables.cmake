@@ -102,7 +102,14 @@ option(
   "Use magic_enum library to print better diagnostics for enum classes (will also be included in ${package_name} package installation)"
   OFF
 )
+option(
+  LIBASSERT_USE_ENCHANTUM
+  "Use enchantum library to print better diagnostics for enum classes (will also be included in ${package_name} package installation)"
+  OFF
+)
+
 option(LIBASSERT_USE_EXTERNAL_MAGIC_ENUM "Obtain magic_enum via find_package instead of FetchContent" OFF)
+option(LIBASSERT_USE_EXTERNAL_ENCHANTUM "Obtain enchantum via find_package instead of FetchContent" OFF)
 
 option(LIBASSERT_WERROR_BUILD "" OFF)
 
@@ -117,7 +124,9 @@ mark_as_advanced(
 
 set(LIBASSERT_DESIRED_CXX_STANDARD cxx_std_17 CACHE STRING "")
 option(LIBASSERT_USE_CI_WRAPPER "" OFF)
+option(LIBASSERT_DISABLE_CXX_20_MODULES "" OFF)
 mark_as_advanced(
   LIBASSERT_DESIRED_CXX_STANDARD
   LIBASSERT_USE_CI_WRAPPER
+  LIBASSERT_DISABLE_CXX_20_MODULES
 )

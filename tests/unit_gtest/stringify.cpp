@@ -1,6 +1,3 @@
-#undef ASSERT_LOWERCASE
-#include <libassert/assert-gtest.hpp>
-
 #include <array>
 #include <filesystem>
 #include <map>
@@ -12,6 +9,17 @@
 #include <tuple>
 #include <utility>
 #include <vector>
+
+#undef ASSERT_LOWERCASE
+
+#ifdef TEST_MODULE
+#include <gtest/gtest.h>
+
+import libassert;
+#include <libassert/assert-gtest-macros.hpp>
+#else
+#include <libassert/assert-gtest.hpp>
+#endif
 
 using namespace libassert::detail;
 using namespace std::literals;
@@ -42,20 +50,20 @@ TEST(Stringify, Pointers) {
     int x;
     int* ptr = &x;
     auto s = generate_stringification(ptr);
-    ASSERT(s.find("int*: 0x") == 0 || s.find("int *: 0x") == 0, "", s);
+    ASSERT(s.find("int*: 0x") == std::size_t(0) || s.find("int *: 0x") == std::size_t(0), "", s);
 }
 
 TEST(Stringify, SmartPointers) {
     auto uptr = std::make_unique<int>(62);
     ASSERT(generate_stringification(uptr) == R"(std::unique_ptr<int>: 62)");
     ASSERT(generate_stringification(std::unique_ptr<int>()) == R"(std::unique_ptr<int>: nullptr)");
-    ASSERT(generate_stringification(std::make_unique<S>()).find(R"(std::unique_ptr<S>: 0x)") == 0, generate_stringification(std::make_unique<S>()));
+    ASSERT(generate_stringification(std::make_unique<S>()).find(R"(std::unique_ptr<S>: 0x)") == std::size_t(0), generate_stringification(std::make_unique<S>()));
 
     std::unique_ptr<std::vector<int>> uptr2(new std::vector<int>{1,2,3,4});
     ASSERT(generate_stringification(uptr2) == R"(std::unique_ptr<std::vector<int>>: [1, 2, 3, 4])");
     auto d = [](int*) {};
     std::unique_ptr<int, decltype(d)> uptr3(nullptr, d);
-    ASSERT(generate_stringification(uptr3).find("std::unique_ptr<int,") == 0);
+    ASSERT(generate_stringification(uptr3).find("std::unique_ptr<int,") == std::size_t(0));
     ASSERT(generate_stringification(uptr3).find("nullptr") != std::string::npos);
 }
 
@@ -189,13 +197,15 @@ TEST(Stringify, Containers) {
     ASSERT(generate_stringification(svec3) == R"(std::vector<std::vector<int>>: [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])");
 }
 
+struct format_resetter {
+    ~format_resetter() {
+        libassert::set_fixed_literal_format(libassert::literal_format::default_format);
+        libassert::set_literal_format_mode(libassert::literal_format_mode::infer);
+    }
+};
+
 TEST(Stringify, LiteralFormatting) {
-    struct resetter {
-        ~resetter() {
-            libassert::set_fixed_literal_format(libassert::literal_format::default_format);
-            libassert::set_literal_format_mode(libassert::literal_format_mode::infer);
-        }
-    } reset;
+    format_resetter resetter;
     ASSERT(generate_stringification(100) == "100");
     libassert::set_fixed_literal_format(libassert::literal_format::integer_hex | libassert::literal_format::integer_octal);
     libassert::detail::set_literal_format("", "", "", false);
@@ -244,6 +254,17 @@ TEST(Stringify, Tuples) {
     ASSERT(generate_stringification(tuple) == R"(std::tuple<int, float>: [1, 2.0])");
     std::tuple<> tuple2;
     ASSERT(generate_stringification(tuple2) == R"(std::tuple<>: [])");
+}
+
+TEST(Stringify, Bytes) {
+    format_resetter resetter;
+    std::byte b{0x7f};
+    unsigned char c = 0x7f;
+    EXPECT(generate_stringification(c) == R"(127)");
+    EXPECT(generate_stringification(b) == R"(127)");
+    libassert::set_fixed_literal_format(libassert::literal_format::integer_hex | libassert::literal_format::integer_octal);
+    EXPECT(generate_stringification(c) == R"(127 0x7f 0177)");
+    EXPECT(generate_stringification(b) == R"(127 0x7f 0177)");
 }
 
 // TODO: Other formats

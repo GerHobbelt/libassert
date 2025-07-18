@@ -15,6 +15,15 @@
 #include <libassert/platform.hpp>
 #include <libassert/utilities.hpp>
 
+#if defined(LIBASSERT_USE_ENCHANTUM) && defined(LIBASSERT_USE_MAGIC_ENUM)
+ #error cannot use both enchantum and magic_enum at the same time
+#endif
+
+#ifdef LIBASSERT_USE_ENCHANTUM
+ #include <enchantum/enchantum.hpp>
+#endif
+
+
 #if defined __cplusplus
 
 #ifdef LIBASSERT_USE_MAGIC_ENUM
@@ -208,6 +217,7 @@ namespace detail {
         [[nodiscard]] LIBASSERT_EXPORT std::string stringify(float);
         [[nodiscard]] LIBASSERT_EXPORT std::string stringify(double);
         [[nodiscard]] LIBASSERT_EXPORT std::string stringify(long double);
+        [[nodiscard]] LIBASSERT_EXPORT std::string stringify(std::byte);
         [[nodiscard]] LIBASSERT_EXPORT std::string stringify(std::error_code ec);
         [[nodiscard]] LIBASSERT_EXPORT std::string stringify(std::error_condition ec);
         #if __cplusplus >= 202002L
@@ -243,7 +253,20 @@ namespace detail {
         [[nodiscard]] LIBASSERT_EXPORT
         std::string stringify_enum(std::string_view type_name, std::string_view underlying_value);
 
-        #ifdef LIBASSERT_USE_MAGIC_ENUM
+        #if defined(LIBASSERT_USE_ENCHANTUM)
+        template<enchantum::Enum E>
+        LIBASSERT_ATTR_COLD [[nodiscard]] std::string stringify_enum(E e) {
+            std::string_view name = enchantum::to_string(e);
+            if(!name.empty()) {
+                return std::string(name);
+            } else {
+                return stringify_enum(
+                    type_name<T>(),
+                    stringify(enchantum::to_underlying(e))
+                );
+            }
+        }
+        #elif defined(LIBASSERT_USE_MAGIC_ENUM)
         template<typename T, typename std::enable_if_t<std::is_enum_v<strip<T>>, int> = 0>
         LIBASSERT_ATTR_COLD [[nodiscard]] std::string stringify_enum(const T& t) {
             std::string_view name = magic_enum::enum_name(t);
@@ -504,7 +527,7 @@ namespace detail {
             } else {
                 return stringification::stringify_pointer_value(v.get());
             }
-        } else if constexpr(std::is_enum_v<T>) {
+        } else if constexpr(std::is_enum_v<T> && !std::is_same_v<T, std::byte>) {
             return stringification::stringify_enum(v);
         } else if constexpr(stringification::is_tuple_like<T>::value) {
             if constexpr(stringifiable_container<T>()) {
