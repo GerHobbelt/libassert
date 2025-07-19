@@ -209,8 +209,8 @@ LIBASSERT_END_NAMESPACE
 
 #else // __cplusplus
 
-#define LIBASSERT_INVOKE_VAL_PRETTY_FUNCTION_ARG ,libassert_pretty_function_name_wrapper{LIBASSERT_PFUNC}
-#define LIBASSERT_PRETTY_FUNCTION_ARG ,libassert_pretty_function_name_wrapper{LIBASSERT_PFUNC}
+#define LIBASSERT_INVOKE_VAL_PRETTY_FUNCTION_ARG ,libassert_pretty_function_name_wrapper(LIBASSERT_PFUNC)
+#define LIBASSERT_PRETTY_FUNCTION_ARG ,libassert_pretty_function_name_wrapper(LIBASSERT_PFUNC)
 
 #endif // __cplusplus
 
@@ -314,8 +314,8 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
             libassert_detail_primitive_assert_impl( \
 				1 /* true */, \
 				#expr, \
-				name, __FILE__, __LINE__, LIBASSERT_PFUNC, \
-				LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+				name, __FILE__, __LINE__, LIBASSERT_PFUNC  \
+				LIBASSERT_VA_ARGS(__VA_ARGS__) \
 			); \
         } \
         LIBASSERT_WARNING_PRAGMA_POP_MSVC \
@@ -483,7 +483,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 				1 /* true */, \
 				#expr, \
 				name, __FILE__, __LINE__, LIBASSERT_PFUNC, \
-				LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+				LIBASSERT_VA_ARGS(__VA_ARGS__) \
 			) \
         ))
 
@@ -498,7 +498,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 				1 /* true */, \
 				#expr, \
 				name, __FILE__, __LINE__, LIBASSERT_PFUNC, \
-				LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+				LIBASSERT_VA_ARGS(__VA_ARGS__) \
 			) \
         ))
 

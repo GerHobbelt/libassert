@@ -23,38 +23,33 @@
 
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {
-    LIBASSERT_ATTR_COLD LIBASSERT_EXPORT
-    bool primitive_assert_impl(
-        bool normal_assert,
-        const char* expression,
-        const char* signature,
-        source_location location,
-        const char* message
-    ) {
-            const char* action = normal_assert ? "Assert"                     : "Debug assert";
-            const char* name   = normal_assert ? "LIBASSERT_PRIMITIVE_ASSERT" : "LIBASSERT_PRIMITIVE_DEBUG_ASSERT";
-            std::string out_message;
-            if(message == nullptr) {
-                out_message += microfmt::format(
-                    "{} failed at {}:{}: {}\n",
-                    action,
-                    location.file,
-                    location.line,
-                    signature
-                );
-            } else {
-                out_message += microfmt::format(
-                    "{} failed at {}:{}: {}: {}\n",
-                    action,
-                    location.file,
-                    location.line,
-                    signature,
-                    message
-                );
-            }
-            out_message += microfmt::format("    {}({});\n", name, expression);
-            throw cpptrace::runtime_error(std::move(out_message));
-    }
+	[[noreturn]] LIBASSERT_ATTR_COLD LIBASSERT_EXPORT
+		void primitive_assert_impl(
+			bool normal_assert,
+			const char* expression,
+			const char* signature,
+			source_location location,
+			const char* message
+		) {
+		// Make sure a catcher for uncaught exceptions is always available: either the application-specified one, or ours!
+		setup_default_handler_for_uncaught_exceptions();
+
+		const char* name   = normal_assert ? "LIBASSERT_PRIMITIVE_ASSERT" : "LIBASSERT_PRIMITIVE_DEBUG_ASSERT";
+
+		assert_static_parameters params{
+		.macro_name = signature, // name,
+		.type = normal_assert ? assert_type::assertion : assert_type::debug_assertion,
+		.expr_str = expression,
+		.location = location,
+		.args_strings = {}
+		};
+		assertion_info info(&params, detail::generate_trace(), 0);
+		set_message(info, message);
+
+		// send off
+		fail(info);
+		LIBASSERT_PRIMITIVE_PANIC("PANIC/UNREACHABLE failure handler returned");
+	}
 
     [[noreturn]] LIBASSERT_ATTR_COLD LIBASSERT_EXPORT
     void primitive_panic_impl(
@@ -62,6 +57,9 @@ namespace detail {
         source_location location,
         const char* message
     ) {
+		// Make sure a catcher for uncaught exceptions is always available: either the application-specified one, or ours!
+		setup_default_handler_for_uncaught_exceptions();
+
         std::string out_message = microfmt::format(
             "PANIC failed at {}:{}: {}: {}\n",
             location.file,
@@ -169,16 +167,78 @@ namespace detail {
         output.insert(output.end(), str.begin() + i, str.end());
         return output;
     }
+
+	LIBASSERT_ATTR_COLD
+	[[noreturn]] void generic_handler_for_uncaught_exceptions(void) {
+		try {
+			std::rethrow_exception(std::current_exception());
+		}
+		catch (const std::exception &e) {
+			std::cerr << "Unhandled exception: " << e.what() << "\n";
+		}
+		catch (...) {
+			std::cerr << "Unhandled exception: UNKNOWN TYPE\n";
+		}
+		std::abort();
+	}
+
+	// typedef void (__CRTDECL* terminate_handler )(void);
+
+	static std::terminate_handler u_ex_handler = nullptr;
+	static std::terminate_handler original_u_ex_handler = nullptr;
+
+	extern "C"
+	[[noreturn]] void __CRTDECL libassert_terminate_handler(void) {
+		if (!u_ex_handler) {
+			generic_handler_for_uncaught_exceptions();
+		}
+		else {
+			u_ex_handler();
+		}
+	}
+
+	LIBASSERT_ATTR_COLD
+	void setup_handler_for_uncaught_exceptions(std::terminate_handler handler) {
+		auto old_app_f = std::get_terminate();
+		if (old_app_f != libassert_terminate_handler) {
+			// our handler wrapper has not been installed yet!
+			original_u_ex_handler = old_app_f;
+			std::set_terminate(libassert_terminate_handler);
+		}
+		// now we can be sure our unknown-exception-handler-wrapper has been installed.
+		// 
+		// No need to check if we have already registered a handling functor:
+		// if we have, we DO NOT OVERWRITE that one!
+		// You must invoke `deinit_handler_for_uncaught_exceptions()` first, before you
+		// are allowed to set a new handler.
+		if (!u_ex_handler || u_ex_handler == original_u_ex_handler) {
+			u_ex_handler = handler;
+		}
+	}
+
+	LIBASSERT_ATTR_COLD
+	void deinit_handler_for_uncaught_exceptions(void) {
+		// 'de-init' means: reset callback to original as specified by the application:
+		u_ex_handler = nullptr;
+		auto old_app_f = original_u_ex_handler;
+		if (!old_app_f) {
+			old_app_f = std::get_terminate();
+		}
+		setup_handler_for_uncaught_exceptions(old_app_f);
+	}
+
+	LIBASSERT_ATTR_COLD
+	void setup_default_handler_for_uncaught_exceptions(void) {
+		setup_handler_for_uncaught_exceptions(generic_handler_for_uncaught_exceptions);
+	}
 }
 LIBASSERT_END_NAMESPACE
 
 extern "C"
-LIBASSERT_EXPORT int libassert_detail_primitive_assert_impl(int mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const char *message) {
+[[noreturn]] LIBASSERT_EXPORT void libassert_detail_primitive_assert_impl(int mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const char *message) {
 	using namespace ::libassert;
 
     source_location location{ function, file, line };
 	detail::primitive_assert_impl(!!mode, expr, signature, location, message);
-
-	return 0;
 }
 

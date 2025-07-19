@@ -36,7 +36,7 @@ LIBASSERT_END_NAMESPACE
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {
     // bootstrap with primitive implementations
-    LIBASSERT_EXPORT bool primitive_assert_impl(
+	[[noreturn]] LIBASSERT_EXPORT void primitive_assert_impl(
         bool normal_assert,
         const char* expression,
         const char* signature,
@@ -55,20 +55,20 @@ namespace detail {
 
 #if !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
 
-    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((!!(c)) || ::libassert::detail::primitive_assert_impl( \
+    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((!!(c)) || (::libassert::detail::primitive_assert_impl( \
         true, \
         #c, \
         "" LIBASSERT_PFUNC, \
         {} LIBASSERT_VA_ARGS(__VA_ARGS__) \
-    )))
+    ), 0)))
     
     #ifndef NDEBUG
-	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) ((void)((!!(c)) || ::libassert::detail::primitive_assert_impl( \
+	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) ((void)((!!(c)) || (::libassert::detail::primitive_assert_impl( \
         false, \
         #c, \
         "" LIBASSERT_PFUNC, \
         {} LIBASSERT_VA_ARGS(__VA_ARGS__) \
-    )))
+    ), 0)))
     #else
      #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) LIBASSERT_PHONY_USE(c)
     #endif
@@ -246,7 +246,7 @@ LIBASSERT_END_NAMESPACE
         1 /* true */, \
         #expr, \
         "", __FILE__, __LINE__, LIBASSERT_PFUNC, \
-        LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+        LIBASSERT_VA_ARGS(__VA_ARGS__) \
     )))
     
     #ifndef NDEBUG
@@ -254,7 +254,7 @@ LIBASSERT_END_NAMESPACE
         0 /* false */, \
         #expr, \
         "", __FILE__, __LINE__, LIBASSERT_PFUNC, \
-        LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
+        LIBASSERT_VA_ARGS(__VA_ARGS__) \
      )))
     #else
      #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) LIBASSERT_PHONY_USE(c)
@@ -265,6 +265,6 @@ LIBASSERT_END_NAMESPACE
 #if defined __cplusplus
 extern "C"
 #endif // __cplusplus
-LIBASSERT_EXPORT int libassert_detail_primitive_assert_impl(int mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const char *message);
+[[noreturn]] LIBASSERT_EXPORT void libassert_detail_primitive_assert_impl(int mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const char *message);
 
 #endif
