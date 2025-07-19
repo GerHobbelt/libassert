@@ -507,7 +507,7 @@ namespace detail {
         Args&&... args
     ) {
         const size_t sizeof_extra_diagnostics = sizeof...(args) - 1; // - 1 for pretty function signature
-        LIBASSERT_PRIMITIVE_ASSERT(sizeof...(args) <= params->args_strings.size);
+        LIBASSERT_PRIMITIVE_DEBUG_ASSERT(sizeof...(args) <= params->args_strings.size);
         assertion_info info(params, detail::generate_trace(), sizeof_extra_diagnostics);
         // process_args fills in the message, extra_diagnostics, and pretty_function
         process_args(info, params->args_strings, args...);

@@ -17,6 +17,7 @@
 #endif
 
 // TODO: CHECK/REQUIRE?
+
 #undef ASSERT
 
 // Note: a very Catch2-specific ASSERT() macro is being defined here!
