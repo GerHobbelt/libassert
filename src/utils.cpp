@@ -25,7 +25,7 @@ LIBASSERT_BEGIN_NAMESPACE
 namespace detail {
 	[[noreturn]] LIBASSERT_ATTR_COLD LIBASSERT_EXPORT
 		void primitive_assert_impl(
-			bool normal_assert,
+			libassert::assert_type normal_assert,
 			const char* expression,
 			const char* signature,
 			source_location location,
@@ -34,11 +34,11 @@ namespace detail {
 		// Make sure a catcher for uncaught exceptions is always available: either the application-specified one, or ours!
 		setup_default_handler_for_uncaught_exceptions();
 
-		const char* name   = normal_assert ? "LIBASSERT_PRIMITIVE_ASSERT" : "LIBASSERT_PRIMITIVE_DEBUG_ASSERT";
+		//const char* name   = normal_assert ? "LIBASSERT_PRIMITIVE_ASSERT" : "LIBASSERT_PRIMITIVE_DEBUG_ASSERT";
 
 		assert_static_parameters params{
 		.macro_name = signature, // name,
-		.type = normal_assert ? assert_type::assertion : assert_type::debug_assertion,
+		.type = normal_assert,
 		.expr_str = expression,
 		.location = location,
 		.args_strings = {}
@@ -231,14 +231,14 @@ namespace detail {
 	void setup_default_handler_for_uncaught_exceptions(void) {
 		setup_handler_for_uncaught_exceptions(generic_handler_for_uncaught_exceptions);
 	}
+
+	LIBASSERT_EXPORT void libassert_detail_primitive_assert_implpp(::libassert::assert_type mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const char *message) {
+		using namespace ::libassert;
+
+		source_location location{function, file, line};
+		detail::primitive_assert_impl(mode, expr, signature, location, message);
+	}
+
 }
 LIBASSERT_END_NAMESPACE
-
-extern "C"
-[[noreturn]] LIBASSERT_EXPORT void libassert_detail_primitive_assert_impl(int mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const char *message) {
-	using namespace ::libassert;
-
-    source_location location{ function, file, line };
-	detail::primitive_assert_impl(!!mode, expr, signature, location, message);
-}
 

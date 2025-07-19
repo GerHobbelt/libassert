@@ -218,15 +218,7 @@ LIBASSERT_BEGIN_NAMESPACE
     };
     LIBASSERT_EXPORT void set_path_mode(path_mode mode);
 
-    enum class assert_type {
-        debug_assertion,
-        assertion,
-        assumption,
-        panic,
-        unreachable
-    };
-
-    struct assertion_info;
+	struct assertion_info;
 
     [[noreturn]] LIBASSERT_EXPORT void default_failure_handler(const assertion_info& info);
 
@@ -341,7 +333,7 @@ LIBASSERT_BEGIN_NAMESPACE
 
         [[nodiscard]] std::string to_string(int width = 0, const color_scheme& scheme = get_color_scheme()) const;
     };
-LIBASSERT_END_NAMESPACE
+	LIBASSERT_END_NAMESPACE
 
 #endif // __cplusplus
 
