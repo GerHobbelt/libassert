@@ -104,20 +104,20 @@ namespace detail {
 
 #else // !LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
 
-    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((!!(c)) || ::libassert::detail::primitive_assert_impl( \
-        ::libassert::assertion, \
+    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((!!(c)) || (::libassert::detail::primitive_assert_impl( \
+        ::libassert::assert_type::assertion, \
         #c, \
         "" LIBASSERT_PFUNC, \
         {}, LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
-    )))
+    ), 0)))
     
     #ifndef NDEBUG
-	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) ((void)((!!(c)) || ::libassert::detail::primitive_assert_impl( \
-        ::libassert::debug_assertion, \
+	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) ((void)((!!(c)) || (::libassert::detail::primitive_assert_impl( \
+        ::libassert::assert_type::debug_assertion, \
         #c, \
         "" LIBASSERT_PFUNC, \
         {}, LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
-    )))
+    ), 0)))
     #else
      #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) LIBASSERT_PHONY_USE(c)
     #endif

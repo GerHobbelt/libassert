@@ -452,8 +452,8 @@ LIBASSERT_END_NAMESPACE
  * Actual top-level assertion processing
  */
 
- LIBASSERT_BEGIN_NAMESPACE
- namespace detail {
+LIBASSERT_BEGIN_NAMESPACE
+namespace detail {
     LIBASSERT_EXPORT void fail(const assertion_info& info);
 
     template<typename A, typename B, typename C, typename... Args>

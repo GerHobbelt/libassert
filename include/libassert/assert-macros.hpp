@@ -269,7 +269,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
         LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_CLANG \
         LIBASSERT_WARNING_PRAGMA_PUSH_GCC \
         LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_GCC \
-        auto libassert_decomposer = libassert::detail::expression_decomposer( \
+        auto libassert_decomposer = ::libassert::detail::expression_decomposer( \
             libassert::detail::expression_decomposer{} << expr \
         ); \
         LIBASSERT_WARNING_PRAGMA_POP_GCC \
@@ -278,16 +278,16 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
             libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
             LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
             failaction \
-            LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, #expr, __VA_ARGS__) \
+            LIBASSERT_STATIC_DATA(name, ::libassert::assert_type::type, #expr, __VA_ARGS__) \
             if constexpr(sizeof libassert_decomposer > 32) { \
-                libassert::detail::process_assert_fail( \
+                ::libassert::detail::process_assert_fail( \
                     libassert_decomposer, \
                     libassert_params \
                     LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_PRETTY_FUNCTION_ARG \
                 ); \
             } else { \
                 /* std::move it to assert_fail_m, will be moved back to r */ \
-                libassert::detail::process_assert_fail_n( \
+                ::libassert::detail::process_assert_fail_n( \
                     std::move(libassert_decomposer), \
                     libassert_params \
                     LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_PRETTY_FUNCTION_ARG \
@@ -479,10 +479,10 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
         (static_cast<bool>(expr) ? \
 		((void)0) : \
 		(libassert_breakpoint_if_debugger_present(), \
-		(void)libassert_detail_primitive_assert_implpp( \
-				libassert::assert_type::type, \
+		(void)::libassert::detail::libassert_detail_primitive_assert_implpp( \
+				::libassert::assert_type::type, \
 				#expr, \
-				name, __FILE__, __LINE__, LIBASSERT_PFUNC, \
+				name, __FILE__, __LINE__, LIBASSERT_PFUNC  \
 				LIBASSERT_VA_ARGS(__VA_ARGS__) \
 			) \
         ))
@@ -497,7 +497,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 		(void)libassert_detail_primitive_assert_impl( \
 				libassert_## type ##_type, \
 				#expr, \
-				name, __FILE__, __LINE__, LIBASSERT_PFUNC, \
+				name, __FILE__, __LINE__, LIBASSERT_PFUNC  \
 				LIBASSERT_VA_ARGS(__VA_ARGS__) \
 			) \
         ))
