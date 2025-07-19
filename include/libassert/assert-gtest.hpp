@@ -6,6 +6,7 @@
 #endif // !defined(__cplusplus)
 
 #define LIBASSERT_PREFIX_ASSERTIONS
+#include <gtest/gtest.h>
 #include <libassert/assert.hpp>
 #include <libassert/assert-gtest-macros.hpp>
 

@@ -1,5 +1,5 @@
-#include <libassert/assert-gtest.hpp>
 
+#include <libassert/assert-gtest.hpp>
 
 #if defined(LIBASSERT_USE_STD_FORMAT) || defined(LIBASSERT_USE_FMT)
 
