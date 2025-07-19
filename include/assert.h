@@ -188,6 +188,8 @@ _CRT_END_C_HEADER
 #include <libassert/assert.hpp>
 
 
+#if 0
+
 #ifndef assert
 
 _CRT_BEGIN_C_HEADER
@@ -215,6 +217,8 @@ _CRT_BEGIN_C_HEADER
 _CRT_END_C_HEADER
 
 #endif  // !assert
+
+#endif
 
 
 _UCRT_RESTORE_CLANG_WARNINGS
