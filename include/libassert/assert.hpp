@@ -220,7 +220,7 @@ LIBASSERT_BEGIN_NAMESPACE
 
 	struct assertion_info;
 
-    [[noreturn]] LIBASSERT_EXPORT void default_failure_handler(const assertion_info& info);
+    LIBASSERT_EXPORT void default_failure_handler(const assertion_info& info);
 
     using handler_ptr = void(*)(const assertion_info&);
     LIBASSERT_EXPORT handler_ptr get_failure_handler();

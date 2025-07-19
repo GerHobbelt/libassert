@@ -16,7 +16,7 @@
 using libassert_assert_type_t = ::libassert::assert_type;
 
 extern "C"
-[[noreturn]] LIBASSERT_EXPORT void libassert_detail_primitive_assert_impl(libassert_assert_type_t mode, const char* expr, const char* signature, const char* file, const int line, const char* function, const char* message) {
+LIBASSERT_EXPORT void libassert_detail_primitive_assert_impl(libassert_assert_type_t mode, const char* expr, const char* signature, const char* file, const int line, const char* function, const char* message) {
 	using namespace ::libassert;
 
 	source_location location{ function, file, line };

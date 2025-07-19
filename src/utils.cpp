@@ -23,7 +23,7 @@
 
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {
-	[[noreturn]] LIBASSERT_ATTR_COLD LIBASSERT_EXPORT
+	LIBASSERT_ATTR_COLD LIBASSERT_EXPORT
 		void primitive_assert_impl(
 			libassert::assert_type normal_assert,
 			const char* expression,
@@ -33,8 +33,6 @@ namespace detail {
 		) {
 		// Make sure a catcher for uncaught exceptions is always available: either the application-specified one, or ours!
 		setup_default_handler_for_uncaught_exceptions();
-
-		//const char* name   = normal_assert ? "LIBASSERT_PRIMITIVE_ASSERT" : "LIBASSERT_PRIMITIVE_DEBUG_ASSERT";
 
 		assert_static_parameters params{
 		.macro_name = signature, // name,
@@ -48,7 +46,9 @@ namespace detail {
 
 		// send off
 		fail(info);
-		LIBASSERT_PRIMITIVE_PANIC("PANIC/UNREACHABLE failure handler returned");
+		if (info.type != assert_type::debug_assertion) {
+			LIBASSERT_PRIMITIVE_PANIC("PANIC/UNREACHABLE failure handler returned");
+		}
 	}
 
     [[noreturn]] LIBASSERT_ATTR_COLD LIBASSERT_EXPORT
@@ -60,16 +60,27 @@ namespace detail {
 		// Make sure a catcher for uncaught exceptions is always available: either the application-specified one, or ours!
 		setup_default_handler_for_uncaught_exceptions();
 
-        std::string out_message = microfmt::format(
-            "PANIC failed at {}:{}: {}: {}\n",
-            location.file,
-            location.line,
-            signature,
-            message
-        );
-        out_message += "    LIBASSERT_PRIMITIVE_PANIC(...);\n";
-        throw cpptrace::runtime_error(std::move(out_message));
-    }
+		assert_static_parameters params{
+		.macro_name = signature, // name,
+		.type = assert_type::panic,
+		//.expr_str = expression,
+		.location = location,
+		.args_strings = {}
+		};
+		assertion_info info(&params, detail::generate_trace(), 0);
+		set_message(info, message);
+
+		// send off
+		fail(info);
+
+#if 0
+		// warning C4717: 'libassert::v1::detail::primitive_panic_impl': recursive on all control paths, function will cause runtime stack overflow
+		LIBASSERT_PRIMITIVE_PANIC("PANIC/UNREACHABLE failure handler returned");
+#else
+		// should never get here... unless the fail handler returns to caller anyway, despite the assert_type being set to `assert::panic`.
+		std::abort();
+#endif
+	}
 
     /*
      * string utilities

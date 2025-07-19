@@ -725,7 +725,7 @@ Lastly, any types with an ostream `operator<<` overload can be stringified.
 ```cpp
 namespace libassert {
     void set_failure_handler(void (*handler)(const assertion_info&));
-    [[noreturn]] void default_failure_handler(const assertion_info& info);
+    void default_failure_handler(const assertion_info& info);
 }
 ```
 
@@ -754,8 +754,11 @@ void default_failure_handler(const assertion_info& info) {
     );
     std::cerr << message << std::endl;
     switch(info.type) {
-        case libassert::assert_type::assertion:
         case libassert::assert_type::debug_assertion:
+            (void)fflush(stderr);
+            LIBASSERT_BREAKPOINT_IF_DEBUGGING(); /* __debugbreak(); */
+            return;
+        case libassert::assert_type::assertion:
         case libassert::assert_type::assumption:
         case libassert::assert_type::panic:
         case libassert::assert_type::unreachable:

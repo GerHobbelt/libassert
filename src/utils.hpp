@@ -24,7 +24,7 @@ namespace detail {
 
 	// Still present in release mode, nonfatal
     #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((c) || ::libassert::detail::primitive_assert_impl( \
-        true, \
+        ::libassert::assert_type::assertion, \
         #c, \
         LIBASSERT_PFUNC, \
         {} LIBASSERT_VA_ARGS(__VA_ARGS__) \

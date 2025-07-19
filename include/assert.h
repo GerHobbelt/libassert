@@ -194,15 +194,15 @@ _CRT_BEGIN_C_HEADER
 
 #ifndef NDEBUG
 
-#define assert(expression) (void)(                                                      \
+#define assert(expression) ((void)(                                                     \
             (!!(expression)) ||                                                         \
             (fz_sysassert(#expression, __FILE__, __func__, __LINE__), 0)				\
-        )
+        ))
 
-#define assert_and_continue(expression) (void)(                                         \
+#define assert_and_continue(expression) ((void)(                                        \
             (!!(expression)) ||                                                         \
             (fz_sysassert_and_continue(#expression, __FILE__, __func__, __LINE__), 0)	\
-        )
+        ))
 
 #else
 

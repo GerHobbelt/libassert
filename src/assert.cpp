@@ -390,7 +390,7 @@ LIBASSERT_BEGIN_NAMESPACE
 
     }
 
-    [[noreturn]] LIBASSERT_ATTR_COLD LIBASSERT_EXPORT
+    LIBASSERT_ATTR_COLD LIBASSERT_EXPORT
     void default_failure_handler(const assertion_info& info) {
         enable_virtual_terminal_processing_if_needed(); // for terminal colors on windows
         std::string message = info.to_string(
@@ -399,8 +399,13 @@ LIBASSERT_BEGIN_NAMESPACE
         );
         std::cerr << message << std::endl;
         switch(info.type) {
-            case assert_type::assertion:
-            case assert_type::debug_assertion:
+		case assert_type::debug_assertion:
+			(void)fflush(stderr);
+			LIBASSERT_BREAKPOINT_IF_DEBUGGING();
+			// the special trick of this type of assertion is: it allows the application to continue unimpeded!
+			return;
+
+			case assert_type::assertion:
             case assert_type::assumption:
             case assert_type::panic:
             case assert_type::unreachable:

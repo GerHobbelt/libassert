@@ -311,7 +311,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
         if(!(expr)) { \
             LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
             failaction \
-            libassert_detail_primitive_assert_impl( \
+            (void)libassert_detail_primitive_assert_impl( \
 				libassert_## type ##_type, \
 				#expr, \
 				name, __FILE__, __LINE__, LIBASSERT_PFUNC  \
@@ -479,7 +479,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
         (static_cast<bool>(expr) ? \
 		((void)0) : \
 		(libassert_breakpoint_if_debugger_present(), \
-		(void)libassert_detail_primitive_assert_impl( \
+		(void)libassert_detail_primitive_assert_implpp( \
 				libassert::assert_type::type, \
 				#expr, \
 				name, __FILE__, __LINE__, LIBASSERT_PFUNC, \
@@ -651,17 +651,17 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 // assert() must act like it's an expression type, rather than a statement type.
 // Some libraries' assertions depend on this behaviour, where the assert() macro
 // can be incorporated inside a comma-separated expression statement.
-#if !defined(LIBASSERT_ASSERT_IS_EXPRESSION) && 0
+#if !defined(LIBASSERT_ASSERT_IS_EXPRESSION)
 #ifndef NDEBUG
-#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+#define assert(expr) LIBASSERT_INVOKE(expr, "assert", assertion, LIBASSERT_EMPTY_ACTION, "(assertion failed)")
 #else
-#define assert(expr, ...) LIBASSERT_NOOP_STATEMENT()
+#define assert(expr) LIBASSERT_NOOP_STATEMENT()
 #endif
 #else
 #ifndef NDEBUG
-#define assert(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "assert", assertion, __VA_ARGS__)
+#define assert(expr) LIBASSERT_INVOKE_EXPRESSION(expr, "assert", assertion, "(assertion failed)")
 #else
-#define assert(expr, ...) LIBASSERT_NOOP_EXPRESSION()
+#define assert(expr) LIBASSERT_NOOP_EXPRESSION()
 #endif
 #endif
 #endif
