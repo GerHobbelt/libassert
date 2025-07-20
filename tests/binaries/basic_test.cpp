@@ -4,7 +4,7 @@
 #include <optional>
 #include <type_traits>
 
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 
 #include "monolithic_examples.h"
 
@@ -19,7 +19,7 @@ static std::optional<float> foo() {
 
 extern "C"
 int main(void) {
-    auto f = *DEBUG_ASSERT_VAL(foo());
+    auto f = *LIBASSERT_DEBUG_ASSERT_VAL(foo());
     static_assert(std::is_same<decltype(f), float>::value);
     assert(f == 2.5f);
 

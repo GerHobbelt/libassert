@@ -1,4 +1,5 @@
-#include <libassert/assert.hpp>
+#define LIBASSERT_PREFIX_ASSERTIONS                           1
+#include <libassert/assert.h>
 
 #include <iostream>
 

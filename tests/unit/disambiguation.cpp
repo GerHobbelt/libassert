@@ -9,7 +9,7 @@
 import libassert;
 #include <libassert/assert-macros.hpp>
 #else
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 #endif
 
 #include "monolithic_examples.h"

@@ -1,7 +1,11 @@
-#undef LIBASSERT_PREFIX_ASSERTIONS
+#define LIBASSERT_PREFIX_ASSERTIONS              0
+#define LIBASSERT_LOWERCASE                      1
 
-#include "catch2/catch_test_macros.hpp"
 #include <libassert/assert-catch2.hpp>
+
+#if LIBASSERT_PREFIX_ASSERTIONS != 1
+#error "Apparently libassert/assert-catch2.hpp did not override your LIBASSERT_PREFIX_ASSERTIONS preset!"
+#endif
 
 // Tests marked with `/* <*> */` are expected to produce reports via libassert.
 
@@ -27,5 +31,5 @@ CATCH_TEST_CASE("REQUIRE_ASSERT FAIL") {
 }
 
 CATCH_TEST_CASE("REQUIRE_ASSERT PASS") {
-    REQUIRE_ASSERT(foo(5));
+    REQUIRE_ASSERT(foo(5));              /* <*> */
 }

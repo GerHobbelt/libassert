@@ -5,8 +5,12 @@
 #error error 1003: Unexpected compiler, expected C++ compiler.
 #endif // !defined(__cplusplus)
 
-#define LIBASSERT_PREFIX_ASSERTIONS
+#undef  LIBASSERT_PREFIX_ASSERTIONS   
+#define LIBASSERT_PREFIX_ASSERTIONS   1
+#include <libassert/config.h>
+
 #include <gtest/gtest.h>
+
 #include <libassert/assert.hpp>
 #include <libassert/assert-gtest-macros.hpp>
 

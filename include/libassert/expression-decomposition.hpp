@@ -1,6 +1,8 @@
 #ifndef LIBASSERT_EXPRESSION_DECOMPOSITION_HPP
 #define LIBASSERT_EXPRESSION_DECOMPOSITION_HPP
 
+#include <libassert/config.h>
+
 #if defined __cplusplus
 
 #include <string_view>

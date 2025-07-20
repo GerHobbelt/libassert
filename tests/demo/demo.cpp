@@ -2,6 +2,7 @@
 #define _CRT_SECURE_NO_WARNINGS // for fopen
 #endif
 
+#define LIBASSERT_PREFIX_ASSERTIONS
 #define LIBASSERT_LOWERCASE
 
 #include <algorithm>
@@ -21,7 +22,7 @@
 #include <utility>
 #include <vector>
 
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 #include <libassert/version.hpp>
 
 #include "monolithic_examples.h"

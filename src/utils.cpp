@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 
 #if defined(__has_include) && __has_include(<cpptrace/basic.hpp>)
  #include <cpptrace/basic.hpp>
@@ -19,7 +19,6 @@
 #include "utils.hpp"
 #include "microfmt.hpp"
 
-#include <libassert/assert.hpp>
 
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {

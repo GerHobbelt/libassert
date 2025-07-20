@@ -16,13 +16,13 @@ static LIBASSERT_ATTR_NOINLINE float foopp(void) {
 extern "C"
 void cassert_include_test(void) {
 	int x = 4;
-	DEBUG_ASSERT(x % 2 == 0);
-	ASSERT(1 + 1 != 3);
+	LIBASSERT_DEBUG_ASSERT(x % 2 == 0);
+	LIBASSERT_ASSERT(1 + 1 != 3);
 
-	float f = DEBUG_ASSERT_VAL(foopp());
+	float f = LIBASSERT_DEBUG_ASSERT_VAL(foopp());
 	assert(f == 2.5f);
 
-	debug_assert(false);
+	LIBASSERT_DEBUG_ASSERT(false);
 
 	LIBASSERT_ASSERT(x < 20, "foobar");
 }

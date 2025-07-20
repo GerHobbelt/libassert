@@ -2,7 +2,7 @@
 import libassert;
 #include <libassert/assert-macros.hpp>
 #else
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 #endif
 
 #include "monolithic_examples.h"
@@ -10,7 +10,7 @@ import libassert;
 template<int X> void foo() {}
 
 constexpr int bar(int x) {
-    DEBUG_ASSERT(x % 2 == 0);
+    LIBASSERT_DEBUG_ASSERT(x % 2 == 0);
     return x / 2;
 }
 

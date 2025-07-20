@@ -1,5 +1,5 @@
-#define LIBASSERT_LOWERCASE
-#include <libassert/assert.hpp>
+#define LIBASSERT_LOWERCASE                   1
+#include <libassert/assert.h>
 // This file is used for testing path disambiguation
 
 void wubble(void) {

@@ -1,12 +1,13 @@
 // Most basic of tests
 
-#define LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
+#define LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS            1
+//#define LIBASSERT_PREFIX_ASSERTIONS                       1
 
 #include <cassert>
 #include <optional>
 #include <type_traits>
 
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 
 #include "monolithic_examples.h"
 
@@ -21,7 +22,7 @@ static std::optional<float> foo() {
 
 extern "C"
 int main(void) {
-    DEBUG_ASSERT(foo());
+    LIBASSERT_DEBUG_ASSERT(foo());
 	auto f = *foo();
 	static_assert(std::is_same<decltype(f), float>::value);
     assert(f == 2.5f);

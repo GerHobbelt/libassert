@@ -1,6 +1,8 @@
 #ifndef LIBASSERT_UTILITIES_HPP
 #define LIBASSERT_UTILITIES_HPP
 
+#include <libassert/config.h>
+
 #if defined __cplusplus
 
 #include <type_traits>
@@ -82,7 +84,7 @@ namespace detail {
     // always_false is just convenient to use here
     #define LIBASSERT_PHONY_USE(E) ((void)::libassert::detail::always_false<decltype(E)>)
 
-#if !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
+#if !LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
 
     #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((!!(c)) || (::libassert::detail::primitive_assert_impl( \
         ::libassert::assert_type::assertion, \

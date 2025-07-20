@@ -1,8 +1,10 @@
-#ifndef LIBASSERT_HPP
-#define LIBASSERT_HPP
+#ifndef LIBASSERT_MAIN_H
+#define LIBASSERT_MAIN_H
 
 // Copyright (c) 2021-2025 Jeremy Rifkin under the MIT license
 // https://github.com/jeremy-rifkin/libassert
+
+#include <libassert/config.h>
 
 #if defined __cplusplus
 
@@ -37,29 +39,6 @@
 
 #define LIBASSERT_NOOP_EXPRESSION() \
 	((void)0)
-
-#ifdef LIBASSERT_LOWERCASE
-#ifdef assert
-#undef assert
-#endif
-
-// assert() must act like it's an expression type, rather than a statement type.
-// Some libraries' assertions depend on this behaviour, where the assert() macro
-// can be incorporated inside a comma-separated expression statement.
-#if !defined(LIBASSERT_ASSERT_IS_EXPRESSION) && 0
-#ifndef NDEBUG
-#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, __VA_ARGS__)
-#else
-#define assert(expr, ...) LIBASSERT_NOOP_STATEMENT()
-#endif
-#else
-#ifndef NDEBUG
-#define assert(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "assert_simple", assertion, __VA_ARGS__)
-#else
-#define assert(expr, ...) LIBASSERT_NOOP_EXPRESSION()
-#endif
-#endif
-#endif
 
 #include <libassert/stringification.hpp>
 #include <libassert/expression-decomposition.hpp>
@@ -578,4 +557,8 @@ LIBASSERT_END_NAMESPACE
  #pragma warning(pop)
 #endif
 
-#endif
+#include <libassert/assert-macros-non-prefixed.hpp>
+#include <libassert/assert-macros-lowercase.hpp>
+#include <libassert/assert-macros-system-replacement.hpp>
+
+#endif // LIBASSERT_MAIN_H

@@ -5,7 +5,7 @@
 #include <string_view>
 #include <vector>
 
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {

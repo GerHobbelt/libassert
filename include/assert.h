@@ -1,8 +1,4 @@
 //
-// assert.h
-//
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-//
 // Defines the assert macro and related functionality.
 //
 // NOTE: this header file OVERRIDES any system/library-defined `assert()` macro and replaces it with the libassert one.
@@ -15,6 +11,6 @@
 
 #undef assert
 
-#define LIBASSERT_OFFER_SYSTEM_ASSERT_REPLACEMENT
-#include <libassert/assert.hpp>
+#define LIBASSERT_OFFER_SYSTEM_ASSERT_REPLACEMENT    1
+#include <libassert/assert.h>
 

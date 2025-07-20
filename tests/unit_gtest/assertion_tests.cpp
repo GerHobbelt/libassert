@@ -17,7 +17,7 @@
 import libassert;
 #include <libassert/assert-macros.hpp>
 #else
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 #endif
 
 using namespace std::literals;
@@ -723,7 +723,7 @@ TEST(LibassertBasic, LvalueForwarding) {
     EXPECT_EQ(x, 0);
 }
 
-#if defined(LIBASSERT_USE_MAGIC_ENUM) || defined(LIBASSERT_USE_ENCHANTUM)
+#if LIBASSERT_USE_MAGIC_ENUM || LIBASSERT_USE_ENCHANTUM
 enum foo_e { A, B };
 enum class bar_e { A, B };
 TEST(LibassertBasic, EnumHandling) {

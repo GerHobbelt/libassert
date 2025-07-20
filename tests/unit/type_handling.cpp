@@ -1,7 +1,12 @@
-#undef LIBASSERT_LOWERCASE
+#define LIBASSERT_LOWERCASE                   0
+#define LIBASSERT_PREFIX_ASSERTIONS           1
 
 #include <cassert>
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
+
+#if !defined(LIBASSERT_OFFER_SYSTEM_ASSERT_REPLACEMENT)
+#error "Apparently your <cassert> does not load libassert by itself and *force* libassert to provide the lowercase `assert()` macro already!"
+#endif
 
 #include <cstdlib>
 #include <iostream>

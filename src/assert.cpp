@@ -1,4 +1,4 @@
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 
 // Copyright (c) 2021-2025 Jeremy Rifkin under the MIT license
 // https://github.com/jeremy-rifkin/libassert

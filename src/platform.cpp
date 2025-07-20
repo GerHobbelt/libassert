@@ -29,7 +29,7 @@
  #include <unistd.h>
 #endif
 
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 
 // All platform-specific/system code lives here
 

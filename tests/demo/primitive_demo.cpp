@@ -2,8 +2,9 @@
 #define _CRT_SECURE_NO_WARNINGS // for fopen
 #endif
 
-#define LIBASSERT_LOWERCASE
-#define LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS 1
+#define LIBASSERT_LOWERCASE                               1
+#define LIBASSERT_PREFIX_ASSERTIONS                       1
+#define LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS           1
 
 #include <algorithm>
 #include <array>
@@ -22,7 +23,7 @@
 #include <utility>
 #include <vector>
 
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 #include <libassert/version.hpp>
 
 #include "monolithic_examples.h"

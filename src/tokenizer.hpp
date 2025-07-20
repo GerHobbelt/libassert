@@ -8,6 +8,8 @@
 #include "utils.hpp"
 #include "common.hpp"
 
+#include <libassert/assert.h>
+
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {
     enum class token_e {

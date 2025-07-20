@@ -2,7 +2,7 @@
 
 #if __cplusplus >= 202302L
 
-#if defined(LIBASSERT_USE_STD_FORMAT) || defined(LIBASSERT_USE_FMT)
+#if LIBASSERT_USE_STD_FORMAT || LIBASSERT_USE_FMT
 
 #include <format>
 

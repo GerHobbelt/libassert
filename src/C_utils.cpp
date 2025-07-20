@@ -1,5 +1,5 @@
 
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 
 // A nasty `using` statement, which *fakes* the C type `libassert_assert_type_t`.
 //

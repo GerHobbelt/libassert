@@ -1,6 +1,8 @@
 #ifndef LIBASSERT_EXPRESSION_TYPECHECK_HPP
 #define LIBASSERT_EXPRESSION_TYPECHECK_HPP
 
+#include <libassert/config.h>
+
 #if defined __cplusplus
 
 #include <type_traits>

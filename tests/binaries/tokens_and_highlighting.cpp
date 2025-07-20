@@ -3,7 +3,7 @@
 #include <sstream>
 #include <string>
 
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 
 #include "analysis.hpp"
 

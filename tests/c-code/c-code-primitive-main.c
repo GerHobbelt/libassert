@@ -1,8 +1,8 @@
 
-#define LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
-#define LIBASSERT_LOWERCASE
+#define LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS      1
+#define LIBASSERT_LOWERCASE                          1
 
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 
 #include "c-code-test.h"
 

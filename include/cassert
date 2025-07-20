@@ -5,5 +5,9 @@
 
 // NOTE: no include guard
 
-// make sure we point at the libassert/include/assert.h file:
-#include "../include/assert.h"
+// make sure we point at the libassert/assert.h file:
+
+#undef assert
+
+#define LIBASSERT_OFFER_SYSTEM_ASSERT_REPLACEMENT    1
+#include <libassert/assert.h>

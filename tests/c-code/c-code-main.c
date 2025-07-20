@@ -1,7 +1,7 @@
 
-#define LIBASSERT_LOWERCASE
+#define LIBASSERT_LOWERCASE         1
 
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 
 #include "c-code-test.h"
 

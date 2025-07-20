@@ -313,6 +313,10 @@ LIBASSERT_END_NAMESPACE
 #define LIBASSERT_USE_MAGIC_ENUM    1
 #endif
 
+#if !defined(LIBASSERT_USE_ENCHANTUM) && defined(__has_include) && (__has_include(<enchantum/enchantum.hpp>) || __has_include(<enchantum/enchantum.hpp>))
+#define LIBASSERT_USE_ENCHANTUM    1
+#endif
+
 #if !defined(LIBASSERT_USE_FMT) && !defined(LIBASSERT_USE_STD_FORMAT) && defined(__has_include) && __has_include(<fmt/format.h>)
 #define LIBASSERT_USE_FMT           1
 #endif

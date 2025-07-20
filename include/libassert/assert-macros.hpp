@@ -4,6 +4,7 @@
 // Copyright (c) 2021-2025 Jeremy Rifkin under the MIT license
 // https://github.com/jeremy-rifkin/libassert
 
+#include <libassert/config.h>
 #include <libassert/platform.hpp>
 
 #if defined __cplusplus
@@ -246,13 +247,13 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 
 #endif // __cplusplus
 
-#ifdef LIBASSERT_BREAK_ON_FAIL
+#if LIBASSERT_BREAK_ON_FAIL
  #define LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL() LIBASSERT_BREAKPOINT_IF_DEBUGGING()
 #else
  #define LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL()
 #endif
 
-#if !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
+#if !LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
 
 // kill the "early definition" from further above, which we used for magic_enum & friends.
 #undef LIBASSERT_INVOKE
@@ -324,7 +325,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 
 #endif // __cplusplus
 
-#endif // !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
+#endif // !LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
 
 #if defined __cplusplus
 
@@ -368,7 +369,8 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
   #undef LIBASSERT_DESTROY_DECOMPOSER
   #define LIBASSERT_DESTROY_DECOMPOSER libassert::detail::destroy(libassert_decomposer)
  #endif
-#endif
+#endif // LIBASSERT_IS_GCC
+
 #if LIBASSERT_IS_CLANG || LIBASSERT_IS_GCC
  // Extra set of parentheses here because clang treats __extension__ as a low-precedence unary operator which interferes
  // with decltype(auto) in an expression like decltype(auto) x = __extension__ ({...}).y;
@@ -391,11 +393,11 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 
 #endif // __cplusplus
 
-#endif
+#endif // LIBASSERT_IS_CLANG || LIBASSERT_IS_GCC
 
 #if defined __cplusplus
 
-#if !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
+#if !LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
 
 #define LIBASSERT_INVOKE_VAL(expr, doreturn, check_expression, name, type, failaction, ...) \
     /* must push/pop out here due to nasty clang bug https://github.com/llvm/llvm-project/issues/63897 */ \
@@ -455,13 +457,13 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
     LIBASSERT_WARNING_PRAGMA_POP_MSVC \
     LIBASSERT_WARNING_PRAGMA_POP_CLANG
 
-#else // !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
+#else // !LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
 
 #define LIBASSERT_INVOKE_VAL(expr, doreturn, check_expression, name, type, failaction, ...) \
     _Pragma("message(\"libassert NOTICE: *_VAL libassert macros cannot be used in a CPP language when only primitive assertions are allowed\")") \
     ; not_allowed . not_allowed . not_allowed ::: ; 
 
-#endif // !defined(LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS)
+#endif // !LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
 
 #else // __cplusplus
 
@@ -551,53 +553,6 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 
 #define LIBASSERT_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSERT_VAL", assertion, LIBASSERT_EMPTY_ACTION __VA_OPT__(,) __VA_ARGS__)
 
-// non-prefixed versions
-
-#ifndef LIBASSERT_PREFIX_ASSERTIONS
- #if LIBASSERT_IS_CLANG || LIBASSERT_IS_GCC || !LIBASSERT_NON_CONFORMANT_MSVC_PREPROCESSOR
-  #define DEBUG_ASSERT(...) LIBASSERT_DEBUG_ASSERT(__VA_ARGS__)
-  #define ASSERT(...) LIBASSERT_ASSERT(__VA_ARGS__)
-  #define ASSUME(...) LIBASSERT_ASSUME(__VA_ARGS__)
-  #define PANIC(...) LIBASSERT_PANIC(__VA_ARGS__)
-  #define UNREACHABLE(...) LIBASSERT_UNREACHABLE(__VA_ARGS__)
-  #define DEBUG_ASSERT_VAL(...) LIBASSERT_DEBUG_ASSERT_VAL(__VA_ARGS__)
-  #define ASSUME_VAL(...) LIBASSERT_ASSUME_VAL(__VA_ARGS__)
-  #define ASSERT_VAL(...) LIBASSERT_ASSERT_VAL(__VA_ARGS__)
- #else
-  // because of course msvc
-  #define DEBUG_ASSERT LIBASSERT_DEBUG_ASSERT
-  #define ASSERT LIBASSERT_ASSERT
-  #define ASSUME LIBASSERT_ASSUME
-  #define PANIC LIBASSERT_PANIC
-  #define UNREACHABLE LIBASSERT_UNREACHABLE
-  #define DEBUG_ASSERT_VAL LIBASSERT_DEBUG_ASSERT_VAL
-  #define ASSUME_VAL LIBASSERT_ASSUME_VAL
-  #define ASSERT_VAL LIBASSERT_ASSERT_VAL
- #endif
-#endif
-
-// Lowercase variants
-
-#ifdef LIBASSERT_LOWERCASE
- #ifndef NDEBUG
-  #define debug_assert(expr, ...) LIBASSERT_INVOKE(expr, "debug_assert", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
- #else
-  #define debug_assert(expr, ...) (void)0
- #endif
-#endif
-
-#ifdef LIBASSERT_LOWERCASE
- #ifndef NDEBUG
-  #define debug_assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "debug_assert_val", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
- #else
-  #define debug_assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, false, "debug_assert_val", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
- #endif
-#endif
-
-#ifdef LIBASSERT_LOWERCASE
- #define assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "assert_val", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
-#endif
-
 // Wrapper macro to allow support for C++26's user generated static_assert messages.
 // The backup message version also allows for the user to provide a backup version that will
 // be used if the compiler does not support user generated messages.
@@ -609,59 +564,16 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 // TODO: Maybe give these a better name? Ideally one that is shorter and more descriptive?
 // TODO: Maybe add a helper to make passing user generated static_assert messages easier?
 #if defined(__cpp_static_assert) && __cpp_static_assert >= 202306L
- #ifdef LIBASSERT_LOWERCASE
-  #define libassert_user_static_assert(cond, constant) static_assert(cond, constant)
-  #define libassert_user_static_assert_backup_msg(cond, msg, constant) static_assert(cond, constant)
-  #define user_static_assert(cond, constant) static_assert(cond, constant)
-  #define user_static_assert_backup_msg(cond, msg, constant) static_assert(cond, constant)
- #else
   #define LIBASSERT_USER_STATIC_ASSERT(cond, constant) static_assert(cond, constant)
   #define LIBASSERT_USER_STATIC_ASSERT_BACKUP_MSG(cond, msg, constant) static_assert(cond, constant)
   #define USER_STATIC_ASSERT(cond, constant) static_assert(cond, constant)
   #define USER_STATIC_ASSERT_BACKUP_MSG(cond, msg, constant) static_assert(cond, constant)
- #endif
 #else
- #ifdef LIBASSERT_LOWERCASE
-  #define libassert_user_static_assert(cond, constant) static_assert(cond)
-  #define libassert_user_static_assert_backup_msg(cond, msg, constant) static_assert(cond, msg)
-  #define user_static_assert(cond, constant) static_assert(cond)
-  #define user_static_assert_backup_msg(cond, msg, constant) static_assert(cond, msg)
- #else
   #define LIBASSERT_USER_STATIC_ASSERT(cond, constant) static_assert(cond)
   #define LIBASSERT_USER_STATIC_ASSERT_BACKUP_MSG(cond, msg, constant) static_assert(cond, msg)
   #define USER_STATIC_ASSERT(cond, constant) static_assert(cond)
   #define USER_STATIC_ASSERT_BACKUP_MSG(cond, msg, constant) static_assert(cond, msg)
- #endif
 #endif
 
 #endif // LIBASSERT_HPP
 
-
-// Intentionally done outside the include guard. Libc++ leaks `assert` (among other things), so the include for
-// assert.hpp should go after other includes when using -DLIBASSERT_LOWERCASE.
-#ifdef LIBASSERT_LOWERCASE
- #ifdef assert
-  #undef assert
- #endif
-
- #ifndef LIBASSERT_INVOKE
-  #error "libassert's assert load process failed to properly initialize the `assert` & `LIBASSERT_INVOKE` macros. This suggests there's a bug in libassert itself."
- #endif
-
-// assert() must act like it's an expression type, rather than a statement type.
-// Some libraries' assertions depend on this behaviour, where the assert() macro
-// can be incorporated inside a comma-separated expression statement.
-#if !defined(LIBASSERT_ASSERT_IS_EXPRESSION)
-#ifndef NDEBUG
-#define assert(expr) LIBASSERT_INVOKE(expr, "assert", assertion, LIBASSERT_EMPTY_ACTION, "(assertion failed)")
-#else
-#define assert(expr) LIBASSERT_NOOP_STATEMENT()
-#endif
-#else
-#ifndef NDEBUG
-#define assert(expr) LIBASSERT_INVOKE_EXPRESSION(expr, "assert", assertion, "(assertion failed)")
-#else
-#define assert(expr) LIBASSERT_NOOP_EXPRESSION()
-#endif
-#endif
-#endif

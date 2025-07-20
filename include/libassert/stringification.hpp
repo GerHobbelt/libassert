@@ -1,6 +1,8 @@
 #ifndef LIBASSERT_STRINGIFICATION_HPP
 #define LIBASSERT_STRINGIFICATION_HPP
 
+#include <libassert/config.h>
+
 #if defined __cplusplus
 
 #include <iosfwd>
@@ -15,18 +17,27 @@
 #include <libassert/platform.hpp>
 #include <libassert/utilities.hpp>
 
-#if defined(LIBASSERT_USE_ENCHANTUM) && defined(LIBASSERT_USE_MAGIC_ENUM)
+#if LIBASSERT_USE_ENCHANTUM && LIBASSERT_USE_MAGIC_ENUM
  #error cannot use both enchantum and magic_enum at the same time
 #endif
 
-#ifdef LIBASSERT_USE_ENCHANTUM
- #include <enchantum/enchantum.hpp>
+#if LIBASSERT_USE_ENCHANTUM
+ // relative include so that multiple library versions don't clash
+ // e.g. if both libA and libB have different versions of libassert as a public
+ // dependency, then any library that consumes both will have both sets of include
+ // paths. this isn't an issue for #include <assert.hpp> but becomes an issue
+ // for includes within the library (libA might include from libB)
+ #if defined(__has_include) && __has_include(<enchantum/enchantum.hpp>)
+  #include <enchantum/enchantum.hpp>
+ #else
+  #include <enchantum.hpp>
+ #endif
 #endif
 
 
 #if defined __cplusplus
 
-#ifdef LIBASSERT_USE_MAGIC_ENUM
+#if LIBASSERT_USE_MAGIC_ENUM
  // relative include so that multiple library versions don't clash
  // e.g. if both libA and libB have different versions of libassert as a public
  // dependency, then any library that consumes both will have both sets of include
@@ -39,7 +50,7 @@
  #endif
 #endif
 
-#if defined(LIBASSERT_USE_FMT) && !defined(LIBASSERT_USE_STD_FORMAT)
+#if LIBASSERT_USE_FMT && !LIBASSERT_USE_STD_FORMAT
  #include <fmt/format.h>
 #endif
 
@@ -47,7 +58,7 @@
  #include <compare>
 #endif
 
-#if defined(LIBASSERT_USE_STD_FORMAT) && !defined(LIBASSERT_USE_FMT)
+#if LIBASSERT_USE_STD_FORMAT && !LIBASSERT_USE_FMT
  #include <format>
 #endif
 
@@ -247,7 +258,7 @@ namespace detail {
         [[nodiscard]] LIBASSERT_EXPORT
         std::string stringify_enum(std::string_view type_name, std::string_view underlying_value);
 
-        #if defined(LIBASSERT_USE_ENCHANTUM)
+        #if LIBASSERT_USE_ENCHANTUM
         template<enchantum::Enum E>
         LIBASSERT_ATTR_COLD [[nodiscard]] std::string stringify_enum(E e) {
             std::string_view name = enchantum::to_string(e);
@@ -260,7 +271,7 @@ namespace detail {
                 );
             }
         }
-        #elif defined(LIBASSERT_USE_MAGIC_ENUM)
+        #elif LIBASSERT_USE_MAGIC_ENUM
         template<typename T, typename std::enable_if_t<std::is_enum_v<strip<T>>, int> = 0>
         LIBASSERT_ATTR_COLD [[nodiscard]] std::string stringify_enum(const T& t) {
             std::string_view name = magic_enum::enum_name(t);
@@ -395,7 +406,7 @@ namespace detail {
         || (stringification::adl::is_container<T>::value && stringifiable_container<T>())
         || can_basic_stringify<T>::value
         || stringification::has_ostream_overload<T>::value
-        #ifdef LIBASSERT_USE_STD_FORMAT
+        #if LIBASSERT_USE_STD_FORMAT
         #if LIBASSERT_STD_VER >= 23
         || std::formattable<T, char> // preferred since this is stricter than the C++20 way of checking
                                      // and makes sure that the C++ community converges on how `std::formatter`
@@ -404,7 +415,7 @@ namespace detail {
         || requires { std::formatter<T>(); } // fallback for C++20
         #endif
         #endif
-        #ifdef LIBASSERT_USE_FMT
+        #if LIBASSERT_USE_FMT
         || fmt::is_formattable<T>::value
         #endif
         || stringifiable_container<T>();
@@ -542,7 +553,7 @@ namespace detail {
         } else if constexpr(stringification::has_ostream_overload<T>::value) {
             return stringification::stringify_by_ostream(v);
         }
-        #ifdef LIBASSERT_USE_STD_FORMAT
+        #if LIBASSERT_USE_STD_FORMAT
         #if LIBASSERT_STD_VER >= 23
         // preferred since this is stricter than the C++20 way of checking and makes sure that the
         // C++ community converges on how `std::formatter` should be used.
@@ -555,7 +566,7 @@ namespace detail {
         }
         #endif
         #endif
-        #ifdef LIBASSERT_USE_FMT
+        #if LIBASSERT_USE_FMT
         else if constexpr(fmt::is_formattable<T>::value) {
             return fmt::format("{}", v);
         }

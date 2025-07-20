@@ -13,14 +13,14 @@
 #include <vector>
 #include <type_traits>
 
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 
 #include "common.hpp"
 
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {
 
-#if 0    // this one is now publicly available via `assert.hpp`
+#if 0    // this one is now publicly available via `assert.h`
 
 	// Still present in release mode, nonfatal
     #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((c) || ::libassert::detail::primitive_assert_impl( \

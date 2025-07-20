@@ -3,6 +3,7 @@
 
 #define LIBASSERT_ASSERT_IS_EXPRESSION
 
+#define LIBASSERT_PREFIX_ASSERTIONS                1
 #include <cassert>
 
 #ifndef LIBASSERT_ASSERT
@@ -28,7 +29,9 @@ void cassert_include_expression_test(void) {
 
 	assert(f == 2.5f), assert(x > 5);
 
-	debug_assert(false);
+#if defined(debug_assert)
+	#error "debug_assert was NOT expected to be defined: LIBASSERT_LOWERCASE=0"
+#endif
 
 	LIBASSERT_ASSERT(x < 20, "foobar");
 }

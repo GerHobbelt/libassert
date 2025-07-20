@@ -8,7 +8,7 @@
 
 #include "utils.hpp"
 
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {

@@ -6,7 +6,7 @@
 import libassert;
 #include <libassert/assert-macros.hpp>
 #else
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 #endif
 
 #include "monolithic_examples.h"
@@ -32,12 +32,12 @@ extern "C"
 int main(void) {
     // pretty_type_name tests
     auto pretty_name = pretty_type_name<std::map<std::string, int>>();
-    DEBUG_ASSERT(pretty_name.find("basic_string") == std::string::npos);
-    DEBUG_ASSERT(pretty_name.find("allocator") == std::string::npos);
+    LIBASSERT_DEBUG_ASSERT(pretty_name.find("basic_string") == std::string::npos);
+	LIBASSERT_DEBUG_ASSERT(pretty_name.find("allocator") == std::string::npos);
     // stringification tests
-    DEBUG_ASSERT(stringify(12) == "12");
-    DEBUG_ASSERT(stringify('x') == "'x'");
-    DEBUG_ASSERT(
+	LIBASSERT_DEBUG_ASSERT(stringify(12) == "12");
+	LIBASSERT_DEBUG_ASSERT(stringify('x') == "'x'");
+	LIBASSERT_DEBUG_ASSERT(
         replace(
             replace(stringify(std::make_pair("foobar", 20)), "char const", "const char"),
             "char *",
