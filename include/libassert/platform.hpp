@@ -4,6 +4,16 @@
 // Copyright (c) 2021-2025 Jeremy Rifkin under the MIT license
 // https://github.com/jeremy-rifkin/libassert
 
+#if defined(_MSC_VER) && _MSC_VER >= 1929
+# include <corecrt.h>
+#endif
+
+#if defined(_MSC_VER) 
+#ifndef _CRT_PACKING 
+#define _CRT_PACKING 8
+#endif
+#endif // _MSC_VER
+
 #if defined __cplusplus
 
 #include <version>
@@ -300,15 +310,78 @@ LIBASSERT_END_NAMESPACE
 // auto-detect libraries to use, when those have not yet been forcibly specified by the user to use
 
 #if !defined(LIBASSERT_USE_MAGIC_ENUM) && defined(__has_include) && (__has_include(<magic_enum/magic_enum.hpp>) || __has_include(<magic_enum.hpp>))
-#define LIBASSERT_USE_MAGIC_ENUM
+#define LIBASSERT_USE_MAGIC_ENUM    1
 #endif
 
 #if !defined(LIBASSERT_USE_FMT) && !defined(LIBASSERT_USE_STD_FORMAT) && defined(__has_include) && __has_include(<fmt/format.h>)
-#define LIBASSERT_USE_FMT
+#define LIBASSERT_USE_FMT           1
 #endif
 
 #if !defined(LIBASSERT_NO_STD_FORMAT) && !defined(LIBASSERT_USE_FMT) && !defined(LIBASSERT_USE_STD_FORMAT) && defined(__has_include) && __has_include(<format.h>) && defined(__cpp_lib_format)
-#define LIBASSERT_USE_STD_FORMAT
+#define LIBASSERT_USE_STD_FORMAT    1
 #endif
+
+// ----------------------------------------------------------------------------------------------
+
+#if !defined(LIBASSERT_BEGIN_C_HEADER) && !defined(LIBASSERT_END_C_HEADER)
+
+// All C headers have a common prologue and epilogue, to enclose the header in
+// an extern "C" declaration when the header is #included in a C++ translation
+// unit and to push/pop the packing.
+#if defined __cplusplus
+
+#if defined(_MSC_VER) 
+
+#define LIBASSERT_BEGIN_C_HEADER										\
+        __pragma(pack(push, _CRT_PACKING))						\
+        extern "C" {
+
+#define LIBASSERT_END_C_HEADER										\
+        }														\
+        __pragma(pack(pop))
+
+#else
+
+#define LIBASSERT_BEGIN_C_HEADER										\
+        extern "C" {
+
+#define LIBASSERT_END_C_HEADER										\
+        }														
+
+#endif
+
+#else    // __cplusplus
+
+#if defined(_MSC_VER) 
+
+#define LIBASSERT_BEGIN_C_HEADER										\
+        __pragma(pack(push, _CRT_PACKING))
+
+#define LIBASSERT_END_C_HEADER										\
+        __pragma(pack(pop))
+
+#else
+
+#define LIBASSERT_BEGIN_C_HEADER										
+
+#define LIBASSERT_END_C_HEADER										
+
+#endif
+
+#endif
+
+#endif // !defined(LIBASSERT_BEGIN_C_HEADER) && !defined(LIBASSERT_END_C_HEADER)
+
+/*
+Usage:
+
+```
+LIBASSERT_BEGIN_C_HEADER
+
+void __cdecl fz_sysassert(const char * _Message, const char * _File, const char * _Function, unsigned int _Line);
+
+LIBASSERT_END_C_HEADER
+```
+*/
 
 #endif
