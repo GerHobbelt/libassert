@@ -11,6 +11,33 @@
 
 <p align="center">The most over-engineered C++ assertion library</p>
 
+
+
+
+## Important Notice
+
+*This* is a **simplified incantation** of `libassert`, meant to serve both C++ and C targets, PLUS act as a system-header `assert.h` replacement.
+
+Some codebases out there expect `assert()` to be an *expression* rather than a *statement* -- so they can drop `assert()` expressions into 
+comma-separated compound return value expressions and the like -- but we DO NOT condone that type of coding out of the box: 
+this 'feature' will only be available when a special `#define` is set at build time!
+
+This simplified incantation *currently* DOES NOT include argument evaluation of the left and right side partial expressions of 
+the evaluated assertion expression. 
+We MAY re-introduce that feature at a later date, at least for C++, but right now we're more interested in robustness and *parity* 
+in behaviour when used in a C++ or C setting.
+
+This simplified incantation *currently* supports appending an arbitrary message argument list in both C and C++ usage patterns, BUT both
+differ in their format strings: C++ uses the famous `fmt` library (or `std::format`), while the C variant expects a `printf()` format instead.
+
+
+
+
+
+
+
+
+
 ## Table of Contents: <!-- omit in toc -->
 
 - [30-Second Overview](#30-second-overview)
