@@ -68,9 +68,9 @@ struct only_move_constructable {
 extern "C"
 int main(void) {
     // test rvalue
-    {
-        decltype(auto) a = DEBUG_ASSERT_VAL(only_move_constructable(2) == 2);
-        static_assert(std::is_same<decltype(a), only_move_constructable>::value);
+	{
+		decltype(auto) a = DEBUG_ASSERT_VAL(only_move_constructable(2) == 2);
+		static_assert(std::is_same<decltype(a), only_move_constructable>::value);
 		auto t1 = (only_move_constructable(2) == 2);
 		auto t2 = only_move_constructable(2);
 		assert(!is_lvalue(t2));

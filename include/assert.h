@@ -7,10 +7,11 @@
 // *implicit* conversion to boolean (i.e. implicit non-null test) SHOULD cause a compiler error!
 //
 
-// NOTE: no include guard
+// ----------------------------------------------------------------------
+// WARNING: No include guard. This was done intentionally. See below.
+// ----------------------------------------------------------------------
 
 #undef assert
 
 #define LIBASSERT_OFFER_SYSTEM_ASSERT_REPLACEMENT    1
 #include <libassert/assert.h>
-

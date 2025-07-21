@@ -67,11 +67,11 @@
 // everything helps here!
 // 
 
-#ifdef LIBASSERT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS
+#if LIBASSERT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS
 
 #if defined __cplusplus
 
-#if defined(__cpp_lib_remove_cvref) && (__cplusplus >= 201703L) && 0
+#if defined(__cpp_lib_remove_cvref) && (__cplusplus >= 201703L)
 
 #define LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr) \
 	static_assert(std::is_same_v<std::remove_cvref_t<decltype(expr)>, bool>, \

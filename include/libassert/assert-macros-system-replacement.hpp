@@ -1,5 +1,6 @@
-#ifndef LIBASSERT_MACROS_SYSTEM_OVERRIDE_HPP
-#define LIBASSERT_MACROS_SYSTEM_OVERRIDE_HPP
+// ----------------------------------------------------------------------
+// WARNING: No include guard. This was done intentionally. See below.
+// ----------------------------------------------------------------------
 
 // Copyright (c) 2021-2025 Jeremy Rifkin under the MIT license
 // https://github.com/jeremy-rifkin/libassert
@@ -27,7 +28,7 @@
 // can be incorporated inside a comma-separated expression statement.
 #if !defined(LIBASSERT_ASSERT_IS_EXPRESSION)
 #ifndef NDEBUG
-#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion __VA_OPT__(,) __VA_ARGS__)
+#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, LIBASSERT_EMPTY_ACTION __VA_OPT__(,) __VA_ARGS__)
 #else
 #define assert(expr, ...) LIBASSERT_NOOP_STATEMENT()
 #endif
@@ -46,20 +47,23 @@
 // can be incorporated inside a comma-separated expression statement.
 #if !defined(LIBASSERT_ASSERT_IS_EXPRESSION)
 #ifndef NDEBUG
-#define assert(expr) LIBASSERT_INVOKE(expr, "assert", assertion, LIBASSERT_EMPTY_ACTION, "(assertion failed)")
+#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, LIBASSERT_EMPTY_ACTION __VA_OPT__(,) __VA_ARGS__)
 #else
-#define assert(expr) LIBASSERT_NOOP_STATEMENT()
+#define assert(expr, ...) LIBASSERT_NOOP_STATEMENT()
 #endif
 #else
 #ifndef NDEBUG
-#define assert(expr) LIBASSERT_INVOKE_EXPRESSION(expr, "assert", assertion, "(assertion failed)")
+#define assert(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "assert_simple", assertion __VA_OPT__(,) __VA_ARGS__)
 #else
-#define assert(expr) LIBASSERT_NOOP_EXPRESSION()
+#define assert(expr, ...) LIBASSERT_NOOP_EXPRESSION()
 #endif
 #endif
 
 #endif // __cplusplus
 
+#else // LIBASSERT_LOWERCASE
+
+#pragma message(LIBASSERT_PM_REMINDER "libassert NOTICE: assert() system macros are NOT defined/overriden by libassert as neither LIBASSERT_LOWERCASE nor LIBASSERT_OFFER_SYSTEM_ASSERT_REPLACEMENT are set.")
+
 #endif // LIBASSERT_LOWERCASE
 
-#endif // LIBASSERT_MACROS_SYSTEM_OVERRIDE_HPP

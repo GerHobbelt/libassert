@@ -14,6 +14,8 @@
 #endif
 #endif // _MSC_VER
 
+#include <libassert/pragma_message_helper.h>
+
 #if defined __cplusplus
 
 #include <version>

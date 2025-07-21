@@ -2,6 +2,7 @@
 #define LIBASSERT_UTILITIES_HPP
 
 #include <libassert/config.h>
+#include <libassert/platform.hpp>
 
 #if defined __cplusplus
 
@@ -9,9 +10,19 @@
 #include <string>
 #include <string_view>
 
-#endif // __cplusplus
+#if LIBASSERT_USE_FMT && !LIBASSERT_USE_STD_FORMAT
+#include <fmt/format.h>
+#endif
 
-#include <libassert/platform.hpp>
+#if LIBASSERT_STD_VER >= 20
+#include <compare>
+#endif
+
+#if LIBASSERT_USE_STD_FORMAT && !LIBASSERT_USE_FMT
+#include <format>
+#endif
+
+#endif // __cplusplus
 
 #if defined __cplusplus
 
@@ -297,15 +308,58 @@ LIBASSERT_END_NAMESPACE
 
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {
-	LIBASSERT_EXPORT void libassert_detail_primitive_assert_implpp(::libassert::assert_type mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const char *message);
+	LIBASSERT_EXPORT void libassert_detail_primitive_assert_implpp(::libassert::assert_type mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const std::string &formatted_message);
+
+	/**
+	 * Formats `args` according to specifications in `fmt` and returns the result
+	 * as a string.
+	 *
+	 * **Example**:
+	 *
+	 *     #include <fmt/format.h>
+	 *     std::string message = fmt::format("The answer is {}.", 42);
+	 */
+	template <typename... T>
+	FMT_INLINE auto format(::fmt::format_string<T...> fmt, T&&... args)
+		-> std::string {
+		return ::fmt::vformat(fmt.str, fmt::vargs<T...>{{args...}});
+	}
+
+	template <typename... T>
+	FMT_INLINE auto format()
+		-> std::string {
+		return {};
+	}
+
+	template <typename... T>
+	FMT_INLINE auto format(const char *str)
+		-> std::string {
+		return {str};
+	}
+
+	template <typename... T>
+	FMT_INLINE auto format(const std::string &str)
+		-> std::string {
+		return str;
+	}
 }
 LIBASSERT_END_NAMESPACE
 
 #else
 
-LIBASSERT_EXPORT void libassert_detail_primitive_assert_impl(libassert_assert_type_t mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const char *message);
+LIBASSERT_EXPORT void libassert_detail_primitive_assert_impl(libassert_assert_type_t mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const char *message, ...);
 
 #endif // __cplusplus
+
+
+#if defined __cplusplus
+extern "C" {
+#endif 
+LIBASSERT_EXPORT int libassert_asprintf(char **ret, const char *format, ...);
+LIBASSERT_EXPORT int libassert_vasprintf(char **ret, const char *format, va_list ap);
+#if defined __cplusplus
+}
+#endif
 
 #endif
 

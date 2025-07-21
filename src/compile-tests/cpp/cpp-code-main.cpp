@@ -3,9 +3,7 @@
 
 #include <libassert/assert.h>
 
-#include "c-code-test.h"
-
-#include "monolithic_examples.h"
+#include "compile-tests/code-compile-testset.h"
 
 #ifndef FALSE
 #define FALSE 0
@@ -17,11 +15,7 @@ static float foo(void) {
 	return 2.5f;
 }
 
-#if defined(BUILD_MONOLITHIC)
-#define main    assert_c_code_test_main
-#endif
-
-int main(void) {
+int assert_c_code_test(void) {
 	int x = 4;
 	LIBASSERT_DEBUG_ASSERT(x % 2 == 0);
 	LIBASSERT_ASSERT(1 + 1 != 3);
@@ -36,12 +30,6 @@ int main(void) {
 	LIBASSERT_ASSERT(x < 20, "foobar");
 
 	ASSERT_EQ(1, 2);
-
-	assert_h_include_test();
-	cassert_include_test();
-
-	assert_h_include_primitive_test();
-	cassert_include_primitive_test();
 
 	return 0;
 }

@@ -242,11 +242,11 @@ namespace detail {
 		setup_handler_for_uncaught_exceptions(generic_handler_for_uncaught_exceptions);
 	}
 
-	LIBASSERT_EXPORT void libassert_detail_primitive_assert_implpp(::libassert::assert_type mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const char *message) {
+	LIBASSERT_EXPORT void libassert_detail_primitive_assert_implpp(::libassert::assert_type mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const std::string &formatted_message) {
 		using namespace ::libassert;
 
 		source_location location{function, file, line};
-		detail::primitive_assert_impl(mode, expr, signature, location, message);
+		detail::primitive_assert_impl(mode, expr, signature, location, formatted_message.empty() ? nullptr : formatted_message.c_str());
 	}
 
 }

@@ -44,7 +44,7 @@
 #include <libassert/expression-decomposition.hpp>
 #include <libassert/assert-macros.hpp>
 
-#ifndef LIBASSERT_NO_STACKTRACE
+#if LIBASSERT_NO_STACKTRACE
 
 #if defined __cplusplus
 
@@ -476,6 +476,23 @@ namespace detail {
         // send off
         fail(info);
     }
+
+	template<typename... Args>
+	LIBASSERT_ATTR_COLD LIBASSERT_ATTR_NOINLINE
+		// TODO: Re-evaluate forwarding here.
+		void process_assert_fail_primitive(
+			const assert_static_parameters* params,
+			// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
+			Args&&... args
+		) {
+		const size_t sizeof_extra_diagnostics = sizeof...(args) - 1; // - 1 for pretty function signature
+		LIBASSERT_PRIMITIVE_DEBUG_ASSERT(sizeof...(args) <= params->args_strings.size);
+		assertion_info info(params, detail::generate_trace(), sizeof_extra_diagnostics);
+		// process_args fills in the message, extra_diagnostics, and pretty_function
+		process_args(info, params->args_strings, args...);
+		// send off
+		fail(info);
+	}
 
     template<typename... Args>
     LIBASSERT_ATTR_COLD [[noreturn]] LIBASSERT_ATTR_NOINLINE

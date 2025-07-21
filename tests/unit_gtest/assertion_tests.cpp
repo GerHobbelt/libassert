@@ -1,4 +1,4 @@
-#undef LIBASSERT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS
+#define LIBASSERT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS      0
 #include <gtest/gtest.h>
 
 #include "utils.hpp"

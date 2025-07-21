@@ -52,6 +52,14 @@
 #define LIBASSERT_PREFIX_ASSERTIONS                 0 // default, if you haven't overriden it already
 #endif
 
+#ifndef LIBASSERT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS
+#define LIBASSERT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS   0 // default, if you haven't overriden it already
+#endif
+
+#ifndef LIBASSERT_NO_STACKTRACE
+#define LIBASSERT_NO_STACKTRACE                     0 // default, if you haven't overriden it already
+#endif
+
 //
 // Here we make sure each configuration parameter is either 0 or 1.
 //
@@ -97,7 +105,7 @@
 
 #if (~ LIBASSERT_USE_ENCHANTUM +1) == -2
 #undef LIBASSERT_USE_ENCHANTUM
-#define LIBASSERT_USE_ENCHANTUM                    1
+#define LIBASSERT_USE_ENCHANTUM                     1
 #endif
 
 #if (~ LIBASSERT_USE_MAGIC_ENUM +1) == -2
@@ -135,18 +143,28 @@
 #define LIBASSERT_PREFIX_ASSERTIONS                 1
 #endif
 
+#if (~ LIBASSERT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS +1) == -2
+#undef LIBASSERT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS
+#define LIBASSERT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS   1
+#endif
 
-// sanity check: can't have both of these: pick the std::format system-provided one over {fmt}!
+#if (~ LIBASSERT_NO_STACKTRACE +1) == -2
+#undef LIBASSERT_NO_STACKTRACE
+#define LIBASSERT_NO_STACKTRACE                     1
+#endif
+
+
+// sanity checks: can't have both of these: pick the std::format system-provided one over {fmt}!
+
 #if LIBASSERT_USE_FMT && LIBASSERT_USE_STD_FORMAT
 #undef LIBASSERT_USE_FMT
-#define LIBASSERT_USE_FMT   0
+#define LIBASSERT_USE_FMT                           0
 #endif
 
 #if LIBASSERT_USE_ENCHANTUM && LIBASSERT_USE_MAGIC_ENUM
 #undef LIBASSERT_USE_MAGIC_ENUM
-#define LIBASSERT_USE_MAGIC_ENUM   0
+#define LIBASSERT_USE_MAGIC_ENUM                    0
 #endif
-
 
 //-----------------------------------------------------------------------------------------------------
 
