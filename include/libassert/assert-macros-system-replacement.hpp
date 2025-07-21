@@ -5,16 +5,12 @@
 // Copyright (c) 2021-2025 Jeremy Rifkin under the MIT license
 // https://github.com/jeremy-rifkin/libassert
 
-#pragma message("D")
-
 #include <libassert/config.h>
 #include <libassert/assert-macros.hpp>
 
 // Intentionally done outside the include guard. Libc++ leaks `assert` (among other things), so the include for
 // assert.hpp should go after other includes when using -DLIBASSERT_LOWERCASE.
 #if LIBASSERT_LOWERCASE || defined(LIBASSERT_OFFER_SYSTEM_ASSERT_REPLACEMENT)
-
-#pragma message("E")
 
  #ifdef assert
   #undef assert
@@ -26,8 +22,6 @@
 
 
 #if defined __cplusplus
-
-#pragma message("F")
 
 // assert() must act like it's an expression type, rather than a statement type.
 // Some libraries' assertions depend on this behaviour, where the assert() macro
@@ -47,8 +41,6 @@
 #endif
 
 #else // __cplusplus
-
-#pragma message("G")
 
 // assert() must act like it's an expression type, rather than a statement type.
 // Some libraries' assertions depend on this behaviour, where the assert() macro

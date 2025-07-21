@@ -4,8 +4,6 @@
 // Copyright (c) 2021-2025 Jeremy Rifkin under the MIT license
 // https://github.com/jeremy-rifkin/libassert
 
-#pragma message("B")
-
 #include <libassert/config.h>
 
 #if defined __cplusplus
@@ -574,16 +572,11 @@ LIBASSERT_END_NAMESPACE
 #include <libassert/assert-macros-non-prefixed.hpp>
 #include <libassert/assert-macros-lowercase.hpp>
 
-#pragma message("C")
-
-#include <libassert/assert-macros-system-replacement.hpp>
-
 #endif // LIBASSERT_MAIN_H
 
 // -----------------------------------------------------------------------------------------------------------------------------------------
 // WARNING: No include guard here. This was done intentionally. GLibc and others 'leak' assert() macro re-definitions, which we aim to override!
 // -----------------------------------------------------------------------------------------------------------------------------------------
 
-#pragma message("Z")
-
 #include <libassert/assert-macros-system-replacement.hpp>
+
