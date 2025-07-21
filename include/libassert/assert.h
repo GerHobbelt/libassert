@@ -4,6 +4,8 @@
 // Copyright (c) 2021-2025 Jeremy Rifkin under the MIT license
 // https://github.com/jeremy-rifkin/libassert
 
+#pragma message("B")
+
 #include <libassert/config.h>
 
 #if defined __cplusplus
@@ -25,12 +27,7 @@
 #include <libassert/utilities.hpp>
 
 #include <libassert/expression-typecheck.hpp>
-
-// When we include magic_enum, et al, we need an "early" version of the LIBASSERT_INVOKE macro for the preprocessor to expand
-// the assertion statements in those library header files while we load them from stringification.hpp.
-
-#define LIBASSERT_INVOKE(expr, name, type, failaction, ...) \
-    LIBASSERT_PRIMITIVE_ASSERT(expr, __VA_ARGS__)
+#include <libassert/precursor_macros.hpp>
 
 #define LIBASSERT_NOOP_STATEMENT() \
 	do { \
@@ -576,6 +573,17 @@ LIBASSERT_END_NAMESPACE
 
 #include <libassert/assert-macros-non-prefixed.hpp>
 #include <libassert/assert-macros-lowercase.hpp>
+
+#pragma message("C")
+
 #include <libassert/assert-macros-system-replacement.hpp>
 
 #endif // LIBASSERT_MAIN_H
+
+// -----------------------------------------------------------------------------------------------------------------------------------------
+// WARNING: No include guard here. This was done intentionally. GLibc and others 'leak' assert() macro re-definitions, which we aim to override!
+// -----------------------------------------------------------------------------------------------------------------------------------------
+
+#pragma message("Z")
+
+#include <libassert/assert-macros-system-replacement.hpp>
