@@ -63,7 +63,9 @@
 
 #else // LIBASSERT_LOWERCASE
 
+#if 0
 #pragma message(LIBASSERT_PM_REMINDER "libassert NOTICE: assert() system macros are NOT defined/overriden by libassert as neither LIBASSERT_LOWERCASE nor LIBASSERT_OFFER_SYSTEM_ASSERT_REPLACEMENT are set.")
+#endif
 
 #endif // LIBASSERT_LOWERCASE
 
