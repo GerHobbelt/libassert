@@ -21,7 +21,7 @@ void assert_h_include_expression_test(void) {
 	LIBASSERT_DEBUG_ASSERT(x % 2 == 0, "(msg)");
 	LIBASSERT_ASSERT(1 + 1 != 3, "(msg)");
 
-	LIBASSERT_DEBUG_ASSERT_VAL(foo());
+	LIBASSERT_DEBUG_ASSERT(foo());
 
 	assert(foo() == 2.5f);
 

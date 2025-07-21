@@ -95,47 +95,25 @@ namespace detail {
     // always_false is just convenient to use here
     #define LIBASSERT_PHONY_USE(E) ((void)::libassert::detail::always_false<decltype(E)>)
 
-#if !LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
-
-    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((!!(c)) || (::libassert::detail::primitive_assert_impl( \
-        ::libassert::assert_type::assertion, \
-        #c, \
-        "" LIBASSERT_PFUNC, \
-        {} LIBASSERT_VA_ARGS(__VA_ARGS__) \
+    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((!!(c)) || ( \
+		(void)::libassert::detail::libassert_detail_primitive_assert_implpp( \
+				::libassert::assert_type::assertion, \
+				#c, \
+				"primitive_assert", __FILE__, __LINE__, LIBASSERT_PFUNC, \
+				::libassert::detail::format(__VA_ARGS__) \
     ), 0)))
     
     #ifndef NDEBUG
-	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) ((void)((!!(c)) || (::libassert::detail::primitive_assert_impl( \
-        ::libassert::assert_type::debug_assertion, \
-        #c, \
-        "" LIBASSERT_PFUNC, \
-        {} LIBASSERT_VA_ARGS(__VA_ARGS__) \
+	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) ((void)((!!(c)) || ( \
+		(void)::libassert::detail::libassert_detail_primitive_assert_implpp( \
+				::libassert::assert_type::debug_assertion, \
+				#c, \
+				"primitive_debug_assert", __FILE__, __LINE__, LIBASSERT_PFUNC, \
+				::libassert::detail::format(__VA_ARGS__) \
     ), 0)))
     #else
      #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) LIBASSERT_PHONY_USE(c)
     #endif
-
-#else // !LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
-
-    #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((!!(c)) || (::libassert::detail::primitive_assert_impl( \
-        ::libassert::assert_type::assertion, \
-        #c, \
-        "" LIBASSERT_PFUNC, \
-        {}, LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
-    ), 0)))
-    
-    #ifndef NDEBUG
-	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) ((void)((!!(c)) || (::libassert::detail::primitive_assert_impl( \
-        ::libassert::assert_type::debug_assertion, \
-        #c, \
-        "" LIBASSERT_PFUNC, \
-        {}, LIBASSERT_BASIC_STRINGIFY(LIBASSERT_VA_ARGS(__VA_ARGS__)) \
-    ), 0)))
-    #else
-     #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) LIBASSERT_PHONY_USE(c)
-    #endif
-
-#endif // !LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
 
     #define LIBASSERT_PRIMITIVE_PANIC(message) ::libassert::detail::primitive_panic_impl(LIBASSERT_PFUNC, {}, message)
 }
@@ -284,19 +262,21 @@ LIBASSERT_END_NAMESPACE
 
 #else // __cplusplus
 
-    #define LIBASSERT_PRIMITIVE_ASSERT(expr, ...) ((void)((!!(expr)) || (libassert_detail_primitive_assert_impl( \
-        libassert_assertion_type, \
-        #expr, \
-        "primitive_assert", __FILE__, __LINE__, LIBASSERT_PFUNC  \
-        LIBASSERT_VA_ARGS(__VA_ARGS__) \
+    #define LIBASSERT_PRIMITIVE_ASSERT(expr, ...) ((void)((!!(expr)) || ( \
+		(void)libassert_detail_primitive_assert_impl( \
+				libassert_assertion_type, \
+				#expr, \
+				"primitive_assert", __FILE__, __LINE__, LIBASSERT_PFUNC  \
+				__VA_OPT__(,) __VA_ARGS__, NULL \
     ), 0)))
     
     #ifndef NDEBUG
-	 #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(expr, ...) ((void)((!!(expr)) || (libassert_detail_primitive_assert_impl( \
-        libassert_debug_assertion_type, \
-        #expr, \
-        "primitive_debug_assert", __FILE__, __LINE__, LIBASSERT_PFUNC  \
-        LIBASSERT_VA_ARGS(__VA_ARGS__) \
+	 #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(expr, ...) ((void)((!!(expr)) || ( \
+		(void)libassert_detail_primitive_assert_impl( \
+				libassert_debug_assertion_type, \
+				#expr, \
+				"primitive_debug_assert", __FILE__, __LINE__, LIBASSERT_PFUNC  \
+				__VA_OPT__(,) __VA_ARGS__, NULL \
      ), 0)))
     #else
      #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) LIBASSERT_PHONY_USE(c)

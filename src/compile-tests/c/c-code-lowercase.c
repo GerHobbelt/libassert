@@ -5,8 +5,6 @@
 
 #include "compile-tests/code-compile-testset.h"
 
-#include "monolithic_examples.h"
-
 #ifndef FALSE
 #define FALSE 0
 #endif
@@ -17,14 +15,10 @@ static float foo(void) {
 	return 2.5f;
 }
 
-#if defined(BUILD_MONOLITHIC)
-#define main    assert_c_code_primitive_test_main
-#endif
-
-int main(void) {
+void assert_c_code_lowewrcase_test(void) {
 	int x = 4;
-	DEBUG_ASSERT(x % 2 == 0, "(msg)");
-	ASSERT(1 + 1 != 3, "(msg)");
+	LIBASSERT_DEBUG_ASSERT(x % 2 == 0, "(msg)");
+	LIBASSERT_ASSERT(1 + 1 != 3, "(msg)");
 
 	assert(foo() == 2.5f);
 
@@ -33,16 +27,5 @@ int main(void) {
 	LIBASSERT_ASSERT(x < 20, "foobar");
 
 	ASSERT_EQ(1, 2);
-
-	assert_h_include_test();
-	cassert_include_test();
-
-	assert_h_include_primitive_test();
-	cassert_include_primitive_test();
-
-	assert_h_include_expression_test();
-	cassert_include_expression_test();
-
-	return 0;
 }
 

@@ -19,7 +19,7 @@ void cassert_include_test(void) {
 	LIBASSERT_DEBUG_ASSERT(x % 2 == 0);
 	LIBASSERT_ASSERT(1 + 1 != 3);
 
-	float f = LIBASSERT_DEBUG_ASSERT_VAL(foopp());
+	float f = foopp();
 	assert(f == 2.5f);
 
 	LIBASSERT_DEBUG_ASSERT(false);

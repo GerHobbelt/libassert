@@ -35,10 +35,12 @@ static float fooc(void) {
 
 void libassert_ct_assert_h_primitive_style_test(void) {
 	int x = 4;
-	assert(x % 2 == 0);
-	assert(1 + 1 != 3);
+	LIBASSERT_PRIMITIVE_ASSERT(x % 2 == 0);
+	LIBASSERT_PRIMITIVE_DEBUG_ASSERT(1 + 1 != 3);
+	LIBASSERT_ASSERT(x % 5 == 0);
+	LIBASSERT_DEBUG_ASSERT(1 + 7 != 9);
 
-	float f = /* LIBASSERT_DEBUG_ASSERT_VAL */ (fooc());
+	float f = fooc();
 	assert(f == 2.5f);
 
 	assert(!!0);

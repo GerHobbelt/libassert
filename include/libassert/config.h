@@ -197,9 +197,3 @@
 
 //  #define LIBASSERT_UNREACHABLE(...)                           LIBASSERT_INVOKE_PANIC("UNREACHABLE", unreachable, __VA_ARGS__)
 
-//  #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...)                LIBASSERT_INVOKE_VAL(expr, true, true, "DEBUG_ASSERT_VAL", debug_assertion, , __VA_ARGS__)
-
-// #define LIBASSERT_ASSUME_VAL(expr, ...)                       LIBASSERT_INVOKE_VAL(expr, true, true, "ASSUME_VAL", assumption, LIBASSERT_ASSUME_ACTION, __VA_ARGS__)
-
-// #define LIBASSERT_ASSERT_VAL(expr, ...)                       LIBASSERT_INVOKE_VAL(expr, true, true, "ASSERT_VAL", assertion, , __VA_ARGS__)
-

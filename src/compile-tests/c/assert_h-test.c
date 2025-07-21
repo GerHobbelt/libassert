@@ -36,7 +36,7 @@ void libassert_ct_assert_h_include_test(void) {
 	assert(x % 2 == 0);
 	assert(1 + 1 != 3);
 
-	float f = /* LIBASSERT_DEBUG_ASSERT_VAL */ (fooc());
+	float f = fooc();
 	assert(f == 2.5f);
 
 	assert(!!0);

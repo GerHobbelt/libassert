@@ -604,7 +604,8 @@ LIBASSERT_BEGIN_NAMESPACE
         }
     }
 
-    LIBASSERT_ATTR_COLD const cpptrace::raw_trace& assertion_info::get_raw_trace() const {
+#ifdef HAVE_CPPTRACE_HPP
+	LIBASSERT_ATTR_COLD const cpptrace::raw_trace& assertion_info::get_raw_trace() const {
         LIBASSERT_PRIMITIVE_ASSERT(trace != nullptr);
         return trace->get_raw_trace();
     }
@@ -613,6 +614,7 @@ LIBASSERT_BEGIN_NAMESPACE
         LIBASSERT_PRIMITIVE_ASSERT(trace != nullptr);
         return trace->get_stacktrace();
     }
+#endif // HAVE_CPPTRACE_HPP
 
     std::string assertion_info::header(int width, const color_scheme& scheme) const {
         return tagline(scheme)

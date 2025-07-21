@@ -1,8 +1,4 @@
 
-#define LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS      1
-//#define LIBASSERT_PREFIX_ASSERTIONS                  1
-//#define LIBASSERT_LOWERCASE                          1
-
 #include <libassert/assert.h>
 
 #include "compile-tests/code-compile-testset.h"
@@ -17,12 +13,12 @@ static float foo(void) {
 	return 2.5f;
 }
 
-void assert_c_code_primitive_style_test(void) {
+void assert_c_code_test(void) {
 	int x = 4;
-	LIBASSERT_DEBUG_ASSERT(x % 2 == 0, "(msg)");
-	LIBASSERT_ASSERT(1 + 1 != 3, "(msg)");
+	LIBASSERT_DEBUG_ASSERT(x % 2 == 0);
+	LIBASSERT_ASSERT(1 + 1 != 3);
 
-	int a = (LIBASSERT_DEBUG_ASSERT(foo()), LIBASSERT_DEBUG_ASSERT(x > 7), 11);
+	LIBASSERT_DEBUG_ASSERT(foo());
 
 	LIBASSERT_ASSERT(foo() == 2.5f);
 
@@ -30,6 +26,6 @@ void assert_c_code_primitive_style_test(void) {
 
 	LIBASSERT_ASSERT(x < 20, "foobar");
 
-	ASSERT_EQ(a, x);
+	ASSERT_EQ(1, 2);
 }
 

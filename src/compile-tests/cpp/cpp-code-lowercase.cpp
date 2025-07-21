@@ -16,14 +16,13 @@ static float foo(void) {
 	return 2.5f;
 }
 
-int assert_c_code_primitive_test(void) {
+void assert_c_code_lowercase_test(void) {
 	int x = 4;
 	LIBASSERT_DEBUG_ASSERT(x % 2 == 0, "(msg)");
 	LIBASSERT_ASSERT(1 + 1 != 3, "(msg)");
 
-#if 0
-	LIBASSERT_DEBUG_ASSERT_VAL(foo());
-#endif
+	LIBASSERT_DEBUG_ASSERT(foo());
+
 	assert(foo() == 2.5f);
 
 	debug_assert(FALSE, "(msg)");
@@ -31,7 +30,5 @@ int assert_c_code_primitive_test(void) {
 	LIBASSERT_ASSERT(x < 20, "foobar");
 
 	ASSERT_EQ(1, 2);
-
-	return 0;
 }
 
