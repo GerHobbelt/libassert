@@ -28,7 +28,7 @@ namespace detail {
 			const char* expression,
 			const char* signature,
 			source_location location,
-			const char* message
+			const std::string &message
 		) {
 		// Make sure a catcher for uncaught exceptions is always available: either the application-specified one, or ours!
 		setup_default_handler_for_uncaught_exceptions();
@@ -44,8 +44,7 @@ namespace detail {
 		set_message(info, message);
 
 		// send off
-		fail(info);
-		if (info.type != assert_type::debug_assertion) {
+		if (fail(info)) {
 			LIBASSERT_PRIMITIVE_PANIC("PANIC/UNREACHABLE failure handler returned");
 		}
 	}
@@ -70,7 +69,7 @@ namespace detail {
 		set_message(info, message);
 
 		// send off
-		fail(info);
+		(void)fail(info); // when we invoke a panic, it IS a panic, no matter what the fail() internals decide it *might have been* otherwise.
 
 #if 0
 		// warning C4717: 'libassert::v1::detail::primitive_panic_impl': recursive on all control paths, function will cause runtime stack overflow
@@ -246,7 +245,7 @@ namespace detail {
 		using namespace ::libassert;
 
 		source_location location{function, file, line};
-		detail::primitive_assert_impl(mode, expr, signature, location, formatted_message.empty() ? nullptr : formatted_message.c_str());
+		detail::primitive_assert_impl(mode, expr, signature, location, formatted_message);
 	}
 
 }

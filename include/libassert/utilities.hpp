@@ -83,7 +83,7 @@ namespace detail {
         const char* expression,
         const char* signature,
         source_location location,
-        const char* message = nullptr
+        const std::string &message
     );
 
     [[noreturn]] LIBASSERT_EXPORT void primitive_panic_impl (

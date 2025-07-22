@@ -194,9 +194,9 @@ LIBASSERT_BEGIN_NAMESPACE
 
 	struct assertion_info;
 
-    LIBASSERT_EXPORT void default_failure_handler(const assertion_info& info);
+    LIBASSERT_EXPORT bool default_failure_handler(const assertion_info& info);
 
-    using handler_ptr = void(*)(const assertion_info&);
+    using handler_ptr = bool (*)(const assertion_info&); // see fail() for the meaning of this one's return value.
     LIBASSERT_EXPORT handler_ptr get_failure_handler();
     LIBASSERT_EXPORT void set_failure_handler(handler_ptr handler);
 
@@ -428,7 +428,7 @@ LIBASSERT_END_NAMESPACE
 
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {
-    LIBASSERT_EXPORT void fail(const assertion_info& info);
+    LIBASSERT_EXPORT bool fail(const assertion_info& info);   // returns TRUE when this is a panic, i.e. FALSE --> continue executing the application; TRUE --> trigger a PANIC call.
 
     template<typename A, typename B, typename C, typename... Args>
     LIBASSERT_ATTR_COLD LIBASSERT_ATTR_NOINLINE
