@@ -253,7 +253,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 #if LIBASSERT_BREAK_ON_FAIL
  #define LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL() LIBASSERT_BREAKPOINT_IF_DEBUGGING()
 #else
- #define LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL()
+ #define LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL() ((void)0)
 #endif
 
 #if !LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS
@@ -510,7 +510,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 #define LIBASSERT_INVOKE_EXPRESSION(expr, name, type, ...) \
         (static_cast<bool>(expr) ? \
 		((void)0) : \
-		(libassert_breakpoint_if_debugger_present(), \
+		( LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(), \
 		(void)::libassert::detail::libassert_detail_primitive_assert_implpp( \
 				::libassert::assert_type::type, \
 				#expr, \
@@ -525,7 +525,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 #define LIBASSERT_INVOKE_EXPRESSION(expr, name, type, ...) \
         (!!(expr) ? \
 		((void)0) : \
-		(libassert_breakpoint_if_debugger_present(), \
+		( LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(), \
 		(void)libassert_detail_primitive_assert_impl( \
 				libassert_## type ##_type, \
 				#expr, \
