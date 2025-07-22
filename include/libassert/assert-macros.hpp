@@ -203,9 +203,9 @@ LIBASSERT_END_NAMESPACE
 #if defined __cplusplus
 
 #if LIBASSERT_IS_MSVC
-#define LIBASSERT_INVOKE_VAL_PRETTY_FUNCTION_ARG ,libassert::detail::pretty_function_name_wrapper{libassert_msvc_pfunc}
+ #define LIBASSERT_INVOKE_VAL_PRETTY_FUNCTION_ARG ,libassert::detail::pretty_function_name_wrapper{libassert_msvc_pfunc}
 #else
-#define LIBASSERT_INVOKE_VAL_PRETTY_FUNCTION_ARG ,libassert::detail::pretty_function_name_wrapper{LIBASSERT_PFUNC}
+ #define LIBASSERT_INVOKE_VAL_PRETTY_FUNCTION_ARG ,libassert::detail::pretty_function_name_wrapper{LIBASSERT_PFUNC}
 #endif
 #define LIBASSERT_PRETTY_FUNCTION_ARG ,libassert::detail::pretty_function_name_wrapper{LIBASSERT_PFUNC}
 
@@ -498,62 +498,8 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 #else // __cplusplus
 
 #define LIBASSERT_INVOKE_VAL(expr, doreturn, check_expression, name, type, failaction, ...) \
-    /* must push/pop out here due to nasty clang bug https://github.com/llvm/llvm-project/issues/63897 */ \
-    /* must do awful stuff to workaround differences in where gcc and clang allow these directives to go */ \
-    LIBASSERT_WARNING_PRAGMA_PUSH_CLANG \
-    LIBASSERT_WARNING_PRAGMA_PUSH_MSVC \
-    LIBASSERT_IGNORE_UNUSED_VALUE \
-    LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_CLANG \
-    LIBASSERT_STMTEXPR( \
-        LIBASSERT_WARNING_PRAGMA_PUSH_GCC \
-        LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_GCC \
-        auto libassert_decomposer = libassert::detail::expression_decomposer( \
-            libassert::detail::expression_decomposer{} << expr \
-        ); \
-        LIBASSERT_WARNING_PRAGMA_POP_GCC \
-        /* LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); */ \
-        LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(check_expression); \
-        decltype(auto) libassert_value = libassert_decomposer.get_value(); \
-        constexpr bool libassert_ret_lhs = libassert_decomposer.ret_lhs(); \
-        if constexpr(check_expression) { \
-            /* For *some* godforsaken reason static_cast<bool> causes an ICE in MSVC here. Something very specific */ \
-            /* about casting a decltype(auto) value inside a lambda. Workaround is to put it in a wrapper. */ \
-            /* https://godbolt.org/z/Kq8Wb6q5j https://godbolt.org/z/nMnqnsMYx */ \
-            if(LIBASSERT_STRONG_EXPECT(!LIBASSERT_STATIC_CAST_TO_BOOL(libassert_value), 0)) { \
-                libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
-                LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
-                failaction \
-                LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, #expr, __VA_ARGS__) \
-                if constexpr(sizeof libassert_decomposer > 32) { \
-                    libassert::detail::process_assert_fail( \
-                        libassert_decomposer, \
-                        libassert_params \
-                        LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_INVOKE_VAL_PRETTY_FUNCTION_ARG \
-                    ); \
-                } else { \
-                    /* std::move it to assert_fail_m, will be moved back to r */ \
-                    auto libassert_r = libassert::detail::process_assert_fail_m( \
-                        std::move(libassert_decomposer), \
-                        libassert_params \
-                        LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_INVOKE_VAL_PRETTY_FUNCTION_ARG \
-                    ); \
-                    /* can't move-assign back to decomposer if it holds reference members */ \
-                    LIBASSERT_DESTROY_DECOMPOSER; \
-                    new (&libassert_decomposer) libassert::detail::expression_decomposer(std::move(libassert_r)); \
-                } \
-            } \
-        }, \
-        /* Note: std::launder needed in 17 in case of placement new / move shenanigans above */ \
-        /* https://timsong-cpp.github.io/cppwp/n4659/basic.life#8.3 */ \
-        /* Note: Somewhat relying on this call being inlined so inefficiency is eliminated */ \
-        libassert::detail::get_expression_return_value< \
-            doreturn LIBASSERT_COMMA \
-            libassert_ret_lhs LIBASSERT_COMMA \
-            std::is_lvalue_reference_v<decltype(libassert_value)> \
-        >(libassert_value, *std::launder(&libassert_decomposer)); \
-    ) LIBASSERT_IF(doreturn)(.value,) \
-    LIBASSERT_WARNING_PRAGMA_POP_MSVC \
-    LIBASSERT_WARNING_PRAGMA_POP_CLANG
+    _Pragma("message(\"libassert NOTICE: *_VAL libassert macros cannot be used in a C language source files\")") \
+    ; not_allowed . not_allowed . not_allowed === not_allowed; 
 
 #endif // __cplusplus
 
