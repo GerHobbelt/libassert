@@ -14,7 +14,7 @@
 #error "LIBASSERT_LIBASSERT_PREFIX_ASSERTIONS: libassert did not set the expected default."
 #endif
 
-#if LIBASSERT_LOWERCASE != 0
+#if LIBASSERT_LOWERCASE != 1
 #error "LIBASSERT_LOWERCASE: libassert did not set the expected default."
 #endif
 

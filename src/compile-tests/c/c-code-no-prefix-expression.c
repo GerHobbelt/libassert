@@ -10,7 +10,7 @@
 #error "libassert include paths are not included or don't have precedence over system's assert.h + cassert header files."
 #endif
 
-#if LIBASSERT_PREFIX_ASSERTIONS != 0
+#if LIBASSERT_PREFIX_ASSERTIONS != 1
 #error "LIBASSERT_LIBASSERT_PREFIX_ASSERTIONS: libassert did not set the expected default."
 #endif
 

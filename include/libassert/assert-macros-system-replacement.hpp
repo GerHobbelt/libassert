@@ -21,45 +21,18 @@
  #endif
 
 
-#if defined __cplusplus
-
-// assert() must act like it's an expression type, rather than a statement type.
-// Some libraries' assertions depend on this behaviour, where the assert() macro
-// can be incorporated inside a comma-separated expression statement.
-#if !defined(LIBASSERT_ASSERT_IS_EXPRESSION)
-#ifndef NDEBUG
-#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, LIBASSERT_EMPTY_ACTION __VA_OPT__(,) __VA_ARGS__)
-#else
-#define assert(expr, ...) LIBASSERT_NOOP_STATEMENT()
-#endif
-#else
-#ifndef NDEBUG
-#define assert(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "assert_simple", assertion __VA_OPT__(,) __VA_ARGS__)
-#else
-#define assert(expr, ...) LIBASSERT_NOOP_EXPRESSION()
-#endif
-#endif
-
-#else // __cplusplus
-
-// assert() must act like it's an expression type, rather than a statement type.
-// Some libraries' assertions depend on this behaviour, where the assert() macro
-// can be incorporated inside a comma-separated expression statement.
-#if !defined(LIBASSERT_ASSERT_IS_EXPRESSION)
-#ifndef NDEBUG
-#define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, LIBASSERT_EMPTY_ACTION __VA_OPT__(,) __VA_ARGS__)
-#else
-#define assert(expr, ...) LIBASSERT_NOOP_STATEMENT()
-#endif
-#else
-#ifndef NDEBUG
-#define assert(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "assert_simple", assertion __VA_OPT__(,) __VA_ARGS__)
-#else
-#define assert(expr, ...) LIBASSERT_NOOP_EXPRESSION()
-#endif
-#endif
-
-#endif // __cplusplus
+ // assert() must act like it's an expression type, rather than a statement type.
+ // Some libraries' assertions depend on this behaviour, where the assert() macro
+ // can be incorporated inside a comma-separated expression statement.
+ #ifndef NDEBUG
+  #if !defined(LIBASSERT_ASSERT_IS_EXPRESSION)
+   #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, LIBASSERT_EMPTY_ACTION __VA_OPT__(,) __VA_ARGS__)
+  #else
+   #define assert(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "assert_simple", assertion __VA_OPT__(,) __VA_ARGS__)
+  #endif
+ #else
+  #define assert(expr, ...) LIBASSERT_NOOP_EXPRESSION()
+ #endif
 
 #else // LIBASSERT_LOWERCASE
 

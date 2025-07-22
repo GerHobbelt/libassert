@@ -18,7 +18,7 @@
 #error "LIBASSERT_LOWERCASE: libassert did not set the expected default."
 #endif
 
-#if LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS != 0
+#if LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS != 1
 #error "LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS: libassert did not set the expected default."
 #endif
 

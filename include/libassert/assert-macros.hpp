@@ -602,17 +602,29 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 
 // Debug assert
 #ifndef NDEBUG
- #define LIBASSERT_DEBUG_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "DEBUG_ASSERT", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+ #if !defined(LIBASSERT_PREFIX_ASSERTIONS)
+  #define LIBASSERT_DEBUG_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "DEBUG_ASSERT", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+ #else
+  #define LIBASSERT_DEBUG_ASSERT(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "DEBUG_ASSERT", debug_assertion, __VA_ARGS__)
+ #endif
 #else
  #define LIBASSERT_DEBUG_ASSERT(expr, ...) (void)0
 #endif
 
 // Assert
-#define LIBASSERT_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "ASSERT", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+#if !defined(LIBASSERT_PREFIX_ASSERTIONS)
+ #define LIBASSERT_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "ASSERT", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+#else
+ #define LIBASSERT_ASSERT(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "ASSERT", assertion, __VA_ARGS__)
+#endif
 // lowercase version intentionally done outside of the include guard here
 
 // Assume
-#define LIBASSERT_ASSUME(expr, ...) LIBASSERT_INVOKE(expr, "ASSUME", assumption, LIBASSERT_ASSUME_ACTION, __VA_ARGS__)
+#if !defined(LIBASSERT_PREFIX_ASSERTIONS)
+ #define LIBASSERT_ASSUME(expr, ...) LIBASSERT_INVOKE(expr, "ASSUME", assumption, LIBASSERT_ASSUME_ACTION, __VA_ARGS__)
+#else
+ #define LIBASSERT_ASSUME(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "ASSUME", assumption, __VA_ARGS__)
+#endif
 
 // Panic
 #define LIBASSERT_PANIC(...) LIBASSERT_INVOKE_PANIC("PANIC", panic, __VA_ARGS__)
