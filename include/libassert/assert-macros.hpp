@@ -251,7 +251,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 #endif // __cplusplus
 
 #if LIBASSERT_BREAK_ON_FAIL
- #define LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL() LIBASSERT_BREAKPOINT_IF_DEBUGGING()
+ #define LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL() libassert_breakpoint_if_debugger_present()
 #else
  #define LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL() ((void)0)
 #endif
