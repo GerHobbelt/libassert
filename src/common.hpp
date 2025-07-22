@@ -1,5 +1,5 @@
-#ifndef COMMON_HPP
-#define COMMON_HPP
+#ifndef LIBASSERT_INTERNAL_COMMON_HPP
+#define LIBASSERT_INTERNAL_COMMON_HPP
 
 #define ESC "\033["
 #define ANSIRGB(r, g, b) ESC "38;2;" #r ";" #g ";" #b "m"

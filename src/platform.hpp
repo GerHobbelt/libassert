@@ -1,5 +1,5 @@
-#ifndef PLATFORM_HPP
-#define PLATFORM_HPP
+#ifndef LIBASSERT_INTERNAL_PLATFORM_HPP
+#define LIBASSERT_INTERNAL_PLATFORM_HPP
 
 #include "common.hpp"
 
