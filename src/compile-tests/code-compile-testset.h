@@ -37,6 +37,8 @@ void assert_cpp_code_primitive_style_expression_test(void);
 void assert_cpp_code_primitive_style_test(void);
 void assert_cpp_code_test(void);
 
+int compile_tests_conglomerate_test(void);
+
 #ifdef __cplusplus
 }
 #endif
