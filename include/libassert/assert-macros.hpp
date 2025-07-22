@@ -636,6 +636,18 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
  #define LIBASSERT_UNREACHABLE(...) LIBASSERT_UNREACHABLE_CALL()
 #endif
 
+// value variants
+
+#ifndef NDEBUG
+ #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "DEBUG_ASSERT_VAL", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+#else
+ #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, false, "DEBUG_ASSERT_VAL", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+#endif
+
+#define LIBASSERT_ASSUME_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSUME_VAL", assumption, LIBASSERT_ASSUME_ACTION, __VA_ARGS__)
+
+#define LIBASSERT_ASSERT_VAL(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "ASSERT_VAL", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+
 // Wrapper macro to allow support for C++26's user generated static_assert messages.
 // The backup message version also allows for the user to provide a backup version that will
 // be used if the compiler does not support user generated messages.
