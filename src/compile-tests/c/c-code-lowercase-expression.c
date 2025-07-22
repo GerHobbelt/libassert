@@ -37,12 +37,12 @@ void assert_c_code_lowercase_expression_test(void) {
 	int x = 4;
 	LIBASSERT_PRIMITIVE_DEBUG_ASSERT(x % 3 == 0, "(msg: x = %d)", x);
 	LIBASSERT_PRIMITIVE_ASSERT(1 + x != 5, "(msg: x = %d)", x);
-	LIBASSERT_PRIMITIVE_ASSERT(x % 2 == 0);
-	LIBASSERT_PRIMITIVE_DEBUG_ASSERT(1 + 1 != 3);
+	LIBASSERT_PRIMITIVE_ASSERT(x % 2 == 1);
+	LIBASSERT_PRIMITIVE_DEBUG_ASSERT(1 + 1 > 3);
 	LIBASSERT_DEBUG_ASSERT(x % 3 == 0, "(msg: x = %d)", x);
 	LIBASSERT_ASSERT(1 + x != 5, "(msg: x = %d)", x);
 	LIBASSERT_ASSERT(x % 5 == 0);
-	LIBASSERT_DEBUG_ASSERT(1 + 7 != 9);
+	LIBASSERT_DEBUG_ASSERT(3 * 7 <= x);
 
 	debug_assert(foo() / 5);
 	float f = foo();
