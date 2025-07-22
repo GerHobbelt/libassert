@@ -69,19 +69,19 @@ extern "C"
 int main(void) {
     // test rvalue
 	{
-		decltype(auto) a = DEBUG_ASSERT_VAL(only_move_constructable(2) == 2);
-		static_assert(std::is_same<decltype(a), only_move_constructable>::value);
+		decltype(auto) a = (only_move_constructable(2) == 2);
+		static_assert(std::is_same<decltype(a), bool>::value);
 		auto t1 = (only_move_constructable(2) == 2);
 		auto t2 = only_move_constructable(2);
 		assert(!is_lvalue(t2));
 		//assert(!is_lvalue(DEBUG_ASSERT_VAL(t2))); // error C2440: 'static_cast': cannot convert from '`anonymous-namespace'::only_move_constructable' to 'bool'
-		auto t3 = (DEBUG_ASSERT_VAL(only_move_constructable(2) == 2));
+		auto t3 = ((only_move_constructable(2) == 2));
 		assert(!is_lvalue(t3));
-		assert(!is_lvalue(DEBUG_ASSERT_VAL(only_move_constructable(2) == 2)));
+		assert(!is_lvalue((only_move_constructable(2) == 2)));
 		auto t4 = only_move_constructable(2).x;
 		assert(t4 == 2);
 #if 0
-		assert(DEBUG_ASSERT_VAL(only_move_constructable(2) == 2).x == 2);
+		assert((only_move_constructable(2) == 2).x == 2);
 #endif
 #if 0
 		assert(debug_assert(only_move_constructable(2) == 2).x++ == 2); // not allowed
@@ -91,10 +91,10 @@ int main(void) {
     // test lvalue
     {
         only_move_constructable x(2);
-        decltype(auto) b = DEBUG_ASSERT_VAL(x == 2);
-        static_assert(std::is_same<decltype(b), only_move_constructable&>::value);
-        assert(is_lvalue(DEBUG_ASSERT_VAL(x == 2)));
-        DEBUG_ASSERT_VAL(x == 2).x++;
+        decltype(auto) b = (x == 2);
+        static_assert(std::is_same<decltype(b), bool>::value);
+        assert(is_lvalue((x == 2)));
+        x.x++;
         ASSERT(x.x == 3);
     }
 
@@ -114,7 +114,7 @@ int main(void) {
             }
         };
         S s;
-        decltype(auto) v = DEBUG_ASSERT_VAL(s << 2 == false);
+        decltype(auto) v = (s << 2);
         static_assert(std::is_same<decltype(v), B>::value);
     }
     {
@@ -132,26 +132,26 @@ int main(void) {
             }
         };
         S s{b};
-        decltype(auto) v = DEBUG_ASSERT_VAL(s << 2 == false);
+        decltype(auto) v = (s << 2);
         static_assert(std::is_same<decltype(v), B&>::value);
     }
 
     // above cases test lhs returns, now test the case where the full value is returned
     {
-        auto v0 = DEBUG_ASSERT_VAL(1 | 2);
+        auto v0 = (1 | 2);
         ASSERT(v0 == 3);
-        auto v1 = DEBUG_ASSERT_VAL(7 & 4);
+        auto v1 = (7 & 4);
         ASSERT(v1 == 4);
-        auto v2 = DEBUG_ASSERT_VAL(1 << 16);
+        auto v2 = (1 << 16);
         ASSERT(v2 == 65536);
-        auto v3 = DEBUG_ASSERT_VAL(32 >> 2);
+        auto v3 = (32 >> 2);
         ASSERT(v3 == 8);
     }
 
     // test _VAL returns the correct type
     {
         auto f = [] {
-            return DEBUG_ASSERT_VAL(false);
+            return (false);
         };
         static_assert(std::is_same<decltype(f()), bool>::value);
     }

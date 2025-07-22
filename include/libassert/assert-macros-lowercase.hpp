@@ -20,14 +20,6 @@
  #define debug_assert(expr, ...) (void)0
 #endif
 
- #ifndef NDEBUG
-  #define debug_assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "debug_assert_val", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
- #else
-  #define debug_assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, false, "debug_assert_val", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
- #endif
-
- #define assert_val(expr, ...) LIBASSERT_INVOKE_VAL(expr, true, true, "assert_val", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
-
 // Wrapper macro to allow support for C++26's user generated static_assert messages.
 // The backup message version also allows for the user to provide a backup version that will
 // be used if the compiler does not support user generated messages.

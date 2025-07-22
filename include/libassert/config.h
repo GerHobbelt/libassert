@@ -182,11 +182,6 @@
 // -->
 // libassert::detail::process_panic(params, ...)
 
-// #define LIBASSERT_INVOKE_VAL(expr, doreturn, check_expression, name, type, failaction, ...)
-// -->
-// libassert::detail::process_assert_fail(decomposer, params, ...)
-// libassert::detail::process_assert_fail_n(decomposer, params, ...)
-
 // #define LIBASSERT_DEBUG_ASSERT(expr, ...)                     LIBASSERT_INVOKE(expr, "DEBUG_ASSERT", debug_assertion, , __VA_ARGS__)
 
 // #define LIBASSERT_ASSERT(expr, ...)                           LIBASSERT_INVOKE(expr, "ASSERT", assertion, , __VA_ARGS__)
@@ -196,10 +191,4 @@
 // #define LIBASSERT_PANIC(...)                                  LIBASSERT_INVOKE_PANIC("PANIC", panic, __VA_ARGS__)
 
 // #define LIBASSERT_UNREACHABLE(...)                            LIBASSERT_INVOKE_PANIC("UNREACHABLE", unreachable, __VA_ARGS__)
-
-// #define LIBASSERT_DEBUG_ASSERT_VAL(expr, ...)                 LIBASSERT_INVOKE_VAL(expr, true, true, "DEBUG_ASSERT_VAL", debug_assertion, , __VA_ARGS__)
-
-// #define LIBASSERT_ASSUME_VAL(expr, ...)                       LIBASSERT_INVOKE_VAL(expr, true, true, "ASSUME_VAL", assumption, LIBASSERT_ASSUME_ACTION, __VA_ARGS__)
-
-// #define LIBASSERT_ASSERT_VAL(expr, ...)                       LIBASSERT_INVOKE_VAL(expr, true, true, "ASSERT_VAL", assertion, , __VA_ARGS__)
 

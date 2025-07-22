@@ -41,22 +41,23 @@
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 
-#define ASSERT_EQ(e1, e2, ...)		debug_assert(((e1) == (e2)), "ASSERT_EQ assertion failed: {} == {} fails.", (e1), (e2), __VA_ARGS__)
-#define ASSERT_NEQ(e1, e2, ...)		debug_assert(((e1) != (e2)), "ASSERT_NE assertion failed: {} != {} fails.", (e1), (e2), __VA_ARGS__)
+#define ASSERT_EQ(e1, e2, ...)		debug_assert(((e1) == (e2)), "ASSERT_EQ assertion failed: {} == {} fails.", (e1), (e2) __VA_OPT__(,) __VA_ARGS__)
+#define ASSERT_NEQ(e1, e2, ...)		debug_assert(((e1) != (e2)), "ASSERT_NE assertion failed: {} != {} fails.", (e1), (e2) __VA_OPT__(,) __VA_ARGS__)
 
-#define ASSERT_GTEQ(e1, e2, ...)		debug_assert(((e1) >= (e2)), "ASSERT_GTEQ assertion failed: {} >= {} fails.", (e1), (e2), __VA_ARGS__)
-#define ASSERT_LTEQ(e1, e2, ...)		debug_assert(((e1) <= (e2)), "ASSERT_LTEQ assertion failed: {} <= {} fails.", (e1), (e2), __VA_ARGS__)
+#define ASSERT_GTEQ(e1, e2, ...)		debug_assert(((e1) >= (e2)), "ASSERT_GTEQ assertion failed: {} >= {} fails.", (e1), (e2) __VA_OPT__(,) __VA_ARGS__)
+#define ASSERT_LTEQ(e1, e2, ...)		debug_assert(((e1) <= (e2)), "ASSERT_LTEQ assertion failed: {} <= {} fails.", (e1), (e2) __VA_OPT__(,) __VA_ARGS__)
 
-#define ASSERT_AND(e1, e2, ...)		debug_assert(((e1) && (e2)), "ASSERT_AND assertion failed: {} && {} fails.", (e1), (e2), __VA_ARGS__)
-#define ASSERT_OR(e1, e2, ...)		debug_assert(((e1) || (e2)), "ASSERT_OR assertion failed: {} || {} fails.", (e1), (e2), __VA_ARGS__)
+#define ASSERT_AND(e1, e2, ...)		debug_assert(((e1) && (e2)), "ASSERT_AND assertion failed: {} && {} fails.", (e1), (e2) __VA_OPT__(,) __VA_ARGS__)
+#define ASSERT_OR(e1, e2, ...)		debug_assert(((e1) || (e2)), "ASSERT_OR assertion failed: {} || {} fails.", (e1), (e2) __VA_OPT__(,) __VA_ARGS__)
 
 void qux();
 void wubble();
 
 namespace {
 
-void custom_fail(const libassert::assertion_info& assertion) {
+bool custom_fail(const libassert::assertion_info& assertion) {
     std::cerr<<assertion.to_string(libassert::terminal_width(STDERR_FILENO), libassert::color_scheme::ansi_rgb)<<std::endl<<std::endl;
+	return false;
 }
 
 static std::string indent(const std::string_view str, size_t depth, char c = ' ', bool ignore_first = false) {
@@ -163,11 +164,11 @@ static void zoog(const std::map<std::string, int>& map) {
 	DEBUG_ASSERT(map.size() > 0);
 
 #if __cplusplus >= 202002L
-     DEBUG_ASSERT(map.contains("foo"), "expected key not found", map);
+     DEBUG_ASSERT(map.contains("foo"), "expected key not found");
 #else
-     DEBUG_ASSERT(map.count("foo") != 1, "expected key not found", map);
+     DEBUG_ASSERT(map.count("foo") != 1, "expected key not found");
 #endif
-    DEBUG_ASSERT(map.at("bar") >= 0, "unexpected value for foo in the map", map);
+    DEBUG_ASSERT(map.at("bar") >= 0, "unexpected value for foo in the map");
 }
 
 #define O_RDONLY 0
@@ -204,7 +205,7 @@ public:
                 { "baz", 20 }
             });
             std::vector<int> vec = {2, 3, 5, 7, 11, 13};
-            debug_assert(vec.size() > min_items(), "vector doesn't have enough items", vec);
+            debug_assert(vec.size() > min_items(), "vector doesn't have enough items");
         }
         const char* path = "/home/foobar/baz";
         {
@@ -229,7 +230,7 @@ public:
             DEBUG_ASSERT(map.count(1) == 2);
             debug_assert(map.count(1) >= 2 * garple(), "Error while doing XYZ");
         }
-        debug_assert(!!0, 2 == garple());
+        debug_assert((!!0, 2 == garple()));
         {
             std::optional<float> parameter;
             #ifndef _MSC_VER
@@ -301,7 +302,7 @@ public:
             #endif
             std::string s = "h1eLlo";
             debug_assert(std::find_if(s.begin(), s.end(), [](char c) {
-                debug_assert(not isdigit(c), c);
+                debug_assert(not isdigit(c), "{}", c);
                 return c >= 'A' and c <= 'Z';
             }) == s.end());
         }
@@ -310,21 +311,21 @@ public:
             std::set<int> a = { 2, 2, 4, 6, 10 };
             std::set<int> b = { 2, 2, 5, 6, 10 };
             std::vector<double> c = { 1.2, 2.44, 3.15159, 5.2 };
-            debug_assert(a == b, c);
+            debug_assert(a == b);
             std::map<std::string, int> m0 = {
                 {"foo", 2},
                 {"bar", -2}
             };
-            debug_assert(false, m0);
+            debug_assert(m0.empty());
             std::map<std::string, std::vector<int>> m1 = {
                 {"foo", {1, -2, 3, -4}},
                 {"bar", {-100, 200, 400, -800}}
             };
-            debug_assert(false, m1);
+            debug_assert(m1.empty());
             auto t = std::make_tuple(1, 0.1 + 0.2, "foobars");
-            debug_assert(false, t);
+            //debug_assert(t);
             std::array<int, 10> arr = {1,2,3,4,5,6,7,8,9,10};
-            debug_assert(false, arr);
+            debug_assert(arr.empty());
         }
 
         // Numeric
@@ -332,7 +333,8 @@ public:
 	  {
         debug_assert(.1f == .1);
         debug_assert(1.0 == 1.0 + std::numeric_limits<double>::epsilon());
-        ASSERT_EQ(0x12p2, 12);
+		debug_assert(((0x12p2) == (12)), "ASSERT_EQ assertion failed", (0x12p2), (12));
+        ASSERT_EQ(0x12p2, 12, "+ user message...", 25.0f, -42);
         ASSERT_EQ(0x12p2, 0b10);
         debug_assert(0b1000000 == 0x3);
         debug_assert(.1 == 2);
@@ -347,20 +349,24 @@ public:
         ASSERT_GTEQ(map.count(2 * garple()), 2, "Error while doing XYZ");
         debug_assert(S<S<int>>(2) == S<S<int>>(4));
         S<S<int>> a(1), b(2);
-        ASSERT_EQ(a, b);
+#if 0
+		ASSERT_EQ(a, b);
         const S<S<int>> c(4), d(8);
         ASSERT_EQ(c, d);
         S<void> g, h;
         ASSERT_EQ(g, h);
         ASSERT_EQ(1, 2);
-        ASSERT_EQ(&a, nullptr);
-        ASSERT_EQ((uintptr_t)&a, 0ULL & 0ULL);
-        ASSERT_AND(&a, nullptr);
-        ASSERT_AND(nullptr && nullptr, nullptr);
+        //ASSERT_EQ(&a, nullptr);    --> this one freaks out std::format()
+		debug_assert(&a == nullptr);
+		ASSERT_EQ((uintptr_t)&a, 0ULL & 0ULL);
+        //ASSERT_AND(&a, nullptr);   // --> ditto
+		debug_assert(&a && nullptr);
+		ASSERT_AND(nullptr && nullptr, nullptr);
         ASSERT_AND(&a, nullptr && nullptr);
         ASSERT_AND((bool)nullptr && (bool)nullptr, (bool)nullptr);
         ASSERT_AND((uintptr_t)&a, (bool)nullptr && (bool)nullptr); // FIXME: parentheses
         //ASSERT_EQ(foo, (int*)nullptr);
+#endif
 
         debug_assert(0 == (2  ==  garple()));
         debug_assert(0 == 2 == garple());
