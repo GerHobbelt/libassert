@@ -11,7 +11,7 @@
 #define FALSE 0
 #endif
 
-#define ASSERT_EQ(e1, e2, ...)		debug_assert(((e1) == (e2)), "ASSERT_EQ assertion failed" /* , (e1), (e2) __VA_OPT__(,) __VA_ARGS__ */ )
+#define ASSERT_EQ(e1, e2)		debug_assert(((e1) == (e2)), "ASSERT_EQ assertion failed" /* , (e1), (e2) __VA_OPT__(,) __VA_ARGS__ */ )
 
 static float foo(void) {
 	return 2.5f;

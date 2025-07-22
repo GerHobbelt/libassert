@@ -21,6 +21,12 @@ void cassert_include_test(void) {
 
 	float f = LIBASSERT_DEBUG_ASSERT_VAL(foopp());
 	assert(f == 2.5f);
+	float &r = f;
+	float g = LIBASSERT_DEBUG_ASSERT_VAL(r);
+	assert(g == 2.5f);
+	float *p = &f;
+	auto h = LIBASSERT_DEBUG_ASSERT_VAL(p);
+	assert(h == &f);
 
 	LIBASSERT_DEBUG_ASSERT(false);
 

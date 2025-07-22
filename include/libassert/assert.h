@@ -547,9 +547,9 @@ namespace detail {
         if constexpr(R) {
             if constexpr(ret_lhs) {
                 if constexpr(std::is_lvalue_reference_v<A>) {
-                    return assert_value_wrapper<A>{decomposer.take_lhs()};
+                    return assert_value_wrapper<T>{decomposer.get_value()};
                 } else {
-                    return assert_value_wrapper<A>{std::move(decomposer.take_lhs())};
+                    return assert_value_wrapper<T>{std::move(decomposer.get_value())};
                 }
             } else {
                 if constexpr(value_is_lval_ref) {

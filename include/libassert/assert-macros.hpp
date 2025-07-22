@@ -471,12 +471,13 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
     LIBASSERT_IGNORE_UNUSED_VALUE \
     LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_CLANG \
     LIBASSERT_STMTEXPR( \
-        LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); \
+        /* LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); */ \
         LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(check_expression); \
+        decltype(auto) libassert_value = (expr); \
         /* For *some* godforsaken reason static_cast<bool> causes an ICE in MSVC here. Something very specific */ \
         /* about casting a decltype(auto) value inside a lambda. Workaround is to put it in a wrapper. */ \
         /* https://godbolt.org/z/Kq8Wb6q5j https://godbolt.org/z/nMnqnsMYx */ \
-        bool libassert_check_fail = !LIBASSERT_STATIC_CAST_TO_BOOL(expr); \
+        bool libassert_check_fail = !LIBASSERT_STATIC_CAST_TO_BOOL(libassert_value); \
         if(LIBASSERT_STRONG_EXPECT(libassert_check_fail, 0)) { \
             libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
             LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
@@ -487,7 +488,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
                 LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_INVOKE_VAL_PRETTY_FUNCTION_ARG \
             ); \
         }, \
-        libassert_check_fail; ); \
+        libassert_value; ); \
     ) LIBASSERT_IF(doreturn)(,) \
     LIBASSERT_WARNING_PRAGMA_POP_MSVC \
     LIBASSERT_WARNING_PRAGMA_POP_CLANG
