@@ -39,7 +39,7 @@ LIBASSERT_EXPORT void libassert_detail_primitive_assert_impl(libassert_assert_ty
 		va_end(ap);
 	}
 
-	detail::primitive_assert_impl(static_cast<::libassert::assert_type>(mode), expr, signature, location, nfmt ? nfmt : message);
+	detail::primitive_assert_impl(static_cast<::libassert::assert_type>(mode), expr, signature, location, nfmt ? nfmt : message ? message : "");
 
 	free(nfmt);
 }
