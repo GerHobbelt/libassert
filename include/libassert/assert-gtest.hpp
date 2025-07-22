@@ -11,7 +11,7 @@
 
 #include <gtest/gtest.h>
 
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 #include <libassert/assert-gtest-macros.hpp>
 
 #endif

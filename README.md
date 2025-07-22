@@ -90,7 +90,7 @@ differ in their format strings: C++ uses the famous `fmt` library (or `std::form
 **Some of the awesome things the library does:**
 
 ```cpp
-#include <libassert/assert.hpp>
+#include <libassert/assert.h>
 void zoog(const std::map<std::string, int>& map) {
     DEBUG_ASSERT(map.contains("foo"), "expected key not found", map);
 }
@@ -367,7 +367,7 @@ lot.
 
 ## Library headers
 
-- `libassert/assert.hpp`: The main library header
+- `libassert/assert.h`: The main library header
 - `libassert/assert-gtest.hpp`: Libassert macros for gtest
 - `libassert/assert-catch2.hpp`: Libassert macros for catch2
 
@@ -1045,7 +1045,7 @@ Use the following arguments to compile with libassert:
 | clang                   | Windows          | `-libassert -I[path] [cpptrace args]` |
 
 For the `[path]` placeholder in `-I[path]` and `/I[path]`, specify the path to the include folder containing
-`libassert/assert.hpp`.
+`libassert/assert.h`.
 
 If you are linking statically, you will additionally need to specify `-DLIBASSERT_STATIC_DEFINE`.
 

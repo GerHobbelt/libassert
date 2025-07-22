@@ -18,7 +18,7 @@ CATCH_TEST_CASE("1 + 2 is 3") {
 }
 
 CATCH_TEST_CASE("1 + 0 is 1") {
-	// lowercase `assert()` should also have been made available by libassert/assert.hpp
+	// lowercase `assert()` should also have been made available by libassert/assert.h
 	assert(1 + 1 == 1);                   /* <*> */
 }
 

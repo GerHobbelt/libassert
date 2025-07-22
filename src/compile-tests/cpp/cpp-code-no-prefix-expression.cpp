@@ -2,7 +2,7 @@
 //#define LIBASSERT_USE_ONLY_PRIMITIVE_ASSERTIONS               1
 #define LIBASSERT_PREFIX_ASSERTIONS                           1
 //#define LIBASSERT_LOWERCASE                                   1
-//#define LIBASSERT_ASSERT_IS_EXPRESSION                        1
+#define LIBASSERT_ASSERT_IS_EXPRESSION                        1
 
 #include <libassert/assert.h>
 
@@ -31,7 +31,7 @@ static float foo(void) {
 	return 2.5f;
 }
 
-void assert_cpp_code_no_prefix_test(void) {
+void assert_cpp_code_no_prefix_expression_test(void) {
 	int x = 4;
 	LIBASSERT_PRIMITIVE_DEBUG_ASSERT(x % 3 == 0, "(msg: x = %d)", x);
 	LIBASSERT_PRIMITIVE_ASSERT(1 + x != 5, "(msg: x = %d)", x);
@@ -45,7 +45,7 @@ void assert_cpp_code_no_prefix_test(void) {
 	ASSERT(foo() / 5);
 	float f = foo();
 
-	ASSERT(foo() == 2.5f);   ASSERT(x > 5);   int a = 11 + x;
+	int a = (ASSERT(foo() == 2.5f), ASSERT(x > 5), 11 + x);
 
 	ASSERT(!0);
 	ASSERT(0);
@@ -56,11 +56,11 @@ void assert_cpp_code_no_prefix_test(void) {
 
 	DEBUG_ASSERT(1 == 2);
 
-	DEBUG_ASSERT(a == 4, "(message)");   int b = 1;
+	int b = (DEBUG_ASSERT(a == 4, "(message)"), 1);
 
 	std::string s = ::libassert::detail::format("(message: {} {} @ {})", "kukurutz", "shoobidoosah", 777);
 
-	ASSERT(a + f < 7.0, "(message: %s %s @ %d)", "kukurutz", "shoobidoosah", 777);   int c = 2;
+	int c = (ASSERT(a + f < 7.0, "(message: %s %s @ %d)", "kukurutz", "shoobidoosah", 777), 2);
 
 	ASSERT(a + b / c + f * 11 <= 7, s);
 

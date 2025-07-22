@@ -118,7 +118,7 @@ add_library(libassert::assert ALIAS ${target_name})
 target_sources(
   ${target_name} PRIVATE
   # include
-  include/libassert/assert.hpp
+  include/libassert/assert.h
   include/libassert/platform.hpp
 )
 
