@@ -40,14 +40,14 @@
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 
-#define ASSERT_EQ(e1, e2)		debug_assert(((e1) == (e2)), "ASSERT_EQ assertion failed: {} == {} fails.", (e1), (e2))
-#define ASSERT_NEQ(e1, e2)		debug_assert(((e1) != (e2)), "ASSERT_NE assertion failed: {} != {} fails.", (e1), (e2))
+#define ASSERT_EQ(e1, e2, ...)		debug_assert(((e1) == (e2)), "ASSERT_EQ assertion failed: {} == {} fails.", (e1), (e2), __VA_ARGS__)
+#define ASSERT_NEQ(e1, e2, ...)		debug_assert(((e1) != (e2)), "ASSERT_NE assertion failed: {} != {} fails.", (e1), (e2), __VA_ARGS__)
 
-#define ASSERT_GTEQ(e1, e2)		debug_assert(((e1) >= (e2)), "ASSERT_GTEQ assertion failed: {} >= {} fails.", (e1), (e2))
-#define ASSERT_LTEQ(e1, e2)		debug_assert(((e1) <= (e2)), "ASSERT_LTEQ assertion failed: {} <= {} fails.", (e1), (e2))
+#define ASSERT_GTEQ(e1, e2, ...)		debug_assert(((e1) >= (e2)), "ASSERT_GTEQ assertion failed: {} >= {} fails.", (e1), (e2), __VA_ARGS__)
+#define ASSERT_LTEQ(e1, e2, ...)		debug_assert(((e1) <= (e2)), "ASSERT_LTEQ assertion failed: {} <= {} fails.", (e1), (e2), __VA_ARGS__)
 
-#define ASSERT_AND(e1, e2)		debug_assert(((e1) && (e2)), "ASSERT_AND assertion failed: {} && {} fails.", (e1), (e2))
-#define ASSERT_OR(e1, e2)		debug_assert(((e1) || (e2)), "ASSERT_OR assertion failed: {} || {} fails.", (e1), (e2))
+#define ASSERT_AND(e1, e2, ...)		debug_assert(((e1) && (e2)), "ASSERT_AND assertion failed: {} && {} fails.", (e1), (e2), __VA_ARGS__)
+#define ASSERT_OR(e1, e2, ...)		debug_assert(((e1) || (e2)), "ASSERT_OR assertion failed: {} || {} fails.", (e1), (e2), __VA_ARGS__)
 
 void qux();
 void wubble();
@@ -230,17 +230,13 @@ public:
         debug_assert(!!0, 2 == garple());
         {
             std::optional<float> parameter;
-            #ifndef _MSC_VER
              if(auto i = *ASSERT_VAL(parameter)) {
                  static_assert(std::is_same<decltype(i), float>::value);
              }
              float f = *assert_val(get_param());
              (void)f;
-            #else
-             ASSERT(!!parameter);
-             debug_assert(!!get_param());
-            #endif
-            auto x = [&] () -> decltype(auto) { 
+
+			 auto x = [&] () -> decltype(auto) { 
 				return ASSERT_VAL(parameter); 
 			};
             static_assert(std::is_same<decltype(x()), std::optional<float>&>::value);

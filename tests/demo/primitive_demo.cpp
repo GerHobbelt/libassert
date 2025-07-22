@@ -41,14 +41,14 @@
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 
-#define ASSERT_EQ(e1, e2)		debug_assert(((e1) == (e2)), "ASSERT_EQ assertion failed: {} == {} fails.", (e1), (e2))
-#define ASSERT_NEQ(e1, e2)		debug_assert(((e1) != (e2)), "ASSERT_NE assertion failed: {} != {} fails.", (e1), (e2))
+#define ASSERT_EQ(e1, e2, ...)		debug_assert(((e1) == (e2)), "ASSERT_EQ assertion failed: {} == {} fails.", (e1), (e2), __VA_ARGS__)
+#define ASSERT_NEQ(e1, e2, ...)		debug_assert(((e1) != (e2)), "ASSERT_NE assertion failed: {} != {} fails.", (e1), (e2), __VA_ARGS__)
 
-#define ASSERT_GTEQ(e1, e2)		debug_assert(((e1) >= (e2)), "ASSERT_GTEQ assertion failed: {} >= {} fails.", (e1), (e2))
-#define ASSERT_LTEQ(e1, e2)		debug_assert(((e1) <= (e2)), "ASSERT_LTEQ assertion failed: {} <= {} fails.", (e1), (e2))
+#define ASSERT_GTEQ(e1, e2, ...)		debug_assert(((e1) >= (e2)), "ASSERT_GTEQ assertion failed: {} >= {} fails.", (e1), (e2), __VA_ARGS__)
+#define ASSERT_LTEQ(e1, e2, ...)		debug_assert(((e1) <= (e2)), "ASSERT_LTEQ assertion failed: {} <= {} fails.", (e1), (e2), __VA_ARGS__)
 
-#define ASSERT_AND(e1, e2)		debug_assert(((e1) && (e2)), "ASSERT_AND assertion failed: {} && {} fails.", (e1), (e2))
-#define ASSERT_OR(e1, e2)		debug_assert(((e1) || (e2)), "ASSERT_OR assertion failed: {} || {} fails.", (e1), (e2))
+#define ASSERT_AND(e1, e2, ...)		debug_assert(((e1) && (e2)), "ASSERT_AND assertion failed: {} && {} fails.", (e1), (e2), __VA_ARGS__)
+#define ASSERT_OR(e1, e2, ...)		debug_assert(((e1) || (e2)), "ASSERT_OR assertion failed: {} || {} fails.", (e1), (e2), __VA_ARGS__)
 
 void qux();
 void wubble();
