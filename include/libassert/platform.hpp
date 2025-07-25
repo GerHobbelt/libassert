@@ -18,8 +18,6 @@
 
 #if defined __cplusplus
 
-#include <version>
-
 #define LIBASSERT_ABI_NAMESPACE_TAG v2
 
 #define LIBASSERT_BEGIN_NAMESPACE \
@@ -191,14 +189,35 @@
 
 #if defined __cplusplus
 
-// Check if we can use std::is_constant_evaluated.
 #ifdef __has_include
  #if __has_include(<version>)
   #include <version>
+
+  // Check if we can use std::is_constant_evaluated.
   #ifdef __cpp_lib_is_constant_evaluated
    #include <type_traits>
    #define LIBASSERT_HAS_IS_CONSTANT_EVALUATED
   #endif
+
+  // auto-detect libraries to use, when those have not yet been forcibly specified by the user to use
+
+  #if !defined(LIBASSERT_USE_MAGIC_ENUM) && (__has_include(<magic_enum/magic_enum.hpp>) || __has_include(<magic_enum.hpp>))
+   #define LIBASSERT_USE_MAGIC_ENUM    1
+  #endif
+
+  #if !defined(LIBASSERT_USE_ENCHANTUM) && (__has_include(<enchantum/enchantum.hpp>) || __has_include(<enchantum/enchantum.hpp>))
+   #define LIBASSERT_USE_ENCHANTUM    1
+  #endif
+
+  #if !defined(LIBASSERT_USE_FMT) && !defined(LIBASSERT_USE_STD_FORMAT) && __has_include(<fmt/format.h>)
+   #define LIBASSERT_USE_FMT           1
+  #endif
+
+  // Check if we can use std::format.
+  #if !defined(LIBASSERT_NO_STD_FORMAT) && !defined(LIBASSERT_USE_FMT) && !defined(LIBASSERT_USE_STD_FORMAT) && __has_include(<format>) && defined(__cpp_lib_format)
+   #define LIBASSERT_USE_STD_FORMAT    1
+  #endif
+
  #endif
 #endif
 
@@ -307,24 +326,6 @@ LIBASSERT_END_NAMESPACE
 #else
  // some compiler we aren't prepared for
  #define LIBASSERT_BREAKPOINT()
-#endif
-
-// auto-detect libraries to use, when those have not yet been forcibly specified by the user to use
-
-#if !defined(LIBASSERT_USE_MAGIC_ENUM) && defined(__has_include) && (__has_include(<magic_enum/magic_enum.hpp>) || __has_include(<magic_enum.hpp>))
-#define LIBASSERT_USE_MAGIC_ENUM    1
-#endif
-
-#if !defined(LIBASSERT_USE_ENCHANTUM) && defined(__has_include) && (__has_include(<enchantum/enchantum.hpp>) || __has_include(<enchantum/enchantum.hpp>))
-#define LIBASSERT_USE_ENCHANTUM    1
-#endif
-
-#if !defined(LIBASSERT_USE_FMT) && !defined(LIBASSERT_USE_STD_FORMAT) && defined(__has_include) && __has_include(<fmt/format.h>)
-#define LIBASSERT_USE_FMT           1
-#endif
-
-#if !defined(LIBASSERT_NO_STD_FORMAT) && !defined(LIBASSERT_USE_FMT) && !defined(LIBASSERT_USE_STD_FORMAT) && defined(__has_include) && __has_include(<format.h>) && defined(__cpp_lib_format)
-#define LIBASSERT_USE_STD_FORMAT    1
 #endif
 
 // ----------------------------------------------------------------------------------------------
