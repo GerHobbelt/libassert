@@ -85,47 +85,17 @@
 
 #if LIBASSERT_IS_CLANG || LIBASSERT_IS_GCC
  #if LIBASSERT_IS_GCC
-  #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_GCC \
+  #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA \
      _Pragma("GCC diagnostic ignored \"-Wparentheses\"") \
      _Pragma("GCC diagnostic ignored \"-Wuseless-cast\"") // #49
-  #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_CLANG
-  #define LIBASSERT_WARNING_PRAGMA_PUSH_GCC _Pragma("GCC diagnostic push")
-  #define LIBASSERT_WARNING_PRAGMA_POP_GCC _Pragma("GCC diagnostic pop")
-  #define LIBASSERT_WARNING_PRAGMA_PUSH_CLANG
-  #define LIBASSERT_WARNING_PRAGMA_POP_CLANG
-  #define LIBASSERT_WARNING_PRAGMA_PUSH_MSVC
-  #define LIBASSERT_WARNING_PRAGMA_POP_MSVC
  #else
-  #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_CLANG \
+  #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA \
      _Pragma("GCC diagnostic ignored \"-Wparentheses\"") \
      _Pragma("GCC diagnostic ignored \"-Woverloaded-shift-op-parentheses\"")
-  #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_GCC
-  #define LIBASSERT_WARNING_PRAGMA_PUSH_GCC
-  #define LIBASSERT_WARNING_PRAGMA_POP_GCC
-  #define LIBASSERT_WARNING_PRAGMA_PUSH_CLANG _Pragma("GCC diagnostic push")
-  #define LIBASSERT_WARNING_PRAGMA_POP_CLANG _Pragma("GCC diagnostic pop")
-  #define LIBASSERT_WARNING_PRAGMA_PUSH_MSVC
-  #define LIBASSERT_WARNING_PRAGMA_POP_MSVC
  #endif
-#elif LIBASSERT_IS_MSVC
- #define LIBASSERT_WARNING_PRAGMA_PUSH_CLANG
- #define LIBASSERT_WARNING_PRAGMA_POP_CLANG
- #define LIBASSERT_WARNING_PRAGMA_PUSH_GCC
- #define LIBASSERT_WARNING_PRAGMA_POP_GCC
- // https://learn.microsoft.com/en-us/cpp/preprocessor/pragma-directives-and-the-pragma-keyword?view=msvc-170
- #define LIBASSERT_WARNING_PRAGMA_PUSH_MSVC   _Pragma("warning(push)")
- #define LIBASSERT_WARNING_PRAGMA_POP_MSVC    _Pragma("warning(pop)")
- #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_GCC
- #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_CLANG
 #else
- #define LIBASSERT_WARNING_PRAGMA_PUSH_CLANG
- #define LIBASSERT_WARNING_PRAGMA_POP_CLANG
- #define LIBASSERT_WARNING_PRAGMA_PUSH_GCC
- #define LIBASSERT_WARNING_PRAGMA_POP_GCC
- #define LIBASSERT_WARNING_PRAGMA_PUSH_MSVC
- #define LIBASSERT_WARNING_PRAGMA_POP_MSVC
- #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_GCC
- #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_CLANG
+ // NOTE: If this is changed, LIBASSERT_ASSERT_STMT_EXPR below will need to be updated for MSVC
+ #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA
 #endif
 
 #if defined __cplusplus
@@ -259,19 +229,13 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 #if defined __cplusplus
 
 #define LIBASSERT_INVOKE(expr, name, type, failaction, ...) \
-    /* must push/pop out here due to nasty clang bug https://github.com/llvm/llvm-project/issues/63897 */ \
-    /* must do awful stuff to workaround differences in where gcc and clang allow these directives to go */ \
     do { \
-        LIBASSERT_WARNING_PRAGMA_PUSH_CLANG \
-        LIBASSERT_WARNING_PRAGMA_PUSH_MSVC \
-        LIBASSERT_IGNORE_UNUSED_VALUE \
-        LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_CLANG \
-        LIBASSERT_WARNING_PRAGMA_PUSH_GCC \
-        LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_GCC \
+        LIBASSERT_WARNING_PRAGMA_PUSH \
+        LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA \
         auto libassert_decomposer = ::libassert::detail::expression_decomposer( \
             libassert::detail::expression_decomposer{} << expr \
         ); \
-        LIBASSERT_WARNING_PRAGMA_POP_GCC \
+        LIBASSERT_WARNING_PRAGMA_POP \
         LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); \
         if(LIBASSERT_STRONG_EXPECT(!static_cast<bool>(libassert_decomposer.get_value()), 0)) { \
             libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
@@ -284,8 +248,6 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
                 LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_PRETTY_FUNCTION_ARG \
             ); \
         } \
-        LIBASSERT_WARNING_PRAGMA_POP_MSVC \
-        LIBASSERT_WARNING_PRAGMA_POP_CLANG \
     } while(0) \
 
 #else // __cplusplus
@@ -294,8 +256,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
     /* must push/pop out here due to nasty clang bug https://github.com/llvm/llvm-project/issues/63897 */ \
     /* must do awful stuff to workaround differences in where gcc and clang allow these directives to go */ \
     do { \
-        LIBASSERT_WARNING_PRAGMA_PUSH_CLANG \
-        LIBASSERT_WARNING_PRAGMA_PUSH_MSVC \
+        LIBASSERT_WARNING_PRAGMA_PUSH \
         LIBASSERT_IGNORE_UNUSED_VALUE \
         LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); \
         if(!(expr)) { \
@@ -308,8 +269,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 					__VA_OPT__(,) __VA_ARGS__, NULL \
 			); \
         } \
-        LIBASSERT_WARNING_PRAGMA_POP_MSVC \
-        LIBASSERT_WARNING_PRAGMA_POP_CLANG \
+        LIBASSERT_WARNING_PRAGMA_POP \
     } while(0) \
 
 #endif // __cplusplus
@@ -344,30 +304,20 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 
 #endif // __cplusplus
 
-// Workaround for gcc bug 105734 / libassert bug #24
-#define LIBASSERT_DESTROY_DECOMPOSER libassert_decomposer.~expression_decomposer() /* NOLINT(bugprone-use-after-move,clang-analyzer-cplusplus.Move) */
-
-#if LIBASSERT_IS_GCC
- #if __GNUC__ == 12 && __GNUC_MINOR__ == 1
-  LIBASSERT_BEGIN_NAMESPACE
-  namespace detail {
-      template<typename T> constexpr void destroy(T& t) {
-          t.~T();
-      }
-  }
-  LIBASSERT_END_NAMESPACE
-  #undef LIBASSERT_DESTROY_DECOMPOSER
-  #define LIBASSERT_DESTROY_DECOMPOSER libassert::detail::destroy(libassert_decomposer)
- #endif
-#endif // LIBASSERT_IS_GCC
-
 #if LIBASSERT_IS_CLANG || LIBASSERT_IS_GCC
  // Extra set of parentheses here because clang treats __extension__ as a low-precedence unary operator which interferes
  // with decltype(auto) in an expression like decltype(auto) x = __extension__ ({...}).y;
- #define LIBASSERT_STMTEXPR(B, R) (__extension__ ({ B R }))
+ // Surpress warnings here because of a clang bug: https://github.com/llvm/llvm-project/issues/63897
+ #define LIBASSERT_ASSERT_STMT_EXPR(B, R) (__extension__ ({ \
+        LIBASSERT_WARNING_PRAGMA_PUSH \
+        LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA \
+        B \
+        LIBASSERT_WARNING_PRAGMA_POP \
+        R \
+    }))
  #define LIBASSERT_STATIC_CAST_TO_BOOL(x) static_cast<bool>(x)
 #else
- #define LIBASSERT_STMTEXPR(B, R) [&](const char* libassert_msvc_pfunc) { B return R }(LIBASSERT_PFUNC)
+ #define LIBASSERT_ASSERT_STMT_EXPR(B, R) [&](const char* libassert_msvc_pfunc) { B return R }(LIBASSERT_PFUNC)
  // Workaround for msvc bug
  #define LIBASSERT_STATIC_CAST_TO_BOOL(x) libassert::detail::static_cast_to_bool(x)
 
@@ -465,26 +415,6 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
  #define LIBASSERT_UNREACHABLE(...) LIBASSERT_UNREACHABLE_CALL()
 #endif
 
-// Wrapper macro to allow support for C++26's user generated static_assert messages.
-// The backup message version also allows for the user to provide a backup version that will
-// be used if the compiler does not support user generated messages.
-// More info on user generated static_assert's
-// can be found here: https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2741r1.pdf
-//
-// Currently the functionality works as such. If we are in a C++26 environment, the user generated message will be used.
-// If we are not in a C++26 environment, then either the static_assert will be used without a message or the backup message.
-// TODO: Maybe give these a better name? Ideally one that is shorter and more descriptive?
-// TODO: Maybe add a helper to make passing user generated static_assert messages easier?
-#if defined(__cpp_static_assert) && __cpp_static_assert >= 202306L
-  #define LIBASSERT_USER_STATIC_ASSERT(cond, constant) static_assert(cond, constant)
-  #define LIBASSERT_USER_STATIC_ASSERT_BACKUP_MSG(cond, msg, constant) static_assert(cond, constant)
-  #define USER_STATIC_ASSERT(cond, constant) static_assert(cond, constant)
-  #define USER_STATIC_ASSERT_BACKUP_MSG(cond, msg, constant) static_assert(cond, constant)
-#else
-  #define LIBASSERT_USER_STATIC_ASSERT(cond, constant) static_assert(cond)
-  #define LIBASSERT_USER_STATIC_ASSERT_BACKUP_MSG(cond, msg, constant) static_assert(cond, msg)
-  #define USER_STATIC_ASSERT(cond, constant) static_assert(cond)
-  #define USER_STATIC_ASSERT_BACKUP_MSG(cond, msg, constant) static_assert(cond, msg)
 #endif
 
 #endif // LIBASSERT_HPP
