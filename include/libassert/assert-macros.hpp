@@ -277,21 +277,12 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
             libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
             LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
             failaction \
-            LIBASSERT_STATIC_DATA(name, ::libassert::assert_type::type, #expr, __VA_ARGS__) \
-            if constexpr(sizeof libassert_decomposer > 32) { \
-                ::libassert::detail::process_assert_fail( \
-                    libassert_decomposer, \
-                    libassert_params \
-                    LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_PRETTY_FUNCTION_ARG \
-                ); \
-            } else { \
-                /* std::move it to assert_fail_m, will be moved back to r */ \
-                ::libassert::detail::process_assert_fail_n( \
-                    std::move(libassert_decomposer), \
-                    libassert_params \
-                    LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_PRETTY_FUNCTION_ARG \
-                ); \
-            } \
+            LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, #expr, __VA_ARGS__) \
+            libassert::detail::process_assert_fail( \
+                libassert_decomposer, \
+                libassert_params \
+                LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_PRETTY_FUNCTION_ARG \
+            ); \
         } \
         LIBASSERT_WARNING_PRAGMA_POP_MSVC \
         LIBASSERT_WARNING_PRAGMA_POP_CLANG \
