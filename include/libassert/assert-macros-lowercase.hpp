@@ -10,7 +10,7 @@
 
 // Lowercase variants
 
-#ifndef NDEBUG
+#if LIBASSERT_DO_ASSERTIONS
  #if !defined(LIBASSERT_PREFIX_ASSERTIONS)
   #define debug_assert(expr, ...) LIBASSERT_INVOKE(expr, "debug_assert", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
  #else

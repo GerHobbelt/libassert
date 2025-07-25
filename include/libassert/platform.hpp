@@ -338,20 +338,20 @@ LIBASSERT_END_NAMESPACE
 
 #if defined(_MSC_VER) 
 
-#define LIBASSERT_BEGIN_C_HEADER										\
+#define LIBASSERT_BEGIN_C_HEADER								\
         __pragma(pack(push, _CRT_PACKING))						\
         extern "C" {
 
-#define LIBASSERT_END_C_HEADER										\
+#define LIBASSERT_END_C_HEADER									\
         }														\
         __pragma(pack(pop))
 
 #else
 
-#define LIBASSERT_BEGIN_C_HEADER										\
+#define LIBASSERT_BEGIN_C_HEADER								\
         extern "C" {
 
-#define LIBASSERT_END_C_HEADER										\
+#define LIBASSERT_END_C_HEADER									\
         }														
 
 #endif
@@ -360,10 +360,10 @@ LIBASSERT_END_NAMESPACE
 
 #if defined(_MSC_VER) 
 
-#define LIBASSERT_BEGIN_C_HEADER										\
+#define LIBASSERT_BEGIN_C_HEADER								\
         __pragma(pack(push, _CRT_PACKING))
 
-#define LIBASSERT_END_C_HEADER										\
+#define LIBASSERT_END_C_HEADER									\
         __pragma(pack(pop))
 
 #else

@@ -103,7 +103,7 @@ namespace detail {
 				::libassert::detail::format(__VA_ARGS__) \
     ), 0)))
     
-    #ifndef NDEBUG
+    #if LIBASSERT_DO_ASSERTIONS
 	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) ((void)((!!(c)) || ( \
 		(void)::libassert::detail::libassert_detail_primitive_assert_implpp( \
 				::libassert::assert_type::debug_assertion, \
@@ -270,7 +270,7 @@ LIBASSERT_END_NAMESPACE
 				__VA_OPT__(,) __VA_ARGS__, NULL \
     ), 0)))
     
-    #ifndef NDEBUG
+    #if LIBASSERT_DO_ASSERTIONS
 	 #define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(expr, ...) ((void)((!!(expr)) || ( \
 		(void)libassert_detail_primitive_assert_impl( \
 				libassert_debug_assertion_type, \

@@ -24,7 +24,7 @@
  // assert() must act like it's an expression type, rather than a statement type.
  // Some libraries' assertions depend on this behaviour, where the assert() macro
  // can be incorporated inside a comma-separated expression statement.
- #ifndef NDEBUG
+ #if LIBASSERT_DO_ASSERTIONS
   #if !defined(LIBASSERT_ASSERT_IS_EXPRESSION)
    #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, LIBASSERT_EMPTY_ACTION __VA_OPT__(,) __VA_ARGS__)
   #else

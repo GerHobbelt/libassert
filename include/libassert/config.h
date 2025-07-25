@@ -60,6 +60,20 @@
 #define LIBASSERT_NO_STACKTRACE                     0 // default, if you haven't overriden it already
 #endif
 
+// our own NDEBUG-type switch: do we want assertions compiled in or don't we?
+//
+// When we don't say anything (LIBASSERT_DO_ASSERTIONS = 0/1/undefined), follow the system-defined NDEBUG...
+// 
+// BTW, LIBASSERT_DO_ASSERTIONS will be set 0/1 through our libassert/config.h filter, so an easy on/off check is all we will ever need overhere...
+
+#ifndef LIBASSERT_DO_ASSERTIONS
+#ifdef NDEBUG
+#define LIBASSERT_DO_ASSERTIONS                     0 // default, if you haven't overriden it already
+#else
+#define LIBASSERT_DO_ASSERTIONS                     1 // default, if you haven't overriden it already
+#endif
+#endif
+
 //
 // Here we make sure each configuration parameter is either 0 or 1.
 //

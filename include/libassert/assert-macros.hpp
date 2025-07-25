@@ -435,7 +435,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 
 #define LIBASSERT_EMPTY_ACTION   LIBASSERT_NOOP_STATEMENT();
 
-#ifdef NDEBUG
+#if LIBASSERT_DO_ASSERTIONS == 0
  #define LIBASSERT_ASSUME_ACTION LIBASSERT_UNREACHABLE_CALL();
 #else
  #define LIBASSERT_ASSUME_ACTION LIBASSERT_EMPTY_ACTION
@@ -444,7 +444,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 // assertion macros
 
 // Debug assert
-#ifndef NDEBUG
+#if LIBASSERT_DO_ASSERTIONS
  #if !defined(LIBASSERT_PREFIX_ASSERTIONS)
   #define LIBASSERT_DEBUG_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "DEBUG_ASSERT", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
  #else
@@ -473,7 +473,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 #define LIBASSERT_PANIC(...) LIBASSERT_INVOKE_PANIC("PANIC", panic, __VA_ARGS__)
 
 // Unreachable
-#ifndef NDEBUG
+#if LIBASSERT_DO_ASSERTIONS
  #define LIBASSERT_UNREACHABLE(...) LIBASSERT_INVOKE_PANIC("UNREACHABLE", unreachable, __VA_ARGS__)
 #else
  #define LIBASSERT_UNREACHABLE(...) LIBASSERT_UNREACHABLE_CALL()
