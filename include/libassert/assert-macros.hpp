@@ -83,11 +83,6 @@
 #define LIBASSERT_STRINGIFY(x) #x,
 #define LIBASSERT_COMMA ,
 
-// Church boolean
-#define LIBASSERT_IF(b) LIBASSERT_IF_##b
-#define LIBASSERT_IF_true(t,...) t
-#define LIBASSERT_IF_false(t,f,...) f
-
 #if LIBASSERT_IS_CLANG || LIBASSERT_IS_GCC
  #if LIBASSERT_IS_GCC
   #define LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA_GCC \
