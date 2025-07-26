@@ -228,6 +228,32 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 
 #if defined __cplusplus
 
+// ifndef here to allow a library like rsl-test to use this as a customization point for fancy instrumentation
+#ifndef LIBASSERT_ASSERT_MAIN_BODY
+ #define LIBASSERT_ASSERT_MAIN_BODY(expr, name, type, failaction, decomposer_name, condition_value, pretty_function_arg, ...) \
+     if(LIBASSERT_STRONG_EXPECT(!(condition_value), 0)) { \
+         libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
+         LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
+         failaction \
+         LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, #expr, __VA_ARGS__) \
+         libassert::detail::process_assert_fail( \
+             decomposer_name, \
+             libassert_params \
+             LIBASSERT_VA_ARGS(__VA_ARGS__) pretty_function_arg \
+         ); \
+     }
+#endif
+#ifndef LIBASSERT_PANIC_MAIN_BODY
+ #define LIBASSERT_PANIC_MAIN_BODY(name, type, pretty_function_arg, ...) \
+     libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
+     LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
+     LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, "", __VA_ARGS__) \
+     libassert::detail::process_panic( \
+         libassert_params \
+         LIBASSERT_VA_ARGS(__VA_ARGS__) pretty_function_arg \
+     );
+#endif
+
 #define LIBASSERT_INVOKE(expr, name, type, failaction, ...) \
     do { \
         LIBASSERT_WARNING_PRAGMA_PUSH \
@@ -237,17 +263,16 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
         ); \
         LIBASSERT_WARNING_PRAGMA_POP \
         LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); \
-        if(LIBASSERT_STRONG_EXPECT(!static_cast<bool>(libassert_decomposer.get_value()), 0)) { \
-            libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
-            LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
-            failaction \
-            LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, #expr, __VA_ARGS__) \
-            libassert::detail::process_assert_fail( \
-                libassert_decomposer, \
-                libassert_params \
-                LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_PRETTY_FUNCTION_ARG \
-            ); \
-        } \
+        LIBASSERT_ASSERT_MAIN_BODY( \
+            expr, \
+            name, \
+            type, \
+            failaction, \
+            libassert_decomposer, \
+            static_cast<bool>(libassert_decomposer.get_value()), \
+            LIBASSERT_PRETTY_FUNCTION_ARG, \
+            __VA_ARGS__ \
+        ) \
     } while(0) \
 
 #else // __cplusplus
@@ -280,14 +305,13 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 
 #define LIBASSERT_INVOKE_PANIC(name, type, ...) \
     do { \
-        libassert::ERROR_ASSERTION_FAILURE_IN_CONSTEXPR_CONTEXT(); \
-        LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
-        LIBASSERT_STATIC_DATA(name, libassert::assert_type::type, "", __VA_ARGS__) \
-        libassert::detail::process_panic( \
-            libassert_params \
-            LIBASSERT_VA_ARGS(__VA_ARGS__) LIBASSERT_PRETTY_FUNCTION_ARG \
-        ); \
-    } while(0) \
+        LIBASSERT_PANIC_MAIN_BODY( \
+            name, \
+            type, \
+            LIBASSERT_PRETTY_FUNCTION_ARG, \
+            __VA_ARGS__ \
+        ) \
+    } while(0)
 
 #else // __cplusplus
 
