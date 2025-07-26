@@ -57,7 +57,7 @@
 #endif
 
 #ifndef LIBASSERT_NO_STACKTRACE
-#define LIBASSERT_NO_STACKTRACE                     1 // default, if you haven't overriden it already
+#define LIBASSERT_NO_STACKTRACE                     0 // default, if you haven't overriden it already
 #endif
 
 // our own NDEBUG-type switch: do we want assertions compiled in or don't we?
