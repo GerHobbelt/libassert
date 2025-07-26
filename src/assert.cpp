@@ -61,8 +61,8 @@ namespace detail {
 
     constexpr std::string_view libassert_detail_prefix = "libassert::" STR(LIBASSERT_ABI_NAMESPACE_TAG) "::detail::";
 
-#ifdef HAVE_CPPTRACE_HPP
-    auto get_trace_window(const cpptrace::stacktrace& trace) {
+#if !LIBASSERT_NO_STACKTRACE
+	auto get_trace_window(const cpptrace::stacktrace& trace) {
         // Two boundaries: assert_detail and main
         // Both are found here, nothing is filtered currently at stack trace generation
         // (inlining and platform idiosyncrasies interfere)
@@ -195,7 +195,9 @@ namespace detail {
     constexpr size_t where_indent = 8;
     std::string arrow = "=>";
     std::atomic_bool do_diff_highlighting = false;
-    std::atomic<stacktrace_callback_function*> stacktrace_callback = nullptr;
+#if !LIBASSERT_NO_STACKTRACE
+	std::atomic<stacktrace_callback_function*> stacktrace_callback = nullptr;
+#endif
 
     [[nodiscard]]
     std::string print_binary_diagnostics(
@@ -380,9 +382,11 @@ LIBASSERT_BEGIN_NAMESPACE
         detail::do_diff_highlighting = dff;
     }
 
-    void set_stacktrace_callback(stacktrace_callback_function* fn) {
+#if !LIBASSERT_NO_STACKTRACE
+	void set_stacktrace_callback(stacktrace_callback_function* fn) {
         detail::stacktrace_callback = fn;
     }
+#endif
 
     LIBASSERT_EXPORT void set_separator(std::string_view separator) {
         detail::arrow = separator;
@@ -414,7 +418,7 @@ LIBASSERT_BEGIN_NAMESPACE
 
     }
 
-    [[noreturn]] LIBASSERT_EXPORT
+    LIBASSERT_EXPORT
     bool default_failure_handler(const assertion_info& info) {
         enable_virtual_terminal_processing_if_needed(); // for terminal colors on windows
         std::string message = info.to_string(
@@ -492,7 +496,8 @@ LIBASSERT_END_NAMESPACE
 
 LIBASSERT_BEGIN_NAMESPACE
     namespace detail {
-        struct trace_holder {
+#if !LIBASSERT_NO_STACKTRACE
+	struct trace_holder {
             std::variant<cpptrace::raw_trace, cpptrace::stacktrace> trace; // lazy, resolved when needed
 
             trace_holder(cpptrace::raw_trace raw_trace) : trace(raw_trace) {};
@@ -530,6 +535,7 @@ LIBASSERT_BEGIN_NAMESPACE
                 trace_holder_deleter{}
             );
         }
+#endif // !LIBASSERT_NO_STACKTRACE
 
         void set_message(assertion_info& info, const char* value) {
             if(value == nullptr) {
@@ -568,8 +574,11 @@ LIBASSERT_BEGIN_NAMESPACE
         file_name(static_params->location.file),
         line(static_params->location.line),
         function("<error>"),
-        n_args(_n_args),
-        trace(_trace.release()) {}
+        n_args(_n_args)
+#if !LIBASSERT_NO_STACKTRACE
+		, trace(_trace.release())
+#endif
+	{}
 
     assertion_info::~assertion_info() = default;
     assertion_info::assertion_info(const assertion_info& other) :
@@ -583,8 +592,10 @@ LIBASSERT_BEGIN_NAMESPACE
         binary_diagnostics(other.binary_diagnostics),
         extra_diagnostics(other.extra_diagnostics),
         n_args(other.n_args),
-        trace(other.trace ? std::make_unique<trace_holder>(*other.trace) : nullptr),
-        path_handler(other.path_handler ? other.path_handler->clone() : nullptr)
+#if !LIBASSERT_NO_STACKTRACE
+		trace(other.trace ? std::make_unique<trace_holder>(*other.trace) : nullptr),
+#endif
+		path_handler(other.path_handler ? other.path_handler->clone() : nullptr)
         {}
     assertion_info::assertion_info(assertion_info&&) = default;
     assertion_info& assertion_info::operator=(const assertion_info& other) {
@@ -598,8 +609,10 @@ LIBASSERT_BEGIN_NAMESPACE
         binary_diagnostics = other.binary_diagnostics;
         extra_diagnostics = other.extra_diagnostics;
         n_args = other.n_args;
-        trace = other.trace ? std::make_unique<trace_holder>(*other.trace) : nullptr;
-        path_handler = other.path_handler ? other.path_handler->clone() : nullptr;
+#if !LIBASSERT_NO_STACKTRACE
+		trace = other.trace ? std::make_unique<trace_holder>(*other.trace) : nullptr;
+#endif
+		path_handler = other.path_handler ? other.path_handler->clone() : nullptr;
         return *this;
     }
     assertion_info& assertion_info::operator=(assertion_info&&) = default;

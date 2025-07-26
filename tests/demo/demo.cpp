@@ -362,14 +362,12 @@ public:
         //ASSERT_EQ(foo, (int*)nullptr);
 #endif
 
-LIBASSERT_WARNING_PRAGMA_PUSH_CLANG 
-LIBASSERT_WARNING_PRAGMA_PUSH_MSVC 
+LIBASSERT_WARNING_PRAGMA_PUSH
         debug_assert(0 == +(2  ==  garple()));
 #pragma warning(disable: 4805) // '==': unsafe mix of type 'int' and type 'int' in operation
 		debug_assert(0 == (2 == garple()));
 		debug_assert(0 == 2 == garple());
-LIBASSERT_WARNING_PRAGMA_POP_MSVC 
-LIBASSERT_WARNING_PRAGMA_POP_CLANG
+LIBASSERT_WARNING_PRAGMA_POP
 
         debug_assert(true ? false : true, "pffft");
         {

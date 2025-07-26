@@ -1,4 +1,5 @@
 #define LIBASSERT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS      0
+#include <libassert/assert-gtest.hpp>
 #include <gtest/gtest.h>
 
 #include "utils.hpp"
@@ -15,14 +16,11 @@
 
 #ifdef TEST_MODULE
 import libassert;
-#include <libassert/assert-macros.hpp>
-#else
-#include <libassert/assert.h>
 #endif
 
 using namespace std::literals;
 
-static inline void failure_handler(const libassert::assertion_info& info) {
+static inline bool failure_handler(const libassert::assertion_info& info) {
     // everything from .to_string except the stacktrace
     std::string output;
     output += info.tagline(libassert::color_scheme::blank);

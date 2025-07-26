@@ -6,7 +6,7 @@
 #endif // !defined(__cplusplus)
 
 #undef  LIBASSERT_PREFIX_ASSERTIONS   
-#define LIBASSERT_PREFIX_ASSERTIONS   1
+//#define LIBASSERT_PREFIX_ASSERTIONS   1
 #include <libassert/config.h>
 
 #include <gtest/gtest.h>

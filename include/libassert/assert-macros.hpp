@@ -316,7 +316,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
         R \
     }))
  #define LIBASSERT_STATIC_CAST_TO_BOOL(x) static_cast<bool>(x)
-#else
+#else // LIBASSERT_IS_CLANG || LIBASSERT_IS_GCC
  #define LIBASSERT_ASSERT_STMT_EXPR(B, R) [&](const char* libassert_msvc_pfunc) { B return R }(LIBASSERT_PFUNC)
  // Workaround for msvc bug
  #define LIBASSERT_STATIC_CAST_TO_BOOL(x) libassert::detail::static_cast_to_bool(x)
@@ -413,8 +413,6 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
  #define LIBASSERT_UNREACHABLE(...) LIBASSERT_INVOKE_PANIC("UNREACHABLE", unreachable, __VA_ARGS__)
 #else
  #define LIBASSERT_UNREACHABLE(...) LIBASSERT_UNREACHABLE_CALL()
-#endif
-
 #endif
 
 #endif // LIBASSERT_HPP

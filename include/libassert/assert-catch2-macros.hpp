@@ -31,7 +31,7 @@ namespace detail {
     // catch line wrapping can't handle ansi sequences before 3.6 https://github.com/catchorg/Catch2/issues/2833
     inline constexpr bool use_color = CATCH_VERSION_MAJOR > 3 || (CATCH_VERSION_MAJOR == 3 && CATCH_VERSION_MINOR >= 6);
 
-    inline void catch2_failure_handler(const assertion_info& info) {
+    inline bool catch2_failure_handler(const assertion_info& info) {
         if(use_color) {
             enable_virtual_terminal_processing_if_needed();
         }
@@ -58,11 +58,10 @@ LIBASSERT_END_NAMESPACE
 
 #define REQUIRE_ASSERT(expr) \
     do { \
-        LIBASSERT_WARNING_PRAGMA_PUSH_CLANG \
-        LIBASSERT_WARNING_PRAGMA_PUSH_MSVC \
+        LIBASSERT_WARNING_PRAGMA_PUSH \
         LIBASSERT_IGNORE_UNUSED_VALUE \
         auto handler = ::libassert::get_failure_handler(); \
-        ::libassert::set_failure_handler([] (const ::libassert::assertion_info& info) { \
+        ::libassert::set_failure_handler([] (const ::libassert::assertion_info& info) -> bool { \
             throw info; \
         }); \
         bool did_assert = false; \
@@ -76,8 +75,7 @@ LIBASSERT_END_NAMESPACE
             CATCH_FAIL("Expected assertion failure from " #expr " however none happened"); \
         } \
         ::libassert::set_failure_handler(handler); \
-        LIBASSERT_WARNING_PRAGMA_POP_MSVC \
-        LIBASSERT_WARNING_PRAGMA_POP_CLANG \
+        LIBASSERT_WARNING_PRAGMA_POP \
     } while(0)
 
 #endif

@@ -39,7 +39,7 @@
 #include <libassert/expression-decomposition.hpp>
 #include <libassert/assert-macros.hpp>
 
-#if LIBASSERT_NO_STACKTRACE
+#if !LIBASSERT_NO_STACKTRACE
 
 #if defined __cplusplus
 
@@ -138,8 +138,10 @@ LIBASSERT_BEGIN_NAMESPACE
 
     LIBASSERT_EXPORT void set_diff_highlighting(bool);
 
-    using stacktrace_callback_function = void(cpptrace::stacktrace&);
+#if !LIBASSERT_NO_STACKTRACE
+	typedef void stacktrace_callback_function(cpptrace::stacktrace&);
     LIBASSERT_EXPORT void set_stacktrace_callback(stacktrace_callback_function*);
+#endif
 
     // set separator used for diagnostics, by default it is "=>"
     // note: not thread-safe
@@ -260,13 +262,14 @@ LIBASSERT_BEGIN_NAMESPACE
             virtual void add_path(std::string_view);
             virtual void finalize();
         };
-        struct trace_holder;
+
+		struct trace_holder;
         // deleter needed so unique ptr move/delete can work on the opaque pointer
         struct LIBASSERT_EXPORT trace_holder_deleter {
             void operator()(trace_holder*);
         };
         LIBASSERT_ATTR_NOINLINE LIBASSERT_EXPORT std::unique_ptr<trace_holder, trace_holder_deleter> generate_trace();
-    }
+	}
 
     struct LIBASSERT_EXPORT assertion_info {
         std::string_view macro_name;
@@ -280,7 +283,9 @@ LIBASSERT_BEGIN_NAMESPACE
         std::vector<extra_diagnostic> extra_diagnostics;
         size_t n_args;
     private:
-        std::unique_ptr<detail::trace_holder> trace;
+#if !LIBASSERT_NO_STACKTRACE
+		std::unique_ptr<detail::trace_holder> trace;
+#endif
         mutable std::unique_ptr<detail::path_handler> path_handler;
         detail::path_handler* get_path_handler() const; // will get and setup the path handler
     public:

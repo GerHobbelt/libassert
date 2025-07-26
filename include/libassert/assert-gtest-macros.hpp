@@ -6,7 +6,7 @@
 #endif // !defined(__cplusplus)
 
 #undef  LIBASSERT_PREFIX_ASSERTIONS   
-#define LIBASSERT_PREFIX_ASSERTIONS   1
+//#define LIBASSERT_PREFIX_ASSERTIONS   1
 #include <libassert/config.h>
 
 #include <libassert/assert-macros.hpp>
@@ -22,7 +22,7 @@
 
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {
-    inline void gtest_failure_handler(const assertion_info& info) {
+    inline bool gtest_failure_handler(const assertion_info& info) {
         enable_virtual_terminal_processing_if_needed(); // for terminal colors on windows
         auto width = terminal_width(stderr_fileno);
         const auto& scheme = isatty(stderr_fileno) ? get_color_scheme() : color_scheme::blank;

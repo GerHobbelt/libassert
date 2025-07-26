@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#undef ASSERT_LOWERCASE
+#undef LIBASSERT_LOWERCASE
 
 #ifdef TEST_MODULE
 #include <gtest/gtest.h>
