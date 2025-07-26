@@ -139,7 +139,7 @@ LIBASSERT_BEGIN_NAMESPACE
     LIBASSERT_EXPORT void set_diff_highlighting(bool);
 
 #if !LIBASSERT_NO_STACKTRACE
-	typedef void stacktrace_callback_function(cpptrace::stacktrace&);
+    using stacktrace_callback_function = void(cpptrace::stacktrace&);
     LIBASSERT_EXPORT void set_stacktrace_callback(stacktrace_callback_function*);
 #endif
 
