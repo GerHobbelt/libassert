@@ -1,4 +1,3 @@
-#define LIBASSERT_ENFORCE_BOOLEAN_ASSERT_EXPRESSIONS      0
 #include <libassert/assert-gtest.hpp>
 #include <gtest/gtest.h>
 
@@ -54,7 +53,7 @@ static std::string_view mtrim(const std::string_view s) {
         return "";
     }
     const size_t r = s.find_last_not_of(" ") + 1;
-    ASSERT(r != std::string_view::npos);
+    LIBASSERT_ASSERT(r != std::string_view::npos);
     return s.substr(l, r - l);
 }
 
@@ -890,7 +889,7 @@ TEST(LibassertBasic, StringificationCustomizationPoint) {
 TEST(LibassertBasic, Panic) {
     const std::vector<std::string> vec{"foo", "bar", "baz"};
     CHECK(
-        PANIC("message", vec),
+        LIBASSERT_PANIC("message", vec),
         R"XX(
         |Panic at <LOCATION>: message
         |    PANIC(...);
@@ -900,7 +899,7 @@ TEST(LibassertBasic, Panic) {
     );
     float x = 40;
     CHECK(
-        PANIC(x),
+		LIBASSERT_PANIC(x),
         R"XX(
         |Panic at <LOCATION>:
         |    PANIC(...);
@@ -915,7 +914,7 @@ TEST(LibassertBasic, DebugAssert) {
     int y = 2;
     #ifndef NDEBUG
     CHECK(
-        DEBUG_ASSERT(x == y),
+		LIBASSERT_DEBUG_ASSERT(x == y),
         R"XX(
         |Debug Assertion failed at <LOCATION>:
         |    DEBUG_ASSERT(x == y);
@@ -925,7 +924,7 @@ TEST(LibassertBasic, DebugAssert) {
         )XX"
     );
     #else
-    SHOULD_PASS(DEBUG_ASSERT(x == y));
+    SHOULD_PASS(LIBASSERT_DEBUG_ASSERT(x == y));
     #endif
 }
 
