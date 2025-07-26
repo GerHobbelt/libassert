@@ -775,6 +775,12 @@ namespace libassert {
 - `set_failure_handler`: Sets the assertion handler for the program.
 - `default_failure_handler`: The default failure handler, provided for convenience.
 
+Failure handlers MAY return a boolean value instead of throwing an exception or otherwise aborting
+the execution of the running code:
+
+- `false`: treat this assertion as a debug_assert, i.e. report but DO NOT abort: continue executing the application code following the assertion.
+- `true`: treat as a regular, aborting assert: libassert will treat this as a panic assertion.
+
 Example: If you wanted to log to a file in addition to the default behavior you could do something along the lines of:
 
 ```cpp
