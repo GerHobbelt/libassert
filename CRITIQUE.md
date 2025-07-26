@@ -87,6 +87,8 @@ checking `f1 ~= f2` by way of `fabs(f2 - f1) <= SOME_CONTEXT_DEPENDENT_EPSILON)`
 
 Okay, nobody I've seen has a nicely readable coded answer to this one (myself included), but in old skool code it invariably resulted in using specialized comparison functions / methods for such checks.
 
+> Do note the float_compare C++ repository, which offers these floating point comparison functions in a nice little wrapper!
+
 Attempting to incorporate this into `libassert`'s way of doing things makes reading the *combination* of such comparisons and `ASSERT_VAL()`-style value-forwarding assertion expressions 
 very hard to read for both John Doe and the original author (after some calendar time has passed), no matter how we code this sort of thing...
 
@@ -110,7 +112,7 @@ to
         autp rv = BigFatFunctionCall(arg);
         ASSERT_GE(rv, 42);
 
-as you'ld expect any classic assertion library would expect you to code.
+as any classic assertion library would expect you to code.
 
 
 
@@ -127,6 +129,25 @@ The C++ & C mode support requirement implies that a `libassert`-style reporting 
 A further library simplification is considered, where the `ASSERT_VAL()` and related expression value forwarding assertion expression macros are to be discarded: we would then only accept assertion *statements*.
 
 The stacktrace and value reporting facilities of `libassert` are grand and should be kept, but I belive I'll fare better with a slightly more classic approach to an assertions library in production code.
+
+
+
+## However/Post.Scriptum...(conclusion)
+
+My own argument for using format string based approaches for both C++ and C build mode holds no water: C++ uses `{fmt}`/`std::format` which has `{}` markers for value injection, while C uses `%d/%s/%xyz...` for the same:
+that's two very different format string specs for the same thing, so C++ and C code assertions won't ever be *exactly* the same.
+
+So the question to ask here is:
+when we have two different string formatting approaches anyway, what's the real problem with one having *no* format string approach (C++ with original libassert) and the C code still using its 'classic' printf-style approach? NIH?
+
+After a short while running with my original opinion, I have to say: it does not matter, not for me at least, when it comes to the number of typing/coding mistakes made in any assertion "extra data" tail.
+In fact, Jeremy's approach (*no format string what-so-ever*) is slightly better in that regard as there you cannot fuck up the std::format string, as there's nothing to *specify*; *iff* you want/need special
+formatting of one or more of those Extra Parameters, you can always go and run it through a local `std::format() -> std::string` transformation while feeding it to the libassert macros!
+
+... backpedaling on/reverting my earlier decision re C++: re-introducing Jeremy's Extra Parameters approach for C++ at least. (Yes, it won't fly for C, so we have those printf()-style format strings there, but that's tolerable:
+limitations of the language...)
+
+
 
 
 
