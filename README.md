@@ -767,8 +767,8 @@ Lastly, any types with an ostream `operator<<` overload can be stringified.
 
 ```cpp
 namespace libassert {
-    void set_failure_handler(void (*handler)(const assertion_info&));
-    void default_failure_handler(const assertion_info& info);
+    void set_failure_handler(bool (*handler)(const assertion_info&));
+    bool default_failure_handler(const assertion_info& info);
 }
 ```
 
@@ -787,7 +787,7 @@ void handler(const assertion_info& info) {
 For more complex custom handling you can modify the default handler's logic:
 
 ```cpp
-void default_failure_handler(const assertion_info& info) {
+bool default_failure_handler(const assertion_info& info) {
     libassert::enable_virtual_terminal_processing_if_needed(); // for terminal colors on windows
     std::string message = info.to_string(
         libassert::terminal_width(libassert::stderr_fileno),
@@ -800,7 +800,7 @@ void default_failure_handler(const assertion_info& info) {
         case libassert::assert_type::debug_assertion:
             (void)fflush(stderr);
             LIBASSERT_BREAKPOINT_IF_DEBUGGING(); /* __debugbreak(); */
-            return;
+            return false;
         case libassert::assert_type::assertion:
         case libassert::assert_type::assumption:
         case libassert::assert_type::panic:
@@ -814,6 +814,7 @@ void default_failure_handler(const assertion_info& info) {
             std::cerr << "Critical error: Unknown libassert::assert_type" << std::endl;
             std::abort(1);
     }
+	return true;
 }
 ```
 
