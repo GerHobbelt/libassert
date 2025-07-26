@@ -497,7 +497,7 @@ LIBASSERT_END_NAMESPACE
 LIBASSERT_BEGIN_NAMESPACE
     namespace detail {
 #if !LIBASSERT_NO_STACKTRACE
-	struct trace_holder {
+		struct trace_holder {
             std::variant<cpptrace::raw_trace, cpptrace::stacktrace> trace; // lazy, resolved when needed
 
             trace_holder(cpptrace::raw_trace raw_trace) : trace(raw_trace) {};
@@ -506,7 +506,7 @@ LIBASSERT_BEGIN_NAMESPACE
                 try {
                     return std::get<cpptrace::raw_trace>(trace);
                 } catch(std::bad_variant_access&) {
-                    throw cpptrace::runtime_error("get_raw_trace may only be called before get_stacktrace is called because that resoles the trace internally");
+                    throw cpptrace::runtime_error("get_raw_trace may only be called before get_stacktrace is called because that resolves the trace internally");
                 }
             }
 
@@ -524,18 +524,30 @@ LIBASSERT_BEGIN_NAMESPACE
                 return std::get<cpptrace::stacktrace>(trace);
             }
         };
+#else
+	struct trace_holder {
+		trace_holder() {}
+
+		// get_raw_trace() const {}
+
+		// get_stacktrace() {}
+	};
+#endif // !LIBASSERT_NO_STACKTRACE
 
         void trace_holder_deleter::operator()(trace_holder* ptr) {
             delete ptr;
         }
 
         LIBASSERT_ATTR_NOINLINE std::unique_ptr<trace_holder, trace_holder_deleter> generate_trace() {
-            return std::unique_ptr<trace_holder, trace_holder_deleter>(
+#if !LIBASSERT_NO_STACKTRACE
+			return std::unique_ptr<trace_holder, trace_holder_deleter>(
                 new trace_holder(cpptrace::generate_raw_trace(1)),
                 trace_holder_deleter{}
             );
-        }
+#else
+			return nullptr;
 #endif // !LIBASSERT_NO_STACKTRACE
+		}
 
         void set_message(assertion_info& info, const char* value) {
             if(value == nullptr) {

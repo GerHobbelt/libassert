@@ -283,9 +283,7 @@ LIBASSERT_BEGIN_NAMESPACE
         std::vector<extra_diagnostic> extra_diagnostics;
         size_t n_args;
     private:
-#if !LIBASSERT_NO_STACKTRACE
 		std::unique_ptr<detail::trace_holder> trace;
-#endif
         mutable std::unique_ptr<detail::path_handler> path_handler;
         detail::path_handler* get_path_handler() const; // will get and setup the path handler
     public:
