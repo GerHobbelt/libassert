@@ -259,7 +259,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
         LIBASSERT_WARNING_PRAGMA_PUSH \
         LIBASSERT_EXPRESSION_DECOMP_WARNING_PRAGMA \
         auto libassert_decomposer = ::libassert::detail::expression_decomposer( \
-            libassert::detail::expression_decomposer{} << expr \
+            libassert::detail::expression_decomposer{} << (expr) \
         ); \
         LIBASSERT_WARNING_PRAGMA_POP \
         LIBASSERT_CHECK_EXPR_TYPE_AS_BOOLEAN(expr); \
