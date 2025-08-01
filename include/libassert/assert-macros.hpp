@@ -317,14 +317,12 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 
 #define LIBASSERT_INVOKE_PANIC(name, type, ...) \
     do { \
-        LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(); \
-        LIBASSERT_STATIC_DATA(name, libassert_## type ##_type, "", __VA_ARGS__) \
-        libassert_process_panic( \
-            libassert_params LIBASSERT_PFUNC  \
-            LIBASSERT_PRETTY_FUNCTION_ARG, \
-			0 ## __VA_OPT__(1,) __VA_ARGS__  \
+		((void)libassert_process_panic_impl( \
+				name, __FILE__, __LINE__, LIBASSERT_PFUNC  \
+				__VA_OPT__(,) __VA_ARGS__, NULL \
+			) \
         ); \
-    } while(0) \
+    } while(0)
 
 #endif // __cplusplus
 
@@ -366,8 +364,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 #define LIBASSERT_INVOKE_EXPRESSION(expr, name, type, ...) \
         (static_cast<bool>(expr) ? \
 		((void)0) : \
-		( LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(), \
-		(void)::libassert::detail::libassert_detail_primitive_assert_implpp( \
+		((void)::libassert::detail::primitive_assert_implpp( \
 				::libassert::assert_type::type, \
 				#expr, \
 				name, __FILE__, __LINE__, LIBASSERT_PFUNC, \
@@ -381,8 +378,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 #define LIBASSERT_INVOKE_EXPRESSION(expr, name, type, ...) \
         (!!(expr) ? \
 		((void)0) : \
-		( LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL(), \
-		(void)libassert_detail_primitive_assert_impl( \
+		((void)libassert_detail_primitive_assert_impl( \
 				libassert_## type ##_type, \
 				#expr, \
 				name, __FILE__, __LINE__, LIBASSERT_PFUNC  \

@@ -181,27 +181,6 @@ namespace detail {
             && a.reset == b.reset;
     }
 
-	/////////////////////////////////////////////////////////
-	//
-	// Dealing with uncaught exceptions
-	//
-	////////////////////////////////////////////////////////
-
-	LIBASSERT_ATTR_COLD
-	void generic_handler_for_uncaught_exceptions(void);
-
-	extern "C"
-	void __CRTDECL libassert_terminate_handler(void);
-
-	LIBASSERT_ATTR_COLD
-	void setup_handler_for_uncaught_exceptions(std::terminate_handler handler);
-
-	LIBASSERT_ATTR_COLD
-	void deinit_handler_for_uncaught_exceptions(void);
-
-	LIBASSERT_ATTR_COLD
-	void setup_default_handler_for_uncaught_exceptions(void);
-
 }
 LIBASSERT_END_NAMESPACE
 

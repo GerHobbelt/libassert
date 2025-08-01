@@ -13,7 +13,7 @@
 // is to have *namespace-prefixed* enum constants in any C language files so there's zero risk of enum name collisions!
 //
 // This hack also implies that we must tread carefully and make sure both libassert_detail_primitive_assert_impl() implementation, usage and prototype
-// match up; the implementation is an almost-clone of C++ `libassert_detail_primitive_assert_implpp()`...
+// match up; the implementation is an almost-clone of C++ `libassert::detail::primitive_assert_implpp()`...
 //
 // Lucky for us, C does not check for exact type match of function parameters: this `using` statement produces a *type* that *technically* is not identical
 // to the C enum `libassert_assert_type_t`, while both MUST HAVE the same constants (or this trick will fail horribly!)
@@ -28,6 +28,8 @@ LIBASSERT_EXPORT void libassert_detail_primitive_assert_impl(libassert_assert_ty
 
 	char *nfmt = nullptr;
 
+	LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL();
+
 	/* best effort to even work in out of memory situations */
 	if (message != nullptr && strchr(message, '%') != nullptr) {
 		va_list ap;
@@ -40,6 +42,32 @@ LIBASSERT_EXPORT void libassert_detail_primitive_assert_impl(libassert_assert_ty
 	}
 
 	detail::primitive_assert_impl(static_cast<::libassert::assert_type>(mode), expr, signature, location, nfmt ? nfmt : message ? message : "");
+
+	free(nfmt);
+}
+
+extern "C"
+LIBASSERT_EXPORT void libassert_process_panic_impl(const char* signature, const char* file, const int line, const char* function, const char* message, ...) {
+	using namespace ::libassert;
+
+	source_location location{function, file, line};
+
+	char *nfmt = nullptr;
+
+	LIBASSERT_BREAKPOINT_IF_DEBUGGING_ON_FAIL();
+
+	/* best effort to even work in out of memory situations */
+	if (message != nullptr && strchr(message, '%') != nullptr) {
+		va_list ap;
+		va_start(ap, message);
+		if (libassert_vasprintf(&nfmt, message, ap) <= 0) {
+			free(nfmt);
+			nfmt = nullptr;
+		}
+		va_end(ap);
+	}
+
+	detail::primitive_panic_impl(signature, location, nfmt ? nfmt : message ? message : "");
 
 	free(nfmt);
 }

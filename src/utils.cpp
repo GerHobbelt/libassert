@@ -173,13 +173,35 @@ namespace detail {
         return output;
     }
 
-	LIBASSERT_ATTR_COLD
+	LIBASSERT_EXPORT
+	void primitive_assert_implpp(::libassert::assert_type mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const std::string &formatted_message) {
+		using namespace ::libassert;
+
+		source_location location{function, file, line};
+		detail::primitive_assert_impl(mode, expr, signature, location, formatted_message);
+	}
+
+}
+LIBASSERT_END_NAMESPACE
+
+
+LIBASSERT_BEGIN_NAMESPACE
+
+	LIBASSERT_EXPORT
 	[[noreturn]] void generic_handler_for_uncaught_exceptions(void) {
+		auto eptr = std::current_exception();
 		try {
-			std::rethrow_exception(std::current_exception());
+			if (eptr)
+				std::rethrow_exception(eptr);
+			else
+				throw std::runtime_error("INTERNAL ERROR? libassert::generic_handler_for_uncaught_exceptions() failed to grab the pending exception!");
 		}
 		catch (const std::exception &e) {
 			std::cerr << "Unhandled exception: " << e.what() << "\n";
+		}
+		catch (const std::exception *e) {
+			std::cerr << "Unhandled exception: " << e->what() << "\n";
+			delete e;
 		}
 		catch (...) {
 			std::cerr << "Unhandled exception: UNKNOWN TYPE\n";
@@ -193,6 +215,7 @@ namespace detail {
 	static std::terminate_handler original_u_ex_handler = nullptr;
 
 	extern "C"
+	LIBASSERT_EXPORT
 	[[noreturn]] void __CRTDECL libassert_terminate_handler(void) {
 		if (!u_ex_handler) {
 			generic_handler_for_uncaught_exceptions();
@@ -202,7 +225,7 @@ namespace detail {
 		}
 	}
 
-	LIBASSERT_ATTR_COLD
+	LIBASSERT_EXPORT
 	void setup_handler_for_uncaught_exceptions(std::terminate_handler handler) {
 		auto old_app_f = std::get_terminate();
 		if (old_app_f != libassert_terminate_handler) {
@@ -221,7 +244,7 @@ namespace detail {
 		}
 	}
 
-	LIBASSERT_ATTR_COLD
+	LIBASSERT_EXPORT
 	void deinit_handler_for_uncaught_exceptions(void) {
 		// 'de-init' means: reset callback to original as specified by the application:
 		u_ex_handler = nullptr;
@@ -232,18 +255,10 @@ namespace detail {
 		setup_handler_for_uncaught_exceptions(old_app_f);
 	}
 
-	LIBASSERT_ATTR_COLD
+	LIBASSERT_EXPORT
 	void setup_default_handler_for_uncaught_exceptions(void) {
 		setup_handler_for_uncaught_exceptions(generic_handler_for_uncaught_exceptions);
 	}
 
-	LIBASSERT_EXPORT void libassert_detail_primitive_assert_implpp(::libassert::assert_type mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const std::string &formatted_message) {
-		using namespace ::libassert;
-
-		source_location location{function, file, line};
-		detail::primitive_assert_impl(mode, expr, signature, location, formatted_message);
-	}
-
-}
 LIBASSERT_END_NAMESPACE
 

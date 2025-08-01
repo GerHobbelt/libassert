@@ -96,7 +96,7 @@ namespace detail {
     #define LIBASSERT_PHONY_USE(E) ((void)::libassert::detail::always_false<decltype(E)>)
 
     #define LIBASSERT_PRIMITIVE_ASSERT(c, ...) ((void)((!!(c)) || ( \
-		(void)::libassert::detail::libassert_detail_primitive_assert_implpp( \
+		(void)::libassert::detail::primitive_assert_implpp( \
 				::libassert::assert_type::assertion, \
 				#c, \
 				"primitive_assert", __FILE__, __LINE__, LIBASSERT_PFUNC, \
@@ -105,7 +105,7 @@ namespace detail {
     
     #if LIBASSERT_DO_ASSERTIONS
 	#define LIBASSERT_PRIMITIVE_DEBUG_ASSERT(c, ...) ((void)((!!(c)) || ( \
-		(void)::libassert::detail::libassert_detail_primitive_assert_implpp( \
+		(void)::libassert::detail::primitive_assert_implpp( \
 				::libassert::assert_type::debug_assertion, \
 				#c, \
 				"primitive_debug_assert", __FILE__, __LINE__, LIBASSERT_PFUNC, \
@@ -288,7 +288,8 @@ LIBASSERT_END_NAMESPACE
 
 LIBASSERT_BEGIN_NAMESPACE
 namespace detail {
-	LIBASSERT_EXPORT void libassert_detail_primitive_assert_implpp(::libassert::assert_type mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const std::string &formatted_message);
+
+	LIBASSERT_EXPORT void primitive_assert_implpp(::libassert::assert_type mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const std::string &formatted_message);
 
 	/**
 	 * Formats `args` according to specifications in `fmt` and returns the result
@@ -327,16 +328,50 @@ LIBASSERT_END_NAMESPACE
 
 #else
 
-LIBASSERT_EXPORT void libassert_detail_primitive_assert_impl(libassert_assert_type_t mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const char *message, ...);
+LIBASSERT_EXPORT
+void libassert_detail_primitive_assert_impl(libassert_assert_type_t mode, const char *expr, const char *signature, const char *file, const int line, const char *function, const char *message, ...);
+LIBASSERT_EXPORT
+void libassert_process_panic_impl(const char *signature, const char *file, const int line, const char *function, const char *message, ...);
 
+#endif // __cplusplus
+
+
+#if defined __cplusplus
+LIBASSERT_BEGIN_NAMESPACE
+
+	/////////////////////////////////////////////////////////
+	//
+	// Dealing with uncaught exceptions
+	//
+	////////////////////////////////////////////////////////
+
+	LIBASSERT_EXPORT
+	void generic_handler_for_uncaught_exceptions(void);
+
+	extern "C"
+	LIBASSERT_EXPORT
+	void __CRTDECL libassert_terminate_handler(void);
+
+	LIBASSERT_EXPORT
+	void setup_handler_for_uncaught_exceptions(std::terminate_handler handler);
+
+	LIBASSERT_EXPORT
+	void deinit_handler_for_uncaught_exceptions(void);
+
+	LIBASSERT_EXPORT
+	void setup_default_handler_for_uncaught_exceptions(void);
+
+LIBASSERT_END_NAMESPACE
 #endif // __cplusplus
 
 
 #if defined __cplusplus
 extern "C" {
 #endif 
+
 LIBASSERT_EXPORT int libassert_asprintf(char **ret, const char *format, ...);
 LIBASSERT_EXPORT int libassert_vasprintf(char **ret, const char *format, va_list ap);
+
 #if defined __cplusplus
 }
 #endif
