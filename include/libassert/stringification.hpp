@@ -538,7 +538,7 @@ namespace detail {
             } else {
                 return stringification::stringify_unknown<T>();
             }
-        } else if constexpr(can_basic_stringify<T>) {
+        } else if constexpr(can_basic_stringify<T> /* && !std::is_null_pointer_v<T> && !std::is_same_v<std::remove_cv_t<T>, void*> */ ) {
             return stringification::stringify(v);
         } else if constexpr(stringification::has_ostream_overload<T>) {
             return stringification::stringify_by_ostream(v);
