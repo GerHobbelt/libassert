@@ -9,8 +9,10 @@
 #include <array>
 #include <cctype>
 #include <cerrno>
+#include <cmath>
 #include <cstdio>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <optional>
 #include <set>
@@ -24,6 +26,11 @@
 
 #include <libassert/assert.h>
 #include <libassert/version.hpp>
+
+#ifdef _MSC_VER
+ // disable unsafe use of bool warning msvc
+ #pragma warning(disable: 4806)
+#endif
 
 #include "monolithic_examples.h"
 
@@ -55,103 +62,28 @@ void wubble();
 namespace {
 
 bool custom_fail(const libassert::assertion_info& assertion) {
-    std::cerr<<assertion.to_string(libassert::terminal_width(STDERR_FILENO), libassert::color_scheme::ansi_rgb)<<std::endl<<std::endl;
+    std::cerr<<assertion.to_string(libassert::terminal_width(libassert::stderr_fileno))<<std::endl<<std::endl;
 	return false;
 }
-
-static std::string indent(const std::string_view str, size_t depth, char c = ' ', bool ignore_first = false) {
-    size_t i = 0, j;
-    std::string output;
-    while((j = str.find('\n', i)) != std::string::npos) {
-        if(i != 0 || !ignore_first) {
-            output.insert(output.end(), depth, c);
-        }
-        output.insert(output.end(), str.begin() + i, str.begin() + j + 1);
-        i = j + 1;
-    }
-    if(i != 0 || !ignore_first) {
-        output.insert(output.end(), depth, c);
-    }
-    output.insert(output.end(), str.begin() + i, str.end());
-    return output;
-}
-
-template<class T> struct S {
-    T x;
-    S() = default;
-    ~S() = default;
-    S(T&& _x) : x(std::forward<T>(_x)) {}
-    // moveable, not copyable
-    S(const S&) = delete;
-    S(S&&) noexcept = default;
-    S& operator=(const S&) = delete;
-    S& operator=(S&&) noexcept = default;
-    bool operator==(const S& s) const { return x == s.x; }
-    friend std::ostream& operator<<(std::ostream& o, const S& s) {
-        o<<"I'm S<"<<libassert::type_name<T>()<<"> and I contain:"<<std::endl;
-        std::ostringstream oss;
-        oss<<s.x;
-        o<<indent(std::move(oss).str(), 4);
-        return o;
-    }
-};
-
-template<> struct S<void> {
-    bool operator==(const S&) const { return false; }
-};
-
-struct P {
-    std::string str;
-    P() = default;
-    ~P() = delete;
-    P(const P&) = delete;
-    P(P&&) = default;
-    P& operator=(const P&) = delete;
-    P& operator=(P&&) = delete;
-    bool operator==(const P& p) const { return str == p.str; }
-    friend std::ostream& operator<<(std::ostream& o, const P& p) {
-        o<<p.str;
-        return o;
-    }
-};
-
-struct M {
-    M() = default;
-    ~M() {
-        puts("M::~M(); called");
-    }
-    M(const M&) = delete;
-    M(M&&) = default; // only move-constructable
-    M& operator=(const M&) = delete;
-    M& operator=(M&&) = delete;
-    bool operator<(int) const & {
-        puts("M::operator<(int)& called");
-        return false;
-    }
-    bool operator<(int) const && {
-        puts("M::operator<(int)&& called");
-        return false;
-    }
-};
 
 int garple() {
     return 2;
 }
 
 static void rec(int n) {
-    if(n == 0) debug_assert(false);
+    if(n == 0) ASSERT(false);
     else rec(n - 1);
 }
 
 static void recursive_a(int), recursive_b(int);
 
 static void recursive_a(int n) {
-    if(n == 0) debug_assert(false);
+    if(n == 0) ASSERT(false);
     else recursive_b(n - 1);
 }
 
 static void recursive_b(int n) {
-    if(n == 0) debug_assert(false);
+    if(n == 0) ASSERT(false);
     else recursive_a(n - 1);
 }
 
@@ -163,11 +95,11 @@ static void zoog(const std::map<std::string, int>& map) {
 	DEBUG_ASSERT(map.size() > 0);
 
 #if __cplusplus >= 202002L
-     DEBUG_ASSERT(map.contains("foo"), "expected key not found");
+     ASSERT(map.contains("foo"), "expected key not found", map);
 #else
-     DEBUG_ASSERT(map.count("foo") != 1, "expected key not found");
+     ASSERT(map.count("foo") != 1, "expected key not found", map);
 #endif
-    DEBUG_ASSERT(map.at("bar") >= 0, "unexpected value for foo in the map");
+    ASSERT(map.at("bar") >= 0, "unexpected value for foo in the map", map);
 }
 
 #define O_RDONLY 0
@@ -183,12 +115,129 @@ static int get_mask() {
     return 0b00101101;
 }
 
-// disable unsafe use of bool warning msvc
-#ifdef _MSC_VER
- #pragma warning(disable: 4806)
-#endif
+namespace demo {
 
-class foo {
+    void basic() {
+        ASSERT(1 == 2);
+        DEBUG_ASSERT(1 == 2);
+        assert(1 == 2);
+        debug_assert(1 == 2);
+        ASSERT(1 == 2, "Messages");
+        // PANIC();
+    }
+
+    void numbers() {
+        ASSERT(18446744073709551606ULL == -10);
+        ASSERT(get_mask() == 0b00001101);
+        ASSERT(0xf == 16);
+        long long x = -9'223'372'036'854'775'807;
+        ASSERT(x & 0x4);
+        ASSERT(!x and true == 2);
+    }
+
+    void strings() {
+        std::string s = "test\n";
+        int i = 0;
+        ASSERT(s == "test");
+        ASSERT(s[i] == 'c', "", s, i);
+    }
+
+    void recursion() {
+        rec(10);
+        recursive_a(10);
+    }
+
+    void containers() {
+        std::set<int> a = { 2, 2, 4, 6, 10 };
+        std::set<int> b = { 2, 2, 5, 6, 10 };
+        std::vector<double> c = { 1.2, 2.44, 3.15159, 5.2 };
+        ASSERT(a == b, c);
+        ASSERT(a == b, ([&] {
+            std::vector<int> diff;
+            std::set_symmetric_difference(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(diff));
+            return diff;
+        } ()));
+        std::map<std::string, int> m0 = {
+            {"foo", 2},
+            {"bar", -2}
+        };
+        ASSERT(false, m0);
+        std::map<std::string, std::vector<int>> m1 = {
+            {"foo", {1, -2, 3, -4}},
+            {"bar", {-100, 200, 400, -800}}
+        };
+        ASSERT(false, m1);
+        auto t = std::make_tuple(1, 0.1 + 0.2, "foobars");
+        ASSERT(false, t);
+        std::array<int, 10> arr = {1,2,3,4,5,6,7,8,9,10};
+        ASSERT(false, arr);
+        std::map<int, int> map {{1,1}};
+        ASSERT(map.count(1) == 2);
+        ASSERT(map.count(1) >= 2 * garple(), "Error while doing XYZ");
+        zoog({
+            //{ "foo", 2 },
+            { "bar", -2 },
+            { "baz", 20 }
+        });
+        std::vector<int> vec = {2, 3, 5, 7, 11, 13};
+        ASSERT(vec.size() > min_items(), "vector doesn't have enough items", vec);
+        std::optional<float> parameter;
+        if(auto i = *ASSERT_VAL(parameter)) {
+            static_assert(std::is_same<decltype(i), float>::value);
+        }
+        [[maybe_unused]] float f = *assert_val(get_param());
+        auto x = [&] () -> decltype(auto) { return ASSERT_VAL(parameter); };
+        static_assert(std::is_same<decltype(x()), std::optional<float>&>::value);
+    }
+
+    void cerrno() {
+        const char* path = "/home/foobar/baz";
+        ASSERT(open(path, O_RDONLY) >= 0, "Internal error with foobars", errno, path);
+        [[maybe_unused]] int fd = open(path, O_RDONLY);
+        ASSERT(fd >= 0, "Internal error with foobars", errno, path);
+        [[maybe_unused]] FILE* f = ASSERT_VAL(fopen(path, "r") != nullptr, "Internal error with foobars", errno, path);
+    }
+
+    void misc() {
+        wubble();
+        std::string s = "h1eLlo";
+        [[maybe_unused]] auto it = std::find_if(
+            s.begin(),
+            s.end(),
+            [](char c) {
+                ASSERT(not isdigit(c), c);
+                return c >= 'A' and c <= 'Z';
+            }
+        );
+        ASSERT(true ? false : true == false);
+        ASSERT(true ? false : true, "pffft");
+        ASSERT(0, 2 == garple());
+    }
+
+    void diff() {
+        libassert::set_diff_highlighting(true);
+        std::string s1 = "Lorem ipsum sit amet";
+        std::string s2 = "Lorem ipsum dolor sit amet";
+        ASSERT(s1 == s2);
+        auto a = std::nextafter(0.3, 0.4);
+        auto b = std::nextafter(a, 0.4);
+        ASSERT(a == b);
+        libassert::set_diff_highlighting(false);
+    }
+}
+
+void foo() {
+    demo::basic();
+    demo::numbers();
+    demo::strings();
+    demo::recursion();
+    demo::containers();
+    demo::cerrno();
+    demo::misc();
+    demo::diff();
+}
+
+class foo2 {
 public:
     template<typename> void bar([[maybe_unused]] std::pair<int, int> x) {
         baz();
@@ -437,7 +486,10 @@ extern "C"
 int main(void) {
     libassert::enable_virtual_terminal_processing_if_needed();
     libassert::set_failure_handler(custom_fail);
-    foo f;
+    
+	foo();
+	
+    foo2 f;
     f.bar<int>({});
 
 	return 0;

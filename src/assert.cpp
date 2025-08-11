@@ -195,9 +195,6 @@ namespace detail {
     constexpr size_t where_indent = 8;
     std::string arrow = "=>";
     std::atomic_bool do_diff_highlighting = false;
-#if !LIBASSERT_NO_STACKTRACE
-	std::atomic<stacktrace_callback_function*> stacktrace_callback = nullptr;
-#endif
 
     [[nodiscard]]
     std::string print_binary_diagnostics(
@@ -382,12 +379,6 @@ LIBASSERT_BEGIN_NAMESPACE
         detail::do_diff_highlighting = dff;
     }
 
-#if !LIBASSERT_NO_STACKTRACE
-	void set_stacktrace_callback(stacktrace_callback_function* fn) {
-        detail::stacktrace_callback = fn;
-    }
-#endif
-
     LIBASSERT_EXPORT void set_separator(std::string_view separator) {
         detail::arrow = separator;
     }
@@ -402,9 +393,12 @@ LIBASSERT_BEGIN_NAMESPACE
         current_path_mode = mode;
     }
 
+    path_mode get_path_mode() {
+        return current_path_mode;
+    }
+
     namespace detail {
-        std::unique_ptr<detail::path_handler> new_path_handler() {
-            auto mode = current_path_mode.load();
+        std::unique_ptr<detail::path_handler> new_path_handler(path_mode mode = get_path_mode()) {
             switch(mode) {
                 case path_mode::disambiguated:
                     return std::make_unique<disambiguating_path_handler>();
@@ -415,7 +409,6 @@ LIBASSERT_BEGIN_NAMESPACE
                     return std::make_unique<identity_path_handler>();
             }
         }
-
     }
 
     LIBASSERT_EXPORT
@@ -514,12 +507,7 @@ LIBASSERT_BEGIN_NAMESPACE
                 if(std::holds_alternative<cpptrace::raw_trace>(trace)) {
                     // do resolution
                     auto raw_trace = std::move(std::get<cpptrace::raw_trace>(trace));
-                    auto resolved = raw_trace.resolve();
-                    auto callback = detail::stacktrace_callback.load();
-                    if(callback) {
-                        callback(resolved);
-                    }
-                    trace = std::move(resolved);
+                    trace = raw_trace.resolve();
                 }
                 return std::get<cpptrace::stacktrace>(trace);
             }
@@ -769,4 +757,25 @@ LIBASSERT_BEGIN_NAMESPACE
         return print_stacktrace(trace, width, scheme, &handler);
     }
 #endif
+
+#if !LIBASSERT_NO_STACKTRACE
+    [[nodiscard]]
+    std::string print_stacktrace(
+        const cpptrace::stacktrace& trace,
+        int width,
+        const color_scheme& scheme,
+        path_mode mode
+    ) {
+        auto path_handler = new_path_handler(mode);
+        // if this is a disambiguating handler or similar it needs to be fed all paths
+        if(path_handler->has_add_path()) {
+            for(const auto& frame : trace.frames) {
+                path_handler->add_path(frame.filename);
+            }
+            path_handler->finalize();
+        }
+        return print_stacktrace(trace, width, scheme, path_handler.get());
+    }
+#endif
+
 LIBASSERT_END_NAMESPACE

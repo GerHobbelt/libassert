@@ -2,5 +2,5 @@
 #include <libassert/assert.h>
 
 void qux(void) {
-    debug_assert(false);
+    ASSERT(false);
 }

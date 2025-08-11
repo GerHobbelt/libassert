@@ -144,7 +144,7 @@ include(FetchContent)
 FetchContent_Declare(
   libassert
   GIT_REPOSITORY https://github.com/jeremy-rifkin/libassert.git
-  GIT_TAG        v2.2.0 # <HASH or TAG>
+  GIT_TAG        v2.2.1 # <HASH or TAG>
 )
 FetchContent_MakeAvailable(libassert)
 target_link_libraries(your_target libassert::assert)
@@ -466,6 +466,12 @@ namespace libassert {
         const color_scheme& scheme = get_color_scheme(),
         std::size_t skip = 0
     );
+    [[nodiscard]] std::string print_stacktrace(
+        const cpptrace::stacktrace& trace,
+        int width = 0,
+        const color_scheme& scheme = get_color_scheme(),
+        path_mode = get_path_mode()
+    );
     template<typename T> [[nodiscard]] std::string_view type_name() noexcept;
     template<typename T> [[nodiscard]] std::string pretty_type_name() noexcept;
     template<typename T> [[nodiscard]] std::string stringify(const T& value);
@@ -482,6 +488,7 @@ namespace libassert {
 ```
 
 - `stacktrace`: Generates a stack trace, formats to the given width (0 for no width formatting)
+- `print_stacktrace`: Formats a provided stack trace with libassert's internal trace formatting
 - `type_name`: Returns the type name of T
 - `pretty_type_name`: Returns the prettified type name for T
 - `stringify`: Produces a debug stringification of a value
@@ -592,10 +599,12 @@ namespace libassert {
         basename, // only the file name is used
     };
     LIBASSERT_EXPORT void set_path_mode(path_mode mode);
+    path_mode get_path_mode();
 }
 ```
 
 - `set_path_mode`: Sets the path shortening mode for assertion output. Default: `path_mode::disambiguated`.
+- `get_path_mode`: Gets the path shortening mode for assertion output.
 
 ## Assertion information
 
@@ -964,7 +973,7 @@ include(FetchContent)
 FetchContent_Declare(
   libassert
   GIT_REPOSITORY https://github.com/jeremy-rifkin/libassert.git
-  GIT_TAG        v2.2.0 # <HASH or TAG>
+  GIT_TAG        v2.2.1 # <HASH or TAG>
 )
 FetchContent_MakeAvailable(libassert)
 target_link_libraries(your_target libassert::assert)
@@ -979,7 +988,7 @@ information.
 
 ```sh
 git clone https://github.com/jeremy-rifkin/libassert.git
-git checkout v2.2.0
+git checkout v2.2.1
 mkdir libassert/build
 cd libassert/build
 cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -1015,7 +1024,7 @@ you when installing new libraries.
 
 ```ps1
 git clone https://github.com/jeremy-rifkin/libassert.git
-git checkout v2.2.0
+git checkout v2.2.1
 mkdir libassert/build
 cd libassert/build
 cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -1033,7 +1042,7 @@ To install just for the local user (or any custom prefix):
 
 ```sh
 git clone https://github.com/jeremy-rifkin/libassert.git
-git checkout v2.2.0
+git checkout v2.2.1
 mkdir libassert/build
 cd libassert/build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/wherever
@@ -1082,7 +1091,7 @@ Libassert is available through conan at https://conan.io/center/recipes/libasser
 
 ```
 [requires]
-libassert/2.2.0
+libassert/2.2.1
 [generators]
 CMakeDeps
 CMakeToolchain

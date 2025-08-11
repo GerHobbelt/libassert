@@ -138,11 +138,6 @@ LIBASSERT_BEGIN_NAMESPACE
 
     LIBASSERT_EXPORT void set_diff_highlighting(bool);
 
-#if !LIBASSERT_NO_STACKTRACE
-    using stacktrace_callback_function = void(::cpptrace::stacktrace&);
-    LIBASSERT_EXPORT void set_stacktrace_callback(stacktrace_callback_function* callback);
-#endif
-
     // set separator used for diagnostics, by default it is "=>"
     // note: not thread-safe
     LIBASSERT_EXPORT void set_separator(std::string_view separator);
@@ -153,12 +148,6 @@ LIBASSERT_BEGIN_NAMESPACE
     [[nodiscard]] std::string highlight_stringify(const T& t, const color_scheme& scheme = get_color_scheme()) {
         return highlight(stringify(t), scheme);
     }
-
-	// generates a stack trace, formats to the given width
-    [[nodiscard]] LIBASSERT_ATTR_NOINLINE LIBASSERT_EXPORT
-    std::string stacktrace(int width = 0, const color_scheme& scheme = get_color_scheme(), std::size_t skip = 0);
-
-	LIBASSERT_EXPORT bool can_produce_stacktrace(void);
 
     enum class literal_format : unsigned {
         // integers and floats are decimal by default, chars are of course chars, and everything else only has one
@@ -201,6 +190,24 @@ LIBASSERT_BEGIN_NAMESPACE
         basename,
     };
     LIBASSERT_EXPORT void set_path_mode(path_mode mode);
+    LIBASSERT_EXPORT path_mode get_path_mode();
+
+    // generates a stack trace, formats to the given width
+    [[nodiscard]] LIBASSERT_ATTR_NOINLINE LIBASSERT_EXPORT
+    std::string stacktrace(int width = 0, const color_scheme& scheme = get_color_scheme(), std::size_t skip = 0);
+
+#if !LIBASSERT_NO_STACKTRACE
+    // formats a stacktrace
+    [[nodiscard]] LIBASSERT_EXPORT
+    std::string print_stacktrace(
+        const cpptrace::stacktrace& trace,
+        int width = 0,
+        const color_scheme& scheme = get_color_scheme(),
+        path_mode = get_path_mode()
+    );
+#endif
+
+	LIBASSERT_EXPORT bool can_produce_stacktrace(void);
 
 	struct assertion_info;
 
