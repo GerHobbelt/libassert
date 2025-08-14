@@ -12,12 +12,15 @@
 
 #if LIBASSERT_DO_ASSERTIONS
  #if !defined(LIBASSERT_PREFIX_ASSERTIONS)
-  #define debug_assert(expr, ...) LIBASSERT_INVOKE(expr, "debug_assert", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+  #define debug_assert(expr, ...)      LIBASSERT_INVOKE(expr, "debug_assert", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
+  #define assert_expression(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "assert_expression", assertion __VA_OPT__(,) __VA_ARGS__)
  #else
-  #define debug_assert(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "debug_assert", debug_assertion, __VA_ARGS__)
+  #define debug_assert(expr, ...)      LIBASSERT_INVOKE_EXPRESSION(expr, "debug_assert", debug_assertion, __VA_ARGS__)
+  #define assert_expression(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "assert_expression", assertion __VA_OPT__(,) __VA_ARGS__)
  #endif
 #else
- #define debug_assert(expr, ...) (void)0
+ #define debug_assert(expr, ...)       LIBASSERT_NOOP_EXPRESSION()
+ #define assert_expression(expr, ...)  LIBASSERT_NOOP_EXPRESSION()
 #endif
 
 // Wrapper macro to allow support for C++26's user generated static_assert messages.

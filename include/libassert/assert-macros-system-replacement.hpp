@@ -16,6 +16,10 @@
   #undef assert
  #endif
 
+ #ifdef assert_expression
+  #undef assert_expression
+ #endif
+
  #ifndef LIBASSERT_INVOKE
   #error "libassert's assert load process failed to properly initialize the `assert` & `LIBASSERT_INVOKE` macros. This suggests there's a bug in libassert itself."
  #endif
@@ -26,12 +30,15 @@
  // can be incorporated inside a comma-separated expression statement.
  #if LIBASSERT_DO_ASSERTIONS
   #if !defined(LIBASSERT_ASSERT_IS_EXPRESSION)
-   #define assert(expr, ...) LIBASSERT_INVOKE(expr, "assert_simple", assertion, LIBASSERT_EMPTY_ACTION __VA_OPT__(,) __VA_ARGS__)
+   #define assert(expr, ...)            LIBASSERT_INVOKE(expr, "assert_simple", assertion, LIBASSERT_EMPTY_ACTION __VA_OPT__(,) __VA_ARGS__)
+   #define assert_expression(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "assert_expression_simple", assertion __VA_OPT__(,) __VA_ARGS__)
   #else
-   #define assert(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "assert_simple", assertion __VA_OPT__(,) __VA_ARGS__)
+   #define assert(expr, ...)            LIBASSERT_INVOKE_EXPRESSION(expr, "assert_simple", assertion __VA_OPT__(,) __VA_ARGS__)
+   #define assert_expression(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "assert_expression_simple", assertion __VA_OPT__(,) __VA_ARGS__)
   #endif
  #else
-  #define assert(expr, ...) LIBASSERT_NOOP_EXPRESSION()
+  #define assert(expr, ...)             LIBASSERT_NOOP_EXPRESSION()
+  #define assert_expression(expr, ...)  LIBASSERT_NOOP_EXPRESSION()
  #endif
 
 #else // LIBASSERT_LOWERCASE
