@@ -262,6 +262,8 @@ LIBASSERT_END_NAMESPACE
 
 #else // __cplusplus
 
+	#define LIBASSERT_PHONY_USE(E) ((void)(E))
+
     #define LIBASSERT_PRIMITIVE_ASSERT(expr, ...) ((void)((!!(expr)) || ( \
 		(void)libassert_detail_primitive_assert_impl( \
 				libassert_assertion_type, \
