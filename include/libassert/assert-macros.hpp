@@ -401,7 +401,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 
 // Debug assert
 #if LIBASSERT_DO_ASSERTIONS
- #if !defined(LIBASSERT_PREFIX_ASSERTIONS)
+ #if !defined(LIBASSERT_ASSERT_IS_EXPRESSION)
   #define LIBASSERT_DEBUG_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "DEBUG_ASSERT", debug_assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
  #else
   #define LIBASSERT_DEBUG_ASSERT(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "DEBUG_ASSERT", debug_assertion, __VA_ARGS__)
@@ -411,7 +411,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 #endif
 
 // Assert
-#if !defined(LIBASSERT_PREFIX_ASSERTIONS)
+#if !defined(LIBASSERT_ASSERT_IS_EXPRESSION)
  #define LIBASSERT_ASSERT(expr, ...) LIBASSERT_INVOKE(expr, "ASSERT", assertion, LIBASSERT_EMPTY_ACTION, __VA_ARGS__)
 #else
  #define LIBASSERT_ASSERT(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "ASSERT", assertion, __VA_ARGS__)
@@ -419,7 +419,7 @@ LIBASSERT_EXPORT void libassert_breakpoint_if_debugger_present(void);
 // lowercase version intentionally done outside of the include guard here
 
 // Assume
-#if !defined(LIBASSERT_PREFIX_ASSERTIONS)
+#if !defined(LIBASSERT_ASSERT_IS_EXPRESSION)
  #define LIBASSERT_ASSUME(expr, ...) LIBASSERT_INVOKE(expr, "ASSUME", assumption, LIBASSERT_ASSUME_ACTION, __VA_ARGS__)
 #else
  #define LIBASSERT_ASSUME(expr, ...) LIBASSERT_INVOKE_EXPRESSION(expr, "ASSUME", assumption, __VA_ARGS__)
